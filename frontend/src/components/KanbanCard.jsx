@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function KanbanCard({ card, onDragStart, onDoubleClick }) {
+export default function KanbanCard({ card, onDragStart, onClick }) {
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
   };
@@ -19,7 +19,7 @@ export default function KanbanCard({ card, onDragStart, onDoubleClick }) {
       className="card"
       draggable="true"
       onDragStart={(e) => onDragStart(e, card)}
-      onDoubleClick={() => onDoubleClick(card)}
+      onClick={() => onClick(card)}
     >
       <div className="card-header">
         <div className="card-title-id">

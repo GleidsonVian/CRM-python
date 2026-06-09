@@ -114,7 +114,7 @@ export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddC
             key={card.id} 
             card={card} 
             onDragStart={onDragStart} 
-            onDoubleClick={onDoubleClickCard}
+            onClick={onDoubleClickCard}
           />
         ))}
       </div>
