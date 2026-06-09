@@ -157,7 +157,10 @@ def get_cards(pipeline_id: int = None, contact_id: int = None, db: Session = Dep
 
 @app.post("/cards", response_model=schemas.Card)
 def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
-    db_card = models.Card(**card.dict())
+    card_dict = card.dict(exclude_unset=True)
+    if "created_at" in card_dict and card_dict["created_at"] is None:
+        del card_dict["created_at"]
+    db_card = models.Card(**card_dict)
     db.add(db_card)
     db.commit()
     db.refresh(db_card)
