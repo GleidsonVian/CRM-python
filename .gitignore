@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Banco de Dados (opcional manter local, mas é boa prática não commitar o SQLite se tiver dados sensíveis)
+# backend/crm.db
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/npm-debug.log
+frontend/yarn-error.log
+
+# OS
+.DS_Store
+Thumbs.db
