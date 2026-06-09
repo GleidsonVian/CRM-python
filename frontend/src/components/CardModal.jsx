@@ -8,13 +8,21 @@ export default function CardModal({ card, stages, onClose, onSave }) {
 
   const [contacts, setContacts] = useState([]);
   const [contactId, setContactId] = useState(card.contact_id || '');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   React.useEffect(() => {
     fetch('http://localhost:8000/contacts')
       .then(r => r.json())
-      .then(data => setContacts(data))
+      .then(data => {
+        setContacts(data);
+        if (card.contact_id) {
+          const c = data.find(x => x.id === parseInt(card.contact_id));
+          if (c) setSearchTerm(`${c.first_name} ${c.last_name || ''}`.trim());
+        }
+      })
       .catch(err => console.error(err));
-  }, []);
+  }, [card.contact_id]);
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -81,14 +89,44 @@ export default function CardModal({ card, stages, onClose, onSave }) {
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ position: 'relative' }}>
               <label>Cliente Vinculado</label>
-              <select className="standard-input" value={contactId} onChange={e => setContactId(e.target.value)}>
-                <option value="">-- Selecione um Contato --</option>
-                {contacts.map(c => (
-                  <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
-                ))}
-              </select>
+              <input 
+                type="text" 
+                className="standard-input" 
+                placeholder="Digite para buscar um contato..."
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value);
+                  setShowDropdown(true);
+                  if (e.target.value === '') setContactId(null);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              />
+              {showDropdown && contacts.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #ccc', borderRadius: '4px', maxHeight: '150px', overflowY: 'auto', zIndex: 10, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                  {contacts.filter(c => `${c.first_name} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
+                    <div style={{ padding: '0.5rem', color: '#888' }}>Nenhum contato encontrado.</div>
+                  ) : (
+                    contacts.filter(c => `${c.first_name} ${c.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase())).map(c => (
+                      <div 
+                        key={c.id} 
+                        style={{ padding: '0.5rem', cursor: 'pointer', borderBottom: '1px solid #eee', color: '#333' }}
+                        onMouseDown={() => {
+                          setContactId(c.id);
+                          setSearchTerm(`${c.first_name} ${c.last_name || ''}`.trim());
+                          setShowDropdown(false);
+                        }}
+                        onMouseEnter={e => e.target.style.background = '#f0f8ff'}
+                        onMouseLeave={e => e.target.style.background = 'white'}
+                      >
+                        {c.first_name} {c.last_name}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
