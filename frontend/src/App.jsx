@@ -43,48 +43,94 @@ function App() {
 
   useEffect(() => {
     fetchPipelines().then(data => {
-      if (data.length > 0 && !window.location.hash.startsWith('#card-')) {
+      if (data.length > 0 && !window.location.hash.startsWith('#deal/')) {
         setActivePipelineId(data[0].id);
       }
     });
   }, []);
 
-  // Hash Routing para os Cards
+  // Hash Routing Avançado
   useEffect(() => {
     const handleHashChange = async () => {
-      const hash = window.location.hash;
-      if (hash.startsWith('#card-')) {
-        const cardIdStr = hash.replace('#card-', '');
-        const cardId = parseInt(cardIdStr);
-        if (isNaN(cardId)) return;
+      const hash = window.location.hash.replace(/^#/, '');
 
+      if (hash === 'contacts') {
+        setCurrentView('contacts');
+        setSelectedCard(null);
+        return;
+      }
+
+      // Rota completa: pipeline/X/deal/Y
+      const dealMatch = hash.match(/^pipeline\/(\d+)\/deal\/(\d+)$/);
+      if (dealMatch) {
+        const pId = parseInt(dealMatch[1]);
+        const dId = parseInt(dealMatch[2]);
+        setCurrentView('crm');
+        setActivePipelineId(pId);
         try {
-          const cardRes = await fetch(`${API_URL}/cards/${cardId}`);
-          if (!cardRes.ok) return;
-          const cardData = await cardRes.json();
-
-          const stagesRes = await fetch(`${API_URL}/stages`);
-          const allStages = await stagesRes.json();
-
-          const stage = allStages.find(s => s.id === cardData.stage_id);
-          if (stage) {
-            setCurrentView('crm');
-            setActivePipelineId(stage.pipeline_id);
+          const cardRes = await fetch(`${API_URL}/cards/${dId}`);
+          if (cardRes.ok) {
+            const cardData = await cardRes.json();
             setSelectedCard(cardData);
+          } else {
+            setSelectedCard(null);
           }
-        } catch (error) {
-          console.error("Erro ao carregar card da URL", error);
-        }
-      } else if (!hash) {
+        } catch(e) {}
+        return;
+      }
+
+      // Rota do pipeline: pipeline/X
+      const pipeMatch = hash.match(/^pipeline\/(\d+)$/);
+      if (pipeMatch) {
+        const pId = parseInt(pipeMatch[1]);
+        setCurrentView('crm');
+        setActivePipelineId(pId);
+        setSelectedCard(null);
+        return;
+      }
+
+      // Atalho: deal/Y (Usado no modal de contatos, auto-descobre o pipeline e reescreve a URL)
+      if (hash.startsWith('deal/')) {
+        const dId = parseInt(hash.replace('deal/', ''));
+        try {
+          const cardRes = await fetch(`${API_URL}/cards/${dId}`);
+          if (cardRes.ok) {
+            const cardData = await cardRes.json();
+            const stagesRes = await fetch(`${API_URL}/stages`);
+            const allStages = await stagesRes.json();
+            const stage = allStages.find(s => s.id === cardData.stage_id);
+            if (stage) {
+              window.history.replaceState(null, '', `#pipeline/${stage.pipeline_id}/deal/${dId}`);
+              setCurrentView('crm');
+              setActivePipelineId(stage.pipeline_id);
+              setSelectedCard(cardData);
+            }
+          }
+        } catch(e) {}
+        return;
+      }
+
+      // Fallback
+      if (!hash) {
         setSelectedCard(null);
       }
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Executar na carga inicial
+    handleHashChange();
 
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Sincronizar mudança de pipeline na URL (quando muda pelo dropdown e não tem card aberto)
+  useEffect(() => {
+    if (currentView === 'crm' && activePipelineId && !selectedCard) {
+      const currentHash = window.location.hash.replace(/^#/, '');
+      if (!currentHash.startsWith(`pipeline/${activePipelineId}/deal/`)) {
+        window.history.replaceState(null, '', `#pipeline/${activePipelineId}`);
+      }
+    }
+  }, [activePipelineId, currentView, selectedCard]);
 
   const fetchBoard = async () => {
     if (!activePipelineId) return;
@@ -355,7 +401,7 @@ function App() {
                   onDrop={handleDrop}
                   onAddCard={handleAddCard}
                   onUpdateStage={handleUpdateStage}
-                  onDoubleClickCard={card => window.location.hash = 'card-' + card.id}
+                  onDoubleClickCard={card => window.location.hash = `pipeline/${activePipelineId}/deal/${card.id}`}
                 />
               ))}
               
