@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import KanbanCard from './KanbanCard';
 
-export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddCard, onUpdateStage, onDoubleClickCard }) {
+export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddCard, onUpdateStage, onClickCard }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
@@ -114,7 +114,7 @@ export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddC
             key={card.id} 
             card={card} 
             onDragStart={onDragStart} 
-            onClick={onDoubleClickCard}
+            onClick={onClickCard}
           />
         ))}
       </div>

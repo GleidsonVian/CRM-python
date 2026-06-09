@@ -414,7 +414,7 @@ function App() {
                   onDrop={handleDrop}
                   onAddCard={handleAddCard}
                   onUpdateStage={handleUpdateStage}
-                  onClick={card => window.location.hash = `pipeline/${activePipelineId}/stage/${card.stage_id}/deal/${card.id}`}
+                  onClickCard={card => window.location.hash = `pipeline/${activePipelineId}/stage/${card.stage_id}/deal/${card.id}`}
                 />
               ))}
               
