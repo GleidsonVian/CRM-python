@@ -62,25 +62,26 @@ export default function ContactsView() {
         <button className="btn-primary" onClick={() => setIsModalOpen(true)}>+ Criar Contato</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', maxWidth: '800px', margin: '0 auto' }}>
         {contacts.length === 0 ? (
           <div style={{ color: 'rgba(255,255,255,0.6)' }}>Nenhum contato cadastrado.</div>
         ) : (
           contacts.map(c => (
-            <div key={c.id} style={{ background: 'rgba(255,255,255,0.95)', color: '#333', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <div key={c.id} style={{ background: 'rgba(255,255,255,0.95)', color: '#333', borderRadius: '12px', padding: '1rem 1.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                 <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #00adef 0%, #0076a3 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
                   {c.first_name.charAt(0)}{c.last_name ? c.last_name.charAt(0) : ''}
                 </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1a1a1a' }}>{c.first_name} {c.last_name}</h3>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1a1a1a' }}>{c.first_name} {c.last_name}</h3>
+                  <div style={{ fontSize: '0.85rem', color: '#777', display: 'flex', gap: '1rem', marginTop: '0.2rem' }}>
+                    {c.phone && <span>📞 {c.phone}</span>}
+                    {c.email && <span>✉️ {c.email}</span>}
+                  </div>
                 </div>
               </div>
-              
-              <div style={{ fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', color: '#555' }}>
-                {c.phone && <div>📞 {c.phone}</div>}
-                {c.email && <div>✉️ {c.email}</div>}
-                {c.cpf && <div>🪪 CPF: {c.cpf}</div>}
+              <div style={{ fontSize: '0.85rem', color: '#555', background: '#f0f2f5', padding: '0.4rem 0.8rem', borderRadius: '20px' }}>
+                🪪 CPF: {c.cpf || 'Não informado'}
               </div>
             </div>
           ))
