@@ -463,9 +463,7 @@ function App() {
               </div>
             </main>
           </>
-        ) : (
-          <ContactsView />
-        )}
+        ) : null}
       </div>
 
       {selectedCard && (
