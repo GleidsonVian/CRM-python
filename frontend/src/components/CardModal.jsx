@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ContactModal from './ContactModal';
 
 export default function CardModal({ card, stages, onClose, onSave }) {
   const [price, setPrice] = useState(card.price || 0);
@@ -10,6 +11,7 @@ export default function CardModal({ card, stages, onClose, onSave }) {
   const [contactId, setContactId] = useState(card.contact_id || '');
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   React.useEffect(() => {
     fetch('http://localhost:8000/contacts')
@@ -38,6 +40,8 @@ export default function CardModal({ card, stages, onClose, onSave }) {
       contact_id: contactId ? parseInt(contactId) : null
     });
   };
+
+  const selectedContactObj = contactId ? contacts.find(c => c.id === parseInt(contactId)) : null;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -90,7 +94,17 @@ export default function CardModal({ card, stages, onClose, onSave }) {
             </div>
 
             <div className="form-group" style={{ position: 'relative' }}>
-              <label>Cliente Vinculado</label>
+              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                Cliente Vinculado
+                {selectedContactObj && (
+                  <span 
+                    style={{ color: '#00adef', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+                    onClick={() => setShowContactModal(true)}
+                  >
+                    👁️ Ver Perfil
+                  </span>
+                )}
+              </label>
               <input 
                 type="text" 
                 className="standard-input" 
@@ -158,13 +172,22 @@ export default function CardModal({ card, stages, onClose, onSave }) {
                 <div className="event-icon created">✨</div>
                 <div className="event-body">
                   <div className="event-title">Negócio criado</div>
-                  <div className="event-time">Hoje</div>
+                  <div className="event-time">
+                    {card.created_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at)) : 'Hoje'}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {showContactModal && selectedContactObj && (
+        <ContactModal 
+          contact={selectedContactObj} 
+          onClose={() => setShowContactModal(false)} 
+        />
+      )}
     </div>
   );
 }

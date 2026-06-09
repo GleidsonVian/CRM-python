@@ -42,6 +42,7 @@ class Card(Base):
     description = Column(String, nullable=True)
     price = Column(Float, default=0.0)
     order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     stage_id = Column(Integer, ForeignKey("stages.id"))
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 class ContactBase(BaseModel):
     first_name: str
@@ -24,6 +25,7 @@ class CardBase(BaseModel):
     price: float = 0.0
     stage_id: int
     contact_id: Optional[int] = None
+    created_at: Optional[datetime] = None
 
 class CardCreate(CardBase):
     order: int = 0
