@@ -114,11 +114,11 @@ function App() {
   }, [activePipelineId, pipelines, currentView]);
 
   const handleDragStart = (e, card) => {
-    e.dataTransfer.setData('cardId', card.id.toString());
+    e.dataTransfer.setData('text/plain', card.id.toString());
   };
 
   const handleDrop = async (e, newStageId) => {
-    const cardIdStr = e.dataTransfer.getData('cardId');
+    const cardIdStr = e.dataTransfer.getData('text/plain');
     if (!cardIdStr) return;
     
     const cardId = parseInt(cardIdStr);
