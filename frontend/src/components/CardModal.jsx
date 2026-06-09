@@ -80,6 +80,13 @@ export default function CardModal({ card, stages, onClose, onSave }) {
               <div className="static-value">{stages.find(s => s.id === card.stage_id)?.name}</div>
             </div>
 
+            <div className="form-group">
+              <label>Criado em</label>
+              <div className="static-value" style={{ background: '#f0f2f5', color: '#555' }}>
+                {card.created_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at)) : 'Data desconhecida'}
+              </div>
+            </div>
+
             <div className="form-group highlight-box">
               <label>Valor e moeda</label>
               <div className="price-input-wrapper">
