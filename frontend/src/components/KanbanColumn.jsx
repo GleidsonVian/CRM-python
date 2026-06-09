@@ -15,15 +15,24 @@ export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddC
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    setIsDragOver(true);
+    e.stopPropagation();
+    if (!isDragOver) setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
     onDrop(e, stage.id);
   };
@@ -45,6 +54,7 @@ export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddC
     <div 
       className={`column-wrapper ${isDragOver ? 'drag-over' : ''}`}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >

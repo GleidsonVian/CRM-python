@@ -23,8 +23,8 @@ export default function KanbanCard({ card, onDragStart, onDoubleClick }) {
     >
       <div className="card-header">
         <div className="card-title-id">
-          Negócio #{card.id}
-          <div style={{fontWeight: 400, marginTop: '2px'}}>{card.title}</div>
+          {card.title}
+          <div style={{fontWeight: 400, marginTop: '2px', fontSize: '0.8em', color: '#666'}}>ID: #{card.id}</div>
         </div>
         {isPaid && <div className="card-badge">PAGO</div>}
       </div>

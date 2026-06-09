@@ -49,8 +49,9 @@ export default function CardModal({ card, stages, onClose, onSave }) {
       <div className="modal-slider" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-header-top">
-            <h2 className="modal-title">
-              Negócio #{card.id} <span className="modal-title-input"><input value={title} onChange={e => setTitle(e.target.value)} /></span>
+            <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="modal-title-input"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nome do negócio" /></span>
+              <span style={{ fontSize: '0.6em', color: '#888', fontWeight: 'normal' }}>ID: #{card.id}</span>
             </h2>
             <div className="modal-actions">
               <button className="btn-primary" onClick={handleSave}>Salvar</button>
@@ -86,6 +87,13 @@ export default function CardModal({ card, stages, onClose, onSave }) {
           <div className="modal-left">
             <h3 className="section-title">SOBRE O NEGÓCIO</h3>
             
+            <div className="form-group">
+              <label>ID Único</label>
+              <div className="static-value" style={{ background: '#f0f2f5', color: '#555', userSelect: 'all' }}>
+                #{card.id}
+              </div>
+            </div>
+
             <div className="form-group">
               <label>Etapa</label>
               <div className="static-value">{stages.find(s => s.id === card.stage_id)?.name}</div>
