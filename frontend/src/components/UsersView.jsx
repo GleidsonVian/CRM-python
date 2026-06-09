@@ -1,140 +1,184 @@
 import React, { useState, useEffect } from 'react';
+import UserModal from './UserModal';
 
-const API_URL = 'http://localhost:8000';
+const API = 'http://localhost:8000';
+
+const avatarColor = (name) => {
+  const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+  let h = 0;
+  for (let i = 0; i < (name||'').length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return colors[Math.abs(h) % colors.length];
+};
+
+const roleLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
+const roleBadgeClass = { admin: 'badge badge-admin', gerente: 'badge badge-gerente', vendedor: 'badge badge-vendedor' };
+
+const IconX = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const emptyForm = { name: '', email: '', role: 'vendedor' };
 
 export default function UsersView() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'vendedor'
-  });
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
-    fetchUsers();
+    fetch(`${API}/users`)
+      .then(r => r.json())
+      .then(data => {
+        setUsers(data);
+        setLoading(false);
+        const hash = window.location.hash.replace(/^#/, '');
+        const m = hash.match(/^users\/(\d+)$/);
+        if (m) {
+          const found = data.find(u => u.id === parseInt(m[1]));
+          if (found) setSelectedUser(found);
+        }
+      })
+      .catch(() => setLoading(false));
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch(`${API_URL}/users`);
-      const data = await res.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Erro ao buscar usuários", error);
-    } finally {
-      setLoading(false);
-    }
+  const openUser = (u) => {
+    setSelectedUser(u);
+    window.history.pushState(null, '', `#users/${u.id}`);
+  };
+
+  const closeUser = () => {
+    setSelectedUser(null);
+    window.history.pushState(null, '', '#users');
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.email) return;
+    if (!form.name.trim() || !form.email.trim()) return;
     try {
-      const res = await fetch(`${API_URL}/users`, {
+      const res = await fetch(`${API}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(form)
       });
-      const newUser = await res.json();
-      setUsers([...users, newUser]);
-      closeModal();
-    } catch (error) {
-      console.error("Erro ao criar usuário", error);
-    }
+      const created = await res.json();
+      setUsers(prev => [...prev, created]);
+      setIsCreating(false);
+      setForm(emptyForm);
+    } catch {}
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setFormData({ name: '', email: '', role: 'vendedor' });
-  };
-
-  const filteredUsers = users.filter(u => {
-    const term = searchTerm.toLowerCase();
-    const name = u.name.toLowerCase();
-    const email = u.email.toLowerCase();
-    return name.includes(term) || email.includes(term);
+  const filtered = users.filter(u => {
+    const t = searchTerm.toLowerCase();
+    return u.name.toLowerCase().includes(t) || u.email.toLowerCase().includes(t);
   });
 
-  if (loading) return <div style={{padding: '2rem', color: 'white'}}>Carregando Usuários...</div>;
+  if (loading) return <div className="loading-state">Carregando equipe...</div>;
 
   return (
-    <div style={{ padding: '2rem', color: 'white', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>Equipe / Usuários</h2>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <input 
-            type="text" 
-            placeholder="Pesquisar por nome ou email..." 
+    <div className="view-container">
+      <div className="view-header">
+        <div>
+          <div className="view-title">Equipe</div>
+          <div className="view-subtitle">{users.length} usuário{users.length !== 1 ? 's' : ''}</div>
+        </div>
+        <div className="view-controls">
+          <input
+            className="search-input"
+            placeholder="Buscar por nome ou email..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #ccc', outline: 'none', width: '300px', color: '#333' }}
           />
-          <button className="btn-primary" onClick={() => setIsModalOpen(true)}>+ Criar Usuário</button>
+          <button className="btn btn-primary" onClick={() => setIsCreating(true)}>+ Novo usuário</button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', maxWidth: '800px', margin: '0 auto' }}>
-        {filteredUsers.length === 0 ? (
-          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Nenhum usuário encontrado.</div>
+      <div className="view-body">
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            {searchTerm ? 'Nenhum usuário encontrado.' : 'Nenhum usuário cadastrado ainda.'}
+          </div>
         ) : (
-          filteredUsers.map(u => (
-            <div 
-              key={u.id} 
-              style={{ background: 'rgba(255,255,255,0.95)', color: '#333', borderRadius: '12px', padding: '1rem 1.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                  {u.name.substring(0, 2).toUpperCase()}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1a1a1a' }}>{u.name}</h3>
-                  <div style={{ fontSize: '0.85rem', color: '#777', display: 'flex', gap: '1rem', marginTop: '0.2rem' }}>
-                    <span>✉️ {u.email}</span>
-                  </div>
-                </div>
-              </div>
-              <div style={{ fontSize: '0.85rem', color: '#fff', background: '#34495e', padding: '0.4rem 0.8rem', borderRadius: '20px', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                {u.role}
-              </div>
-            </div>
-          ))
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Função</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(u => {
+                const initials = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                return (
+                  <tr key={u.id} onClick={() => openUser(u)}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div className="avatar-circle" style={{ background: avatarColor(u.name) }}>
+                          {initials}
+                        </div>
+                        <span style={{ fontWeight: 500 }}>{u.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
+                    <td>
+                      <span className={roleBadgeClass[u.role] || 'badge'}>
+                        {roleLabel[u.role] || u.role}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {isModalOpen && (
-        <div className="modal-backdrop" onClick={closeModal} style={{ zIndex: 1000 }}>
-          <div className="modal-slider" onClick={e => e.stopPropagation()} style={{ width: '500px' }}>
-            <div className="modal-header">
-              <h2 className="modal-title">Novo Usuário</h2>
-              <button className="btn-icon" onClick={closeModal}>✕</button>
+      {/* Create modal */}
+      {isCreating && (
+        <div className="overlay" onClick={() => setIsCreating(false)}>
+          <div className="small-modal" onClick={e => e.stopPropagation()}>
+            <div className="small-modal-header">
+              <span className="small-modal-title">Novo usuário</span>
+              <button className="icon-btn" onClick={() => setIsCreating(false)}><IconX /></button>
             </div>
-            <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="small-modal-body">
               <div className="form-group">
-                <label>Nome Completo *</label>
-                <input className="standard-input" autoFocus placeholder="Ex: João Silva" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                <label className="form-label">Nome completo *</label>
+                <input autoFocus className="form-input" placeholder="Ex: João Silva" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>E-mail *</label>
-                <input className="standard-input" type="email" placeholder="joao@empresa.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                <label className="form-label">Email *</label>
+                <input className="form-input" type="email" placeholder="joao@empresa.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Função</label>
-                <select className="standard-input" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                <label className="form-label">Função</label>
+                <select className="form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
                   <option value="vendedor">Vendedor</option>
                   <option value="gerente">Gerente</option>
                   <option value="admin">Administrador</option>
                 </select>
               </div>
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button className="btn-primary" style={{ width: '100%', padding: '1rem' }} onClick={handleSave}>Salvar Usuário</button>
-              </div>
+            </div>
+            <div className="small-modal-footer">
+              <button className="btn btn-ghost" onClick={() => setIsCreating(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={handleSave}>Salvar usuário</button>
             </div>
           </div>
         </div>
+      )}
+
+      {selectedUser && (
+        <UserModal
+          user={selectedUser}
+          onClose={closeUser}
+          onUpdate={(updated) => {
+            setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
+            setSelectedUser(updated);
+          }}
+        />
       )}
     </div>
   );

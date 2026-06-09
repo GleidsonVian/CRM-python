@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import CustomFieldValues from './CustomFieldValues';
 
 const API = 'http://localhost:8000';
 
@@ -13,46 +12,36 @@ const avatarColor = (name) => {
 const fmtCurrency = (val) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 
+const roleLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
+const roleBadgeClass = { admin: 'badge badge-admin', gerente: 'badge badge-gerente', vendedor: 'badge badge-vendedor' };
+
 const IconX = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
     <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 
-const formatPhone = (val) => {
-  let v = val.replace(/\D/g, '');
-  if (v.length > 13) v = v.slice(0, 13);
-  if (!v) return '';
-  if (v.length <= 2) return `+${v}`;
-  if (v.length <= 4) return `+${v.slice(0, 2)} ${v.slice(2)}`;
-  if (v.length <= 9) return `+${v.slice(0, 2)} ${v.slice(2, 4)} ${v.slice(4)}`;
-  return `+${v.slice(0, 2)} ${v.slice(2, 4)} ${v.slice(4, 9)}-${v.slice(9)}`;
-};
-
-export default function ContactModal({ contact, onClose, onUpdate, nested = false }) {
+export default function UserModal({ user, onClose, onUpdate, nested = false }) {
   const [deals, setDeals] = useState([]);
   const [form, setForm] = useState({
-    first_name: contact.first_name || '',
-    last_name: contact.last_name || '',
-    email: contact.email || '',
-    phone: contact.phone || '',
-    cpf: contact.cpf || '',
-    address: contact.address || '',
+    name: user.name || '',
+    email: user.email || '',
+    role: user.role || 'vendedor',
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/cards?contact_id=${contact.id}`)
+    fetch(`${API}/cards?user_id=${user.id}`)
       .then(r => r.json())
       .then(setDeals)
       .catch(() => {});
-  }, [contact.id]);
+  }, [user.id]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API}/contacts/${contact.id}`, {
+      const res = await fetch(`${API}/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -65,9 +54,8 @@ export default function ContactModal({ contact, onClose, onUpdate, nested = fals
     finally { setSaving(false); }
   };
 
-  const fullName = `${form.first_name} ${form.last_name || ''}`.trim();
-  const initials = fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  const color = avatarColor(fullName || contact.first_name);
+  const initials = form.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const color = avatarColor(form.name || user.name);
 
   return (
     <div className="modal-backdrop" onClick={onClose} style={nested ? { zIndex: 200 } : {}}>
@@ -89,11 +77,14 @@ export default function ContactModal({ contact, onClose, onUpdate, nested = fals
                 <input
                   className="modal-title-input"
                   style={{ fontSize: 17 }}
-                  value={form.first_name}
-                  onChange={e => setForm({ ...form, first_name: e.target.value })}
-                  placeholder="Nome"
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  placeholder="Nome completo"
                 />
-                <div className="modal-id">Contato · ID #{contact.id}</div>
+                <div className="modal-id" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className={roleBadgeClass[form.role] || 'badge'}>{roleLabel[form.role]}</span>
+                  <span>· ID #{user.id}</span>
+                </div>
               </div>
             </div>
             <div className="modal-header-actions">
@@ -108,7 +99,6 @@ export default function ContactModal({ contact, onClose, onUpdate, nested = fals
               <button className="icon-btn" onClick={onClose}><IconX /></button>
             </div>
           </div>
-          {/* Tabs simulados */}
           <div className="modal-stages-ribbon">
             <div className="ribbon-item active">Perfil</div>
             <div className="ribbon-item">{deals.length} Negócio{deals.length !== 1 ? 's' : ''}</div>
@@ -116,87 +106,71 @@ export default function ContactModal({ contact, onClose, onUpdate, nested = fals
         </div>
 
         <div className="modal-content-grid">
-          {/* Painel esquerdo — formulário de edição */}
+          {/* Painel esquerdo — edição */}
           <div className="modal-left">
-            <div className="form-section-title">Informações do contato</div>
+            <div className="form-section-title">Informações do usuário</div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-              <div className="form-group">
-                <label className="form-label">Nome *</label>
-                <input
-                  className="form-input"
-                  value={form.first_name}
-                  onChange={e => setForm({ ...form, first_name: e.target.value })}
-                  placeholder="Nome"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Sobrenome</label>
-                <input
-                  className="form-input"
-                  value={form.last_name}
-                  onChange={e => setForm({ ...form, last_name: e.target.value })}
-                  placeholder="Sobrenome"
-                />
-              </div>
+            <div className="form-group">
+              <label className="form-label">Nome completo *</label>
+              <input
+                className="form-input"
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                placeholder="Ex: João Silva"
+              />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email</label>
+              <label className="form-label">Email *</label>
               <input
                 className="form-input"
                 type="email"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
-                placeholder="contato@email.com"
+                placeholder="joao@empresa.com"
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Telefone</label>
-              <input
-                className="form-input"
-                value={form.phone}
-                onChange={e => setForm({ ...form, phone: formatPhone(e.target.value) })}
-                placeholder="+55 27 99999-9999"
-              />
+              <label className="form-label">Função</label>
+              <select
+                className="form-select"
+                value={form.role}
+                onChange={e => setForm({ ...form, role: e.target.value })}
+              >
+                <option value="vendedor">Vendedor</option>
+                <option value="gerente">Gerente</option>
+                <option value="admin">Administrador</option>
+              </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">CPF</label>
-              <input
-                className="form-input"
-                value={form.cpf}
-                onChange={e => setForm({ ...form, cpf: e.target.value })}
-                placeholder="000.000.000-00"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Endereço</label>
-              <input
-                className="form-input"
-                value={form.address}
-                onChange={e => setForm({ ...form, address: e.target.value })}
-                placeholder="Rua das Flores, 123"
-              />
-            </div>
-
-            <div className="form-group" style={{ marginTop: 8 }}>
-              <CustomFieldValues entity="contact" entityId={contact.id} />
+            <div style={{
+              marginTop: 24,
+              padding: 16,
+              background: 'var(--surface)',
+              borderRadius: 'var(--r)',
+              border: '1px solid var(--border)',
+            }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                Resumo
+              </div>
+              <div style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                <div>📋 {deals.length} negócio{deals.length !== 1 ? 's' : ''} atribuído{deals.length !== 1 ? 's' : ''}</div>
+                <div>💰 {fmtCurrency(deals.reduce((acc, d) => acc + (d.price || 0), 0))} em pipeline</div>
+              </div>
             </div>
           </div>
 
-          {/* Painel direito — negócios vinculados */}
+          {/* Painel direito — negócios */}
           <div className="modal-right">
             <div className="timeline-header">
-              Negócios vinculados {deals.length > 0 && `(${deals.length})`}
+              Negócios responsável {deals.length > 0 && `(${deals.length})`}
             </div>
 
             <div className="timeline-events" style={{ padding: 14 }}>
               {deals.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', paddingTop: 24 }}>
-                  Nenhum negócio vinculado ainda.
+                  Nenhum negócio atribuído.
                 </div>
               ) : deals.map(d => (
                 <div
@@ -209,7 +183,7 @@ export default function ContactModal({ contact, onClose, onUpdate, nested = fals
                     padding: '10px 12px',
                     cursor: 'pointer',
                     marginBottom: 8,
-                    transition: 'box-shadow 0.15s, border-color 0.15s',
+                    transition: 'border-color 0.15s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}

@@ -15,7 +15,97 @@ class ContactCreate(ContactBase):
 
 class Contact(ContactBase):
     id: int
+    class Config:
+        from_attributes = True
 
+class ActivityBase(BaseModel):
+    type: str
+    content: str
+    actor: str = 'Usuário'
+
+class ActivityCreate(ActivityBase):
+    pass
+
+class Activity(ActivityBase):
+    id: int
+    card_id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class UserBase(BaseModel):
+    name: str
+    email: str
+    role: str = "vendedor"
+
+class UserCreate(UserBase):
+    pass
+
+class User(UserBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class CustomFieldBase(BaseModel):
+    entity: str
+    name: str
+    key: str = ''
+    uid: str = ''
+    field_type: str = 'text'
+    options: str = '[]'
+    required: bool = False
+    show_on_card: bool = False
+    order: int = 0
+
+class CustomFieldCreate(CustomFieldBase):
+    pass
+
+class CustomField(CustomFieldBase):
+    id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class CustomFieldValueIn(BaseModel):
+    field_id: int
+    value: str = ''
+
+class CustomFieldValueOut(BaseModel):
+    id: int
+    field_id: int
+    entity_id: int
+    value: str = ''
+    class Config:
+        from_attributes = True
+
+class TaskBase(BaseModel):
+    card_id: int
+    title: str
+    description: str = ''
+    due_date: Optional[str] = None
+    assigned_to: str = ''
+    done: bool = False
+
+class TaskCreate(TaskBase):
+    pass
+
+class Task(TaskBase):
+    id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class CommentBase(BaseModel):
+    card_id: int
+    author: str = 'Usuário'
+    content: str
+
+class CommentCreate(CommentBase):
+    pass
+
+class Comment(CommentBase):
+    id: int
+    created_at: datetime
     class Config:
         from_attributes = True
 
@@ -24,16 +114,24 @@ class CardBase(BaseModel):
     description: Optional[str] = None
     price: float = 0.0
     stage_id: int
-    contact_id: Optional[int] = None
+    contact_ids: List[int] = []
+    user_ids: List[int] = []
     created_at: Optional[datetime] = None
 
 class CardCreate(CardBase):
     order: int = 0
 
-class Card(CardBase):
+class Card(BaseModel):
     id: int
+    title: str
+    description: Optional[str] = None
+    price: float = 0.0
     order: int
-
+    stage_id: int
+    created_at: Optional[datetime] = None
+    activities: List[Activity] = []
+    contacts: List[Contact] = []
+    users: List[User] = []
     class Config:
         from_attributes = True
 
@@ -49,7 +147,6 @@ class StageCreate(StageBase):
 class Stage(StageBase):
     id: int
     cards: List[Card] = []
-
     class Config:
         from_attributes = True
 
@@ -62,7 +159,23 @@ class PipelineCreate(PipelineBase):
 class Pipeline(PipelineBase):
     id: int
     stages: List[Stage] = []
+    class Config:
+        from_attributes = True
 
+class AutomationRuleBase(BaseModel):
+    stage_id: int
+    pipeline_id: int
+    name: str = "Regra"
+    action_type: str
+    config: str = "{}"
+    order: int = 0
+    enabled: bool = True
+
+class AutomationRuleCreate(AutomationRuleBase):
+    pass
+
+class AutomationRule(AutomationRuleBase):
+    id: int
     class Config:
         from_attributes = True
 

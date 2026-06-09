@@ -1,42 +1,121 @@
+// v2 — Slate & Emerald palette
 import React, { useState, useEffect } from 'react';
 import KanbanColumn from './components/KanbanColumn';
 import CardModal from './components/CardModal';
 import ContactsView from './components/ContactsView';
 import UsersView from './components/UsersView';
+import ListView from './components/ListView';
+import AutomationsView from './components/AutomationsView';
+import CustomFieldsManager from './components/CustomFieldsManager';
 import './index.css';
 
-const API_URL = 'http://localhost:8000';
+const API = 'http://localhost:8000';
 
-function App() {
-  const [currentView, setCurrentView] = useState('crm'); // 'crm' | 'contacts' | 'users'
+const IconBoard = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <rect x="1.5" y="1.5" width="5" height="12" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="8.5" y="1.5" width="5" height="7" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+    <rect x="8.5" y="10.5" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+  </svg>
+);
+
+const IconContacts = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <circle cx="7.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M2 13a5.5 5.5 0 0 1 11 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconUsers = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <circle cx="5" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
+    <circle cx="10" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M1 12.5a4 4 0 0 1 8 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <path d="M9 12.5a4 4 0 0 1 5-3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconTasks = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <rect x="1.5" y="1.5" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M4.5 7.5l2 2 4-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const IconCalendar = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <rect x="1.5" y="2.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+    <path d="M5 1v3M10 1v3M1.5 6.5h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconEdit = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M9 1.5l2.5 2.5-7 7H2v-2.5l7-7z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M2 3.5h9M5 3.5V2h3v1.5M4 3.5l.5 7h4l.5-7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const IconX = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const IconKanban = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <rect x="1" y="1" width="3.5" height="12" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+    <rect x="5.25" y="1" width="3.5" height="7.5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+    <rect x="9.5" y="1" width="3.5" height="10" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+  </svg>
+);
+
+const IconList = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M3 3.5h8M3 7h8M3 10.5h8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <circle cx="1.5" cy="3.5" r="0.7" fill="currentColor"/>
+    <circle cx="1.5" cy="7" r="0.7" fill="currentColor"/>
+    <circle cx="1.5" cy="10.5" r="0.7" fill="currentColor"/>
+  </svg>
+);
+
+const IconBolt = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M7.5 1L2 7.5h4.5L5.5 12l6-7H7L7.5 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+  </svg>
+);
+
+export default function App() {
+  const [currentView, setCurrentView] = useState('crm');
   const [pipelines, setPipelines] = useState([]);
   const [activePipelineId, setActivePipelineId] = useState(null);
-
   const [stages, setStages] = useState([]);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [draggedCardId, setDraggedCardId] = useState(null);
+  const [showOnCardFields, setShowOnCardFields] = useState([]);
+
+  const [boardView, setBoardView] = useState('kanban'); // 'kanban' | 'list' | 'automations'
+  const [isEditingPipeline, setIsEditingPipeline] = useState(false);
+  const [editPipelineName, setEditPipelineName] = useState('');
+  const [isAddingPipeline, setIsAddingPipeline] = useState(false);
+  const [newPipelineName, setNewPipelineName] = useState('');
   const [isAddingStage, setIsAddingStage] = useState(false);
   const [newStageName, setNewStageName] = useState('');
 
-  const [selectedCard, setSelectedCard] = useState(null);
-
-  // Edit pipeline name
-  const [isEditingPipeline, setIsEditingPipeline] = useState(false);
-  const [editPipelineName, setEditPipelineName] = useState('');
-  
-  // Add new pipeline inline
-  const [isAddingPipeline, setIsAddingPipeline] = useState(false);
-  const [newPipelineName, setNewPipelineName] = useState('');
-
   const fetchPipelines = async () => {
     try {
-      const res = await fetch(`${API_URL}/pipelines`);
+      const res = await fetch(`${API}/pipelines`);
       const data = await res.json();
       setPipelines(data);
       return data;
-    } catch (error) {
-      console.error("Erro ao buscar pipelines", error);
+    } catch {
       setLoading(false);
       return [];
     }
@@ -48,93 +127,84 @@ function App() {
         setActivePipelineId(data[0].id);
       }
     });
+    // fetch once; refreshed when settings view is re-entered
+    fetch(`${API}/custom-fields?entity=deal`)
+      .then(r => r.json())
+      .then(all => setShowOnCardFields(all.filter(f => f.show_on_card)))
+      .catch(() => {});
   }, []);
 
-  // Hash Routing Avançado
   useEffect(() => {
     const handleHashChange = async () => {
       const hash = window.location.hash.replace(/^#/, '');
 
-      if (hash === 'contacts') {
-        setCurrentView('contacts');
-        setSelectedCard(null);
-        return;
-      }
+      if (hash === 'contacts' || hash.startsWith('contacts/')) { setCurrentView('contacts'); setSelectedCard(null); return; }
+      if (hash === 'users' || hash.startsWith('users/')) { setCurrentView('users'); setSelectedCard(null); return; }
 
-      if (hash === 'users') {
-        setCurrentView('users');
-        setSelectedCard(null);
-        return;
-      }
-
-      // Rota completa: pipeline/X/stage/S/deal/Y
       const dealMatch = hash.match(/^pipeline\/(\d+)\/stage\/(\d+)\/deal\/(\d+)$/);
       if (dealMatch) {
         const pId = parseInt(dealMatch[1]);
-        const sId = parseInt(dealMatch[2]);
         const dId = parseInt(dealMatch[3]);
         setCurrentView('crm');
         setActivePipelineId(pId);
         try {
-          const cardRes = await fetch(`${API_URL}/cards/${dId}`);
+          // fetch card and stages in parallel so modal opens with stages ready
+          const [cardRes, stagesRes] = await Promise.all([
+            fetch(`${API}/cards/${dId}`),
+            fetch(`${API}/stages?pipeline_id=${pId}`)
+          ]);
           if (cardRes.ok) {
-            const cardData = await cardRes.json();
+            const [cardData, stagesData] = await Promise.all([cardRes.json(), stagesRes.json()]);
+            setStages(stagesData);
             setSelectedCard(cardData);
-          } else {
-            setSelectedCard(null);
           }
-        } catch(e) {}
+        } catch {}
         return;
       }
 
-      // Rota do pipeline: pipeline/X
       const pipeMatch = hash.match(/^pipeline\/(\d+)$/);
       if (pipeMatch) {
-        const pId = parseInt(pipeMatch[1]);
         setCurrentView('crm');
-        setActivePipelineId(pId);
+        setActivePipelineId(parseInt(pipeMatch[1]));
         setSelectedCard(null);
         return;
       }
 
-      // Atalho: deal/Y (Usado no modal de contatos, auto-descobre o pipeline/stage e reescreve a URL)
       if (hash.startsWith('deal/')) {
         const dId = parseInt(hash.replace('deal/', ''));
         try {
-          const cardRes = await fetch(`${API_URL}/cards/${dId}`);
+          const [cardRes, allStagesRes] = await Promise.all([
+            fetch(`${API}/cards/${dId}`),
+            fetch(`${API}/stages`)
+          ]);
           if (cardRes.ok) {
             const cardData = await cardRes.json();
-            const stagesRes = await fetch(`${API_URL}/stages`);
-            const allStages = await stagesRes.json();
+            const allStages = await allStagesRes.json();
             const stage = allStages.find(s => s.id === cardData.stage_id);
             if (stage) {
               window.history.replaceState(null, '', `#pipeline/${stage.pipeline_id}/stage/${stage.id}/deal/${dId}`);
               setCurrentView('crm');
               setActivePipelineId(stage.pipeline_id);
+              setStages(allStages.filter(s => s.pipeline_id === stage.pipeline_id));
               setSelectedCard(cardData);
             }
           }
-        } catch(e) {}
+        } catch {}
         return;
       }
 
-      // Fallback
-      if (!hash) {
-        setSelectedCard(null);
-      }
+      if (!hash) setSelectedCard(null);
     };
 
     window.addEventListener('hashchange', handleHashChange);
     handleHashChange();
-
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Sincronizar mudança de pipeline na URL (quando muda pelo dropdown e não tem card aberto)
   useEffect(() => {
     if (currentView === 'crm' && activePipelineId && !selectedCard) {
-      const currentHash = window.location.hash.replace(/^#/, '');
-      if (!currentHash.startsWith(`pipeline/${activePipelineId}/stage/`)) {
+      const h = window.location.hash.replace(/^#/, '');
+      if (!h.startsWith(`pipeline/${activePipelineId}/stage/`)) {
         window.history.replaceState(null, '', `#pipeline/${activePipelineId}`);
       }
     }
@@ -144,30 +214,28 @@ function App() {
     if (!activePipelineId) return;
     setLoading(true);
     try {
-      const stagesRes = await fetch(`${API_URL}/stages?pipeline_id=${activePipelineId}`);
-      const stagesData = await stagesRes.json();
-      
-      const cardsRes = await fetch(`${API_URL}/cards?pipeline_id=${activePipelineId}`);
-      const cardsData = await cardsRes.json();
-      
-      setStages(stagesData);
-      setCards(cardsData);
-    } catch (error) {
-      console.error("Erro ao buscar dados", error);
-    } finally {
-      setLoading(false);
-    }
+      const [stagesRes, cardsRes] = await Promise.all([
+        fetch(`${API}/stages?pipeline_id=${activePipelineId}`),
+        fetch(`${API}/cards?pipeline_id=${activePipelineId}`)
+      ]);
+      setStages(await stagesRes.json());
+      setCards(await cardsRes.json());
+    } catch {}
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
     if (currentView === 'crm') {
       fetchBoard();
+      // re-fetch show_on_card fields in case they changed in settings
+      fetch(`${API}/custom-fields?entity=deal`)
+        .then(r => r.json())
+        .then(all => setShowOnCardFields(all.filter(f => f.show_on_card)))
+        .catch(() => {});
     }
     const pipe = pipelines.find(p => p.id === activePipelineId);
     if (pipe) setEditPipelineName(pipe.name);
   }, [activePipelineId, pipelines, currentView]);
-
-  const [draggedCardId, setDraggedCardId] = useState(null);
 
   const handleDragStart = (e, card) => {
     e.dataTransfer.setData('text/plain', card.id.toString());
@@ -176,301 +244,367 @@ function App() {
 
   const handleDrop = async (e, newStageId) => {
     e.preventDefault();
-    const cardIdStr = e.dataTransfer.getData('text/plain');
-    const cardId = cardIdStr ? parseInt(cardIdStr) : draggedCardId;
-    
+    const cardId = parseInt(e.dataTransfer.getData('text/plain') || draggedCardId);
     if (!cardId) return;
-    
     const card = cards.find(c => c.id === cardId);
-    if (!card || card.stage_id === newStageId) {
-      setDraggedCardId(null);
-      return;
-    }
-
-    // Otimista: move o card visualmente
+    if (!card || card.stage_id === newStageId) { setDraggedCardId(null); return; }
     setCards(prev => prev.map(c => c.id === cardId ? { ...c, stage_id: newStageId } : c));
     setDraggedCardId(null);
-
     try {
-      await fetch(`${API_URL}/cards/${cardId}/move`, {
+      await fetch(`${API}/cards/${cardId}/move`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_stage_id: newStageId, new_order: 0 })
       });
-    } catch (error) {
-      console.error("Erro ao mover o card", error);
-    }
+      // Automations run as background tasks on the server; re-fetch after a short
+      // delay so any triggered moves/field changes are reflected immediately.
+      const refreshCards = async () => {
+        try {
+          const res = await fetch(`${API}/cards?pipeline_id=${activePipelineId}`);
+          const updated = await res.json();
+          setCards(updated);
+        } catch {}
+      };
+      setTimeout(refreshCards, 1200);
+      setTimeout(refreshCards, 3000);
+    } catch {}
   };
 
   const handleAddCard = async (stageId, title) => {
     try {
-      const res = await fetch(`${API_URL}/cards`, {
+      const res = await fetch(`${API}/cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, stage_id: stageId, order: 0, price: 0 })
       });
       const newCard = await res.json();
       setCards(prev => [...prev, newCard]);
-    } catch (error) {
-      console.error("Erro ao criar card", error);
+    } catch {}
+  };
+
+  const handleUpdateCardDetails = async (cardId, updatedData) => {
+    setCards(prev => prev.map(c => c.id === cardId ? { ...c, ...updatedData } : c));
+    if (selectedCard?.id === cardId && updatedData.stage_id) {
+      window.history.replaceState(null, '', `#pipeline/${activePipelineId}/stage/${updatedData.stage_id}/deal/${cardId}`);
     }
-  };
-
-  const handleBigCreateBtn = () => {
-    if (stages.length === 0) return;
-    handleAddCard(stages[0].id, `Novo Negócio #${Math.floor(Math.random() * 1000)}`);
-  };
-
-  const handleSaveStage = async () => {
-    if (!newStageName.trim() || !activePipelineId) return;
     try {
-      const res = await fetch(`${API_URL}/stages`, {
-        method: 'POST',
+      await fetch(`${API}/cards/${cardId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newStageName.trim(), order: stages.length, pipeline_id: activePipelineId, color: "#00adef" })
+        body: JSON.stringify(updatedData)
       });
-      const newStage = await res.json();
-      setStages(prev => [...prev, newStage]);
-      setNewStageName('');
-      setIsAddingStage(false);
-    } catch (error) {
-      console.error("Erro ao criar etapa", error);
-    }
+    } catch {}
+  };
+
+  const handleDeleteCard = async (cardId) => {
+    try {
+      await fetch(`${API}/cards/${cardId}`, { method: 'DELETE' });
+      setCards(prev => prev.filter(c => c.id !== cardId));
+      setSelectedCard(null);
+      window.location.hash = `pipeline/${activePipelineId}`;
+    } catch {}
   };
 
   const handleUpdateStage = async (stageId, updatedData) => {
     setStages(prev => prev.map(s => s.id === stageId ? updatedData : s));
     try {
-      await fetch(`${API_URL}/stages/${stageId}`, {
+      await fetch(`${API}/stages/${stageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
       });
-    } catch (error) {
-      console.error("Erro ao atualizar stage", error);
-    }
+    } catch {}
   };
 
-  const handleUpdateCardDetails = async (cardId, updatedData) => {
-    setCards(prev => prev.map(c => c.id === cardId ? { ...c, ...updatedData } : c));
-    if (selectedCard && selectedCard.id === cardId && updatedData.stage_id) {
-       window.history.replaceState(null, '', `#pipeline/${activePipelineId}/stage/${updatedData.stage_id}/deal/${cardId}`);
-    }
-
+  const handleSaveStage = async () => {
+    if (!newStageName.trim() || !activePipelineId) return;
     try {
-      await fetch(`${API_URL}/cards/${cardId}`, {
-        method: 'PUT',
+      const res = await fetch(`${API}/stages`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify({ name: newStageName.trim(), order: stages.length, pipeline_id: activePipelineId, color: '#6366f1' })
       });
-    } catch (error) {
-      console.error("Erro ao atualizar card", error);
-    }
+      const newStage = await res.json();
+      setStages(prev => [...prev, newStage]);
+      setNewStageName('');
+      setIsAddingStage(false);
+    } catch {}
   };
 
-  const handleDeleteCard = async (cardId) => {
-    try {
-      await fetch(`${API_URL}/cards/${cardId}`, { method: 'DELETE' });
-      setCards(prev => prev.filter(c => c.id !== cardId));
-      window.location.hash = `#pipeline/${activePipelineId}`;
-    } catch (err) {
-      console.error("Erro ao excluir card", err);
-    }
-  };
-
-  const handlePipelineSelect = async (e) => {
-    const val = e.target.value;
-    if (val === 'new') {
-      setIsAddingPipeline(true);
-    } else {
-      setActivePipelineId(parseInt(val));
-    }
+  const handlePipelineSelect = (e) => {
+    if (e.target.value === 'new') setIsAddingPipeline(true);
+    else setActivePipelineId(parseInt(e.target.value));
   };
 
   const handleSaveNewPipeline = async () => {
-    if (!newPipelineName.trim()) {
-      setIsAddingPipeline(false);
-      return;
-    }
+    if (!newPipelineName.trim()) { setIsAddingPipeline(false); return; }
     try {
-      const res = await fetch(`${API_URL}/pipelines`, {
+      const res = await fetch(`${API}/pipelines`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newPipelineName.trim() })
       });
-      const newPipe = await res.json();
-      setPipelines(prev => [...prev, newPipe]);
-      setActivePipelineId(newPipe.id);
+      const p = await res.json();
+      setPipelines(prev => [...prev, p]);
+      setActivePipelineId(p.id);
       setIsAddingPipeline(false);
       setNewPipelineName('');
-    } catch (error) {
-      console.error("Erro ao criar pipeline", error);
-    }
-  };
-
-  const handleDeletePipeline = async () => {
-    if (activePipelineName === 'Leads' || activePipelineName === 'Negócios') {
-      alert("Os funis padrão não podem ser excluídos.");
-      return;
-    }
-    
-    if (window.confirm(`Tem certeza que deseja excluir o funil "${activePipelineName}" e todas as suas etapas e negócios? Essa ação não pode ser desfeita.`)) {
-      try {
-        await fetch(`${API_URL}/pipelines/${activePipelineId}`, { method: 'DELETE' });
-        setPipelines(prev => prev.filter(p => p.id !== activePipelineId));
-        setActivePipelineId(pipelines[0].id);
-      } catch (error) {
-        console.error("Erro ao excluir pipeline", error);
-      }
-    }
+    } catch {}
   };
 
   const handleSavePipelineName = async () => {
-    if (!editPipelineName.trim() || !activePipelineId) return;
+    if (!editPipelineName.trim()) return;
     setPipelines(prev => prev.map(p => p.id === activePipelineId ? { ...p, name: editPipelineName } : p));
     setIsEditingPipeline(false);
     try {
-      await fetch(`${API_URL}/pipelines/${activePipelineId}`, {
+      await fetch(`${API}/pipelines/${activePipelineId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: editPipelineName })
       });
-    } catch (error) {
-      console.error("Erro ao renomear pipeline", error);
-    }
+    } catch {}
   };
 
-  if (loading && stages.length === 0 && currentView === 'crm') return <div style={{padding: '2rem', color: 'white'}}>Carregando Nexus CRM...</div>;
+  const handleDeletePipeline = async () => {
+    if (isDefaultPipeline) return;
+    if (!window.confirm(`Excluir o funil "${activePipelineName}"? Essa ação não pode ser desfeita.`)) return;
+    try {
+      await fetch(`${API}/pipelines/${activePipelineId}`, { method: 'DELETE' });
+      const remaining = pipelines.filter(p => p.id !== activePipelineId);
+      setPipelines(remaining);
+      setActivePipelineId(remaining[0]?.id || null);
+    } catch {}
+  };
 
-  const activePipelineName = pipelines.find(p => p.id === activePipelineId)?.name || 'Carregando...';
+  const activePipelineName = pipelines.find(p => p.id === activePipelineId)?.name || '';
   const isDefaultPipeline = activePipelineName === 'Leads' || activePipelineName === 'Negócios';
+
+  const navigate = (view, hash) => {
+    setCurrentView(view);
+    setSelectedCard(null);
+    window.location.hash = hash;
+  };
 
   return (
     <div className="app-wrapper">
+      {/* Sidebar */}
       <aside className="sidebar">
-        <div className="sidebar-logo">NEXUS</div>
-        <div className={`nav-icon ${currentView === 'crm' ? 'active' : ''}`} title="CRM Pipeline" onClick={() => { setCurrentView('crm'); window.location.hash = ''; }}>📊</div>
-        <div className={`nav-icon ${currentView === 'contacts' ? 'active' : ''}`} title="Contatos" onClick={() => { setCurrentView('contacts'); window.location.hash = 'contacts'; }}>👥</div>
-        <div className={`nav-icon ${currentView === 'users' ? 'active' : ''}`} title="Usuários" onClick={() => { setCurrentView('users'); window.location.hash = 'users'; }}>👨‍💼</div>
-        <div className="nav-icon" title="Tarefas">✅</div>
-        <div className="nav-icon" title="Calendário">📅</div>
-        <div className="nav-icon" title="Drive">📁</div>
+        <div className="sidebar-logo">
+          <div className="logo-mark">N</div>
+          <span className="logo-text">Nexus CRM</span>
+        </div>
+
+        <div className="sidebar-section">
+          <div className="sidebar-section-label">Menu</div>
+          <div className={`nav-item ${currentView === 'crm' ? 'active' : ''}`} onClick={() => { setCurrentView('crm'); window.location.hash = activePipelineId ? `pipeline/${activePipelineId}` : ''; }}>
+            <IconBoard /> Pipeline
+          </div>
+          <div className={`nav-item ${currentView === 'contacts' ? 'active' : ''}`} onClick={() => navigate('contacts', 'contacts')}>
+            <IconContacts /> Contatos
+          </div>
+          <div className={`nav-item ${currentView === 'users' ? 'active' : ''}`} onClick={() => navigate('users', 'users')}>
+            <IconUsers /> Equipe
+          </div>
+        </div>
+
+        <div className="sidebar-section">
+          <div className="sidebar-section-label">Em breve</div>
+          <div className="nav-item disabled"><IconTasks /> Tarefas</div>
+          <div className="nav-item disabled"><IconCalendar /> Calendário</div>
+        </div>
+
+        <div className="sidebar-section" style={{ marginTop: 'auto' }}>
+          <div
+            className={`nav-item ${currentView === 'settings' ? 'active' : ''}`}
+            onClick={() => navigate('settings', 'settings')}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.9 2.9l1.1 1.1M11 11l1.1 1.1M2.9 12.1L4 11M11 4l1.1-1.1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+            Configurações
+          </div>
+        </div>
       </aside>
 
+      {/* Main */}
       <div className="main-content">
         {currentView === 'contacts' && <ContactsView />}
         {currentView === 'users' && <UsersView />}
-        {currentView === 'crm' ? (
-          <>
+        {currentView === 'settings' && <CustomFieldsManager />}
+
+        {currentView === 'crm' && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
             <header className="top-header">
               <div className="header-left">
                 {isEditingPipeline ? (
-                  <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-                    <input 
-                      type="text" 
-                      value={editPipelineName} 
+                  <>
+                    <input
+                      className="header-title-input"
+                      autoFocus
+                      value={editPipelineName}
                       onChange={e => setEditPipelineName(e.target.value)}
-                      style={{fontSize: '1.4rem', background: 'transparent', color: 'white', border: '1px solid #00adef', outline: 'none', padding: '0.2rem'}}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSavePipelineName(); if (e.key === 'Escape') setIsEditingPipeline(false); }}
                     />
-                    <button className="btn-primary" onClick={handleSavePipelineName}>Salvar</button>
-                    <button className="btn-cancel" onClick={() => setIsEditingPipeline(false)}>✕</button>
-                  </div>
+                    <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSavePipelineName}>Salvar</button>
+                    <button className="icon-btn" onClick={() => setIsEditingPipeline(false)}><IconX /></button>
+                  </>
                 ) : (
-                  <h1 className="header-title" style={{display: 'flex', alignItems: 'center', gap: '0.8rem'}}>
-                    {activePipelineName} 
-                    {!isDefaultPipeline && (
-                      <div style={{display: 'flex', gap: '0.5rem'}}>
-                        <span style={{fontSize: '1rem', cursor: 'pointer', opacity: 0.5}} onClick={() => setIsEditingPipeline(true)}>✎</span>
-                        <span style={{fontSize: '1rem', cursor: 'pointer', opacity: 0.5}} onClick={handleDeletePipeline}>🗑️</span>
-                      </div>
+                  <>
+                    <span className="header-title">{activePipelineName}</span>
+                    {!isDefaultPipeline && activePipelineName && (
+                      <>
+                        <button className="icon-btn" title="Renomear funil" onClick={() => setIsEditingPipeline(true)}><IconEdit /></button>
+                        <button className="icon-btn" title="Excluir funil" onClick={handleDeletePipeline}><IconTrash /></button>
+                      </>
                     )}
-                  </h1>
+                  </>
                 )}
-                
+
+                <div className="header-sep" />
+
                 <div className="header-controls">
-                  <button className="header-btn primary" onClick={handleBigCreateBtn}>+ Criar</button>
-                  
+                  <button className="btn btn-primary" onClick={() => stages.length > 0 && handleAddCard(stages[0].id, 'Novo negócio')}>
+                    + Criar
+                  </button>
+
+                  {/* Automations button */}
+                  <button
+                    onClick={() => setBoardView(v => v === 'automations' ? 'kanban' : 'automations')}
+                    className={boardView === 'automations' ? 'btn btn-primary' : 'btn btn-ghost'}
+                    style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
+                  >
+                    <IconBolt /> Automações
+                  </button>
+
+                  {/* View toggle */}
+                  <div style={{ display: 'flex', background: '#f1f5f9', border: '1px solid var(--border)', borderRadius: 8, padding: 2, opacity: boardView === 'automations' ? 0.4 : 1, pointerEvents: boardView === 'automations' ? 'none' : 'auto' }}>
+                    <button
+                      onClick={() => setBoardView('kanban')}
+                      title="Kanban"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
+                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        background: boardView === 'kanban' ? 'white' : 'transparent',
+                        color: boardView === 'kanban' ? 'var(--text-primary)' : 'var(--text-muted)',
+                        boxShadow: boardView === 'kanban' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        fontWeight: boardView === 'kanban' ? 600 : 400,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <IconKanban /> Kanban
+                    </button>
+                    <button
+                      onClick={() => setBoardView('list')}
+                      title="Lista"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
+                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        background: boardView === 'list' ? 'white' : 'transparent',
+                        color: boardView === 'list' ? 'var(--text-primary)' : 'var(--text-muted)',
+                        boxShadow: boardView === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        fontWeight: boardView === 'list' ? 600 : 400,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <IconList /> Lista
+                    </button>
+                  </div>
+
                   {isAddingPipeline ? (
-                    <div style={{display: 'flex', gap: '0.3rem', alignItems: 'center', background: 'rgba(255,255,255,0.9)', padding: '2px', borderRadius: '4px'}}>
-                      <input 
+                    <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                      <input
                         autoFocus
-                        type="text" 
-                        placeholder="Nome do Novo Funil" 
-                        style={{padding: '0.3rem', border: 'none', outline: 'none', fontSize: '0.85rem', width: '150px'}}
+                        className="search-input"
+                        style={{ width: 160 }}
+                        placeholder="Nome do funil"
                         value={newPipelineName}
                         onChange={e => setNewPipelineName(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSaveNewPipeline()}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveNewPipeline(); if (e.key === 'Escape') setIsAddingPipeline(false); }}
                       />
-                      <button className="btn-primary" style={{padding: '0.2rem 0.5rem'}} onClick={handleSaveNewPipeline}>OK</button>
-                      <button className="btn-cancel" style={{fontSize: '1rem', padding: '0 0.3rem'}} onClick={() => setIsAddingPipeline(false)}>×</button>
+                      <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveNewPipeline}>OK</button>
+                      <button className="icon-btn" onClick={() => setIsAddingPipeline(false)}><IconX /></button>
                     </div>
                   ) : (
-                    <select 
-                      className="header-btn" 
-                      style={{background: 'rgba(255,255,255,0.1)', color: 'white'}}
-                      value={activePipelineId || ''}
-                      onChange={handlePipelineSelect}
-                    >
-                      {pipelines.map(p => (
-                        <option key={p.id} value={p.id} style={{color: 'black'}}>{p.name}</option>
-                      ))}
-                      <option value="new" style={{color: 'black', fontWeight: 'bold'}}>+ Criar Novo Funil</option>
+                    <select className="pipeline-select" value={activePipelineId || ''} onChange={handlePipelineSelect}>
+                      {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      <option value="new">+ Novo funil</option>
                     </select>
                   )}
                 </div>
               </div>
-              <div className="header-right">
-                <span>Nexus CRM</span>
-              </div>
             </header>
 
-            <main className="board-container">
-              {stages.map((stage, index) => (
-                <KanbanColumn
-                  key={stage.id}
-                  stage={stage}
-                  cards={cards.filter(c => c.stage_id === stage.id).sort((a,b) => a.order - b.order)}
-                  onDragStart={handleDragStart}
-                  onDrop={handleDrop}
-                  onAddCard={handleAddCard}
-                  onUpdateStage={handleUpdateStage}
-                  onClickCard={card => window.location.hash = `pipeline/${activePipelineId}/stage/${card.stage_id}/deal/${card.id}`}
+            {boardView === 'automations' ? (
+              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <AutomationsView
+                  stages={stages}
+                  pipelineId={activePipelineId}
+                  pipelineName={activePipelineName}
+                  onClose={() => setBoardView('kanban')}
                 />
-              ))}
-              
-              <div className="add-stage-col">
-                {isAddingStage ? (
-                  <div className="inline-form" style={{background: 'rgba(255,255,255,0.9)'}}>
-                    <input
-                      autoFocus
-                      type="text"
-                      className="inline-input"
-                      placeholder="Nome da etapa"
-                      value={newStageName}
-                      onChange={(e) => setNewStageName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSaveStage()}
-                    />
-                    <div className="inline-actions">
-                      <button className="btn-primary" onClick={handleSaveStage}>Salvar</button>
-                      <button className="btn-cancel" onClick={() => setIsAddingStage(false)}>×</button>
-                    </div>
-                  </div>
-                ) : (
-                  <button className="quick-add-btn" style={{background: 'rgba(255,255,255,0.1)', padding: '0.5rem', borderRadius: '4px'}} onClick={() => setIsAddingStage(true)}>
-                    + Adicionar fase
-                  </button>
-                )}
               </div>
-            </main>
-          </>
-        ) : null}
+            ) : boardView === 'list' ? (
+              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <ListView
+                  cards={cards}
+                  stages={stages}
+                  onClickCard={card => {
+                    window.location.hash = `pipeline/${activePipelineId}/stage/${card.stage_id}/deal/${card.id}`;
+                  }}
+                />
+              </div>
+            ) : (
+              <main className="board-container">
+                {stages.map(stage => (
+                  <KanbanColumn
+                    key={stage.id}
+                    stage={stage}
+                    cards={cards.filter(c => c.stage_id === stage.id).sort((a, b) => a.order - b.order)}
+                    onDragStart={handleDragStart}
+                    onDrop={handleDrop}
+                    onAddCard={handleAddCard}
+                    onUpdateStage={handleUpdateStage}
+                    showOnCardFields={showOnCardFields}
+                    onClickCard={card => {
+                      window.location.hash = `pipeline/${activePipelineId}/stage/${card.stage_id}/deal/${card.id}`;
+                    }}
+                  />
+                ))}
+
+                <div className="add-stage-col">
+                  {isAddingStage ? (
+                    <div className="inline-form" style={{ background: 'white', border: '1px solid var(--border)', padding: 10 }}>
+                      <input
+                        autoFocus
+                        className="inline-input"
+                        placeholder="Nome da etapa"
+                        value={newStageName}
+                        onChange={e => setNewStageName(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveStage(); if (e.key === 'Escape') setIsAddingStage(false); }}
+                      />
+                      <div className="inline-actions">
+                        <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveStage}>Salvar</button>
+                        <button className="icon-btn" onClick={() => setIsAddingStage(false)}><IconX /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button className="add-stage-trigger" onClick={() => setIsAddingStage(true)}>
+                      + Adicionar etapa
+                    </button>
+                  )}
+                </div>
+              </main>
+            )}
+          </div>
+        )}
       </div>
 
       {selectedCard && (
-        <CardModal 
-          card={selectedCard} 
+        <CardModal
+          card={selectedCard}
           stages={stages.filter(s => s.pipeline_id === activePipelineId)}
-          onClose={() => window.location.hash = `pipeline/${activePipelineId}`}
+          onClose={() => { setSelectedCard(null); window.location.hash = `pipeline/${activePipelineId}`; }}
           onSave={handleUpdateCardDetails}
           onDelete={handleDeleteCard}
         />
@@ -478,5 +612,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
