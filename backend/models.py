@@ -37,8 +37,9 @@ class Contact(Base):
 
 class Card(Base):
     __tablename__ = "cards"
+    __table_args__ = {'sqlite_autoincrement': True}
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True, sqlite_autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(String, index=True)
     description = Column(String, nullable=True)
     price = Column(Float, default=0.0)
