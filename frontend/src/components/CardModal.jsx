@@ -4,13 +4,14 @@ export default function CardModal({ card, stages, onClose, onSave }) {
   const [price, setPrice] = useState(card.price || 0);
   const [title, setTitle] = useState(card.title || '');
   const [description, setDescription] = useState(card.description || '');
+  const [stageId, setStageId] = useState(card.stage_id);
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
   const handleSave = () => {
-    onSave(card.id, { ...card, title, price: parseFloat(price) || 0, description });
+    onSave(card.id, { ...card, title, price: parseFloat(price) || 0, description, stage_id: stageId });
   };
 
   return (
@@ -28,7 +29,12 @@ export default function CardModal({ card, stages, onClose, onSave }) {
           </div>
           <div className="modal-stages-ribbon">
             {stages.map(s => (
-              <div key={s.id} className={`ribbon-item ${s.id === card.stage_id ? 'active' : ''}`}>
+              <div 
+                key={s.id} 
+                className={`ribbon-item ${s.id === stageId ? 'active' : ''}`}
+                onClick={() => setStageId(s.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 {s.name}
               </div>
             ))}
