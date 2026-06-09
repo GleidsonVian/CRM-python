@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ContactModal from './ContactModal';
 
 const API_URL = 'http://localhost:8000';
 
@@ -6,6 +7,7 @@ export default function ContactsView() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -67,7 +69,12 @@ export default function ContactsView() {
           <div style={{ color: 'rgba(255,255,255,0.6)' }}>Nenhum contato cadastrado.</div>
         ) : (
           contacts.map(c => (
-            <div key={c.id} style={{ background: 'rgba(255,255,255,0.95)', color: '#333', borderRadius: '12px', padding: '1rem 1.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+            <div 
+              key={c.id} 
+              onDoubleClick={() => setSelectedContact(c)}
+              style={{ background: 'rgba(255,255,255,0.95)', color: '#333', borderRadius: '12px', padding: '1rem 1.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', cursor: 'pointer' }}
+              title="Dê duplo clique para ver o perfil"
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                 <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #00adef 0%, #0076a3 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
                   {c.first_name.charAt(0)}{c.last_name ? c.last_name.charAt(0) : ''}
@@ -127,6 +134,10 @@ export default function ContactsView() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedContact && (
+        <ContactModal contact={selectedContact} onClose={() => setSelectedContact(null)} />
       )}
     </div>
   );

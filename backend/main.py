@@ -147,10 +147,12 @@ def update_contact(contact_id: int, contact_data: schemas.ContactCreate, db: Ses
 
 # ---- Rotas Cards ----
 @app.get("/cards", response_model=List[schemas.Card])
-def get_cards(pipeline_id: int = None, db: Session = Depends(get_db)):
+def get_cards(pipeline_id: int = None, contact_id: int = None, db: Session = Depends(get_db)):
     query = db.query(models.Card)
     if pipeline_id:
         query = query.join(models.Stage).filter(models.Stage.pipeline_id == pipeline_id)
+    if contact_id:
+        query = query.filter(models.Card.contact_id == contact_id)
     return query.all()
 
 @app.post("/cards", response_model=schemas.Card)
