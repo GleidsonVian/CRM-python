@@ -39,6 +39,7 @@ export default function CardModal({ card, stages, onClose, onSave }) {
       stage_id: stageId,
       contact_id: contactId ? parseInt(contactId) : null
     });
+    onClose();
   };
 
   const selectedContactObj = contactId ? contacts.find(c => c.id === parseInt(contactId)) : null;
@@ -61,7 +62,17 @@ export default function CardModal({ card, stages, onClose, onSave }) {
               <div 
                 key={s.id} 
                 className={`ribbon-item ${s.id === stageId ? 'active' : ''}`}
-                onClick={() => setStageId(s.id)}
+                onClick={() => {
+                  setStageId(s.id);
+                  onSave(card.id, { 
+                    ...card, 
+                    title, 
+                    price: parseFloat(price) || 0, 
+                    description, 
+                    stage_id: s.id,
+                    contact_id: contactId ? parseInt(contactId) : null
+                  });
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 {s.name}

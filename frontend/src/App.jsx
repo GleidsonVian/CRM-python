@@ -190,7 +190,6 @@ function App() {
 
   const handleUpdateCardDetails = async (cardId, updatedData) => {
     setCards(prev => prev.map(c => c.id === cardId ? { ...c, ...updatedData } : c));
-    setSelectedCard(null);
 
     try {
       await fetch(`${API_URL}/cards/${cardId}`, {
