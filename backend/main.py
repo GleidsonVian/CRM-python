@@ -119,6 +119,32 @@ def update_stage(stage_id: int, stage_data: schemas.StageCreate, db: Session = D
     db.refresh(stg)
     return stg
 
+# ---- Rotas Contacts ----
+@app.get("/contacts", response_model=List[schemas.Contact])
+def get_contacts(db: Session = Depends(get_db)):
+    return db.query(models.Contact).all()
+
+@app.post("/contacts", response_model=schemas.Contact)
+def create_contact(contact: schemas.ContactCreate, db: Session = Depends(get_db)):
+    db_contact = models.Contact(**contact.dict())
+    db.add(db_contact)
+    db.commit()
+    db.refresh(db_contact)
+    return db_contact
+
+@app.put("/contacts/{contact_id}", response_model=schemas.Contact)
+def update_contact(contact_id: int, contact_data: schemas.ContactCreate, db: Session = Depends(get_db)):
+    db_contact = db.query(models.Contact).filter(models.Contact.id == contact_id).first()
+    if not db_contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    
+    for key, value in contact_data.dict().items():
+        setattr(db_contact, key, value)
+        
+    db.commit()
+    db.refresh(db_contact)
+    return db_contact
+
 # ---- Rotas Cards ----
 @app.get("/cards", response_model=List[schemas.Card])
 def get_cards(pipeline_id: int = None, db: Session = Depends(get_db)):
@@ -145,6 +171,7 @@ def update_card(card_id: int, card_data: schemas.CardBase, db: Session = Depends
     card.description = card_data.description
     card.price = card_data.price
     card.stage_id = card_data.stage_id
+    card.contact_id = card_data.contact_id
     db.commit()
     db.refresh(card)
     return card

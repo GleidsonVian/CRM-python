@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -21,14 +21,30 @@ class Stage(Base):
     pipeline = relationship("Pipeline", back_populates="stages")
     cards = relationship("Card", back_populates="stage", cascade="all, delete-orphan")
 
+class Contact(Base):
+    __tablename__ = "contacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, index=True)
+    last_name = Column(String)
+    email = Column(String, index=True)
+    cpf = Column(String)
+    address = Column(String)
+    phone = Column(String)
+
+    cards = relationship("Card", back_populates="contact")
+
 class Card(Base):
     __tablename__ = "cards"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(String, nullable=True)
-    price = Column(Integer, default=0)
-    stage_id = Column(Integer, ForeignKey("stages.id"))
+    price = Column(Float, default=0.0)
     order = Column(Integer, default=0)
+    
+    stage_id = Column(Integer, ForeignKey("stages.id"))
+    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
 
     stage = relationship("Stage", back_populates="cards")
+    contact = relationship("Contact", back_populates="cards")

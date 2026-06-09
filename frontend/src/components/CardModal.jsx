@@ -6,12 +6,29 @@ export default function CardModal({ card, stages, onClose, onSave }) {
   const [description, setDescription] = useState(card.description || '');
   const [stageId, setStageId] = useState(card.stage_id);
 
+  const [contacts, setContacts] = useState([]);
+  const [contactId, setContactId] = useState(card.contact_id || '');
+
+  React.useEffect(() => {
+    fetch('http://localhost:8000/contacts')
+      .then(r => r.json())
+      .then(data => setContacts(data))
+      .catch(err => console.error(err));
+  }, []);
+
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
   const handleSave = () => {
-    onSave(card.id, { ...card, title, price: parseFloat(price) || 0, description, stage_id: stageId });
+    onSave(card.id, { 
+      ...card, 
+      title, 
+      price: parseFloat(price) || 0, 
+      description, 
+      stage_id: stageId,
+      contact_id: contactId ? parseInt(contactId) : null
+    });
   };
 
   return (
@@ -65,8 +82,13 @@ export default function CardModal({ card, stages, onClose, onSave }) {
             </div>
 
             <div className="form-group">
-              <label>Cliente</label>
-              <input type="text" className="standard-input" placeholder="Contato do cliente..." />
+              <label>Cliente Vinculado</label>
+              <select className="standard-input" value={contactId} onChange={e => setContactId(e.target.value)}>
+                <option value="">-- Selecione um Contato --</option>
+                {contacts.map(c => (
+                  <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                ))}
+              </select>
             </div>
             
             <div className="form-group">

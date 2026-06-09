@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import KanbanColumn from './components/KanbanColumn';
 import CardModal from './components/CardModal';
+import ContactsView from './components/ContactsView';
 import './index.css';
 
 const API_URL = 'http://localhost:8000';
 
 function App() {
+  const [currentView, setCurrentView] = useState('crm'); // 'crm' | 'contacts'
   const [pipelines, setPipelines] = useState([]);
   const [activePipelineId, setActivePipelineId] = useState(null);
 
@@ -65,10 +67,12 @@ function App() {
   };
 
   useEffect(() => {
-    fetchBoard();
+    if (currentView === 'crm') {
+      fetchBoard();
+    }
     const pipe = pipelines.find(p => p.id === activePipelineId);
     if (pipe) setEditPipelineName(pipe.name);
-  }, [activePipelineId, pipelines]);
+  }, [activePipelineId, pipelines, currentView]);
 
   const handleDragStart = (e, card) => {
     e.dataTransfer.setData('cardId', card.id.toString());
@@ -207,7 +211,22 @@ function App() {
     }
   };
 
-  if (loading && stages.length === 0) return <div style={{padding: '2rem', color: 'white'}}>Carregando Nexus CRM...</div>;
+  const handleSavePipelineName = async () => {
+    if (!editPipelineName.trim() || !activePipelineId) return;
+    setPipelines(prev => prev.map(p => p.id === activePipelineId ? { ...p, name: editPipelineName } : p));
+    setIsEditingPipeline(false);
+    try {
+      await fetch(`${API_URL}/pipelines/${activePipelineId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editPipelineName })
+      });
+    } catch (error) {
+      console.error("Erro ao renomear pipeline", error);
+    }
+  };
+
+  if (loading && stages.length === 0 && currentView === 'crm') return <div style={{padding: '2rem', color: 'white'}}>Carregando Nexus CRM...</div>;
 
   const activePipelineName = pipelines.find(p => p.id === activePipelineId)?.name || 'Carregando...';
   const isDefaultPipeline = activePipelineName === 'Leads' || activePipelineName === 'Negócios';
@@ -216,113 +235,120 @@ function App() {
     <div className="app-wrapper">
       <aside className="sidebar">
         <div className="sidebar-logo">NEXUS</div>
-        <div className="nav-icon active" title="CRM">💬</div>
+        <div className={`nav-icon ${currentView === 'crm' ? 'active' : ''}`} title="CRM" onClick={() => setCurrentView('crm')}>💬</div>
+        <div className={`nav-icon ${currentView === 'contacts' ? 'active' : ''}`} title="Contatos" onClick={() => setCurrentView('contacts')}>👥</div>
         <div className="nav-icon" title="Tarefas">✅</div>
         <div className="nav-icon" title="Calendário">📅</div>
         <div className="nav-icon" title="Drive">📁</div>
       </aside>
 
       <div className="main-content">
-        <header className="top-header">
-          <div className="header-left">
-            {isEditingPipeline ? (
-              <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-                <input 
-                  type="text" 
-                  value={editPipelineName} 
-                  onChange={e => setEditPipelineName(e.target.value)}
-                  style={{fontSize: '1.4rem', background: 'transparent', color: 'white', border: '1px solid #00adef', outline: 'none', padding: '0.2rem'}}
-                />
-                <button className="btn-primary" onClick={handleSavePipelineName}>Salvar</button>
-                <button className="btn-cancel" onClick={() => setIsEditingPipeline(false)}>✕</button>
-              </div>
-            ) : (
-              <h1 className="header-title" style={{display: 'flex', alignItems: 'center', gap: '0.8rem'}}>
-                {activePipelineName} 
-                {!isDefaultPipeline && (
-                  <div style={{display: 'flex', gap: '0.5rem'}}>
-                    <span style={{fontSize: '1rem', cursor: 'pointer', opacity: 0.5}} onClick={() => setIsEditingPipeline(true)}>✎</span>
-                    <span style={{fontSize: '1rem', cursor: 'pointer', opacity: 0.5}} onClick={handleDeletePipeline}>🗑️</span>
+        {currentView === 'crm' ? (
+          <>
+            <header className="top-header">
+              <div className="header-left">
+                {isEditingPipeline ? (
+                  <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+                    <input 
+                      type="text" 
+                      value={editPipelineName} 
+                      onChange={e => setEditPipelineName(e.target.value)}
+                      style={{fontSize: '1.4rem', background: 'transparent', color: 'white', border: '1px solid #00adef', outline: 'none', padding: '0.2rem'}}
+                    />
+                    <button className="btn-primary" onClick={handleSavePipelineName}>Salvar</button>
+                    <button className="btn-cancel" onClick={() => setIsEditingPipeline(false)}>✕</button>
                   </div>
+                ) : (
+                  <h1 className="header-title" style={{display: 'flex', alignItems: 'center', gap: '0.8rem'}}>
+                    {activePipelineName} 
+                    {!isDefaultPipeline && (
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <span style={{fontSize: '1rem', cursor: 'pointer', opacity: 0.5}} onClick={() => setIsEditingPipeline(true)}>✎</span>
+                        <span style={{fontSize: '1rem', cursor: 'pointer', opacity: 0.5}} onClick={handleDeletePipeline}>🗑️</span>
+                      </div>
+                    )}
+                  </h1>
                 )}
-              </h1>
-            )}
-            
-            <div className="header-controls">
-              <button className="header-btn primary" onClick={handleBigCreateBtn}>+ Criar</button>
-              
-              {isAddingPipeline ? (
-                <div style={{display: 'flex', gap: '0.3rem', alignItems: 'center', background: 'rgba(255,255,255,0.9)', padding: '2px', borderRadius: '4px'}}>
-                  <input 
-                    autoFocus
-                    type="text" 
-                    placeholder="Nome do Novo Funil" 
-                    style={{padding: '0.3rem', border: 'none', outline: 'none', fontSize: '0.85rem', width: '150px'}}
-                    value={newPipelineName}
-                    onChange={e => setNewPipelineName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSaveNewPipeline()}
-                  />
-                  <button className="btn-primary" style={{padding: '0.2rem 0.5rem'}} onClick={handleSaveNewPipeline}>OK</button>
-                  <button className="btn-cancel" style={{fontSize: '1rem', padding: '0 0.3rem'}} onClick={() => setIsAddingPipeline(false)}>×</button>
-                </div>
-              ) : (
-                <select 
-                  className="header-btn" 
-                  style={{background: 'rgba(255,255,255,0.1)', color: 'white'}}
-                  value={activePipelineId || ''}
-                  onChange={handlePipelineSelect}
-                >
-                  {pipelines.map(p => (
-                    <option key={p.id} value={p.id} style={{color: 'black'}}>{p.name}</option>
-                  ))}
-                  <option value="new" style={{color: 'black', fontWeight: 'bold'}}>+ Criar Novo Funil</option>
-                </select>
-              )}
-            </div>
-          </div>
-          <div className="header-right">
-            <span>Nexus CRM</span>
-          </div>
-        </header>
-
-        <main className="board-container">
-          {stages.map((stage, index) => (
-            <KanbanColumn
-              key={stage.id}
-              stage={stage}
-              cards={cards.filter(c => c.stage_id === stage.id).sort((a,b) => a.order - b.order)}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-              onAddCard={handleAddCard}
-              onUpdateStage={handleUpdateStage}
-              onDoubleClickCard={setSelectedCard}
-            />
-          ))}
-          
-          <div className="add-stage-col">
-            {isAddingStage ? (
-              <div className="inline-form" style={{background: 'rgba(255,255,255,0.9)'}}>
-                <input
-                  autoFocus
-                  type="text"
-                  className="inline-input"
-                  placeholder="Nome da etapa"
-                  value={newStageName}
-                  onChange={(e) => setNewStageName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSaveStage()}
-                />
-                <div className="inline-actions">
-                  <button className="btn-primary" onClick={handleSaveStage}>Salvar</button>
-                  <button className="btn-cancel" onClick={() => setIsAddingStage(false)}>×</button>
+                
+                <div className="header-controls">
+                  <button className="header-btn primary" onClick={handleBigCreateBtn}>+ Criar</button>
+                  
+                  {isAddingPipeline ? (
+                    <div style={{display: 'flex', gap: '0.3rem', alignItems: 'center', background: 'rgba(255,255,255,0.9)', padding: '2px', borderRadius: '4px'}}>
+                      <input 
+                        autoFocus
+                        type="text" 
+                        placeholder="Nome do Novo Funil" 
+                        style={{padding: '0.3rem', border: 'none', outline: 'none', fontSize: '0.85rem', width: '150px'}}
+                        value={newPipelineName}
+                        onChange={e => setNewPipelineName(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSaveNewPipeline()}
+                      />
+                      <button className="btn-primary" style={{padding: '0.2rem 0.5rem'}} onClick={handleSaveNewPipeline}>OK</button>
+                      <button className="btn-cancel" style={{fontSize: '1rem', padding: '0 0.3rem'}} onClick={() => setIsAddingPipeline(false)}>×</button>
+                    </div>
+                  ) : (
+                    <select 
+                      className="header-btn" 
+                      style={{background: 'rgba(255,255,255,0.1)', color: 'white'}}
+                      value={activePipelineId || ''}
+                      onChange={handlePipelineSelect}
+                    >
+                      {pipelines.map(p => (
+                        <option key={p.id} value={p.id} style={{color: 'black'}}>{p.name}</option>
+                      ))}
+                      <option value="new" style={{color: 'black', fontWeight: 'bold'}}>+ Criar Novo Funil</option>
+                    </select>
+                  )}
                 </div>
               </div>
-            ) : (
-              <button className="quick-add-btn" style={{background: 'rgba(255,255,255,0.1)', padding: '0.5rem', borderRadius: '4px'}} onClick={() => setIsAddingStage(true)}>
-                + Adicionar fase
-              </button>
-            )}
-          </div>
-        </main>
+              <div className="header-right">
+                <span>Nexus CRM</span>
+              </div>
+            </header>
+
+            <main className="board-container">
+              {stages.map((stage, index) => (
+                <KanbanColumn
+                  key={stage.id}
+                  stage={stage}
+                  cards={cards.filter(c => c.stage_id === stage.id).sort((a,b) => a.order - b.order)}
+                  onDragStart={handleDragStart}
+                  onDrop={handleDrop}
+                  onAddCard={handleAddCard}
+                  onUpdateStage={handleUpdateStage}
+                  onDoubleClickCard={setSelectedCard}
+                />
+              ))}
+              
+              <div className="add-stage-col">
+                {isAddingStage ? (
+                  <div className="inline-form" style={{background: 'rgba(255,255,255,0.9)'}}>
+                    <input
+                      autoFocus
+                      type="text"
+                      className="inline-input"
+                      placeholder="Nome da etapa"
+                      value={newStageName}
+                      onChange={(e) => setNewStageName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveStage()}
+                    />
+                    <div className="inline-actions">
+                      <button className="btn-primary" onClick={handleSaveStage}>Salvar</button>
+                      <button className="btn-cancel" onClick={() => setIsAddingStage(false)}>×</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button className="quick-add-btn" style={{background: 'rgba(255,255,255,0.1)', padding: '0.5rem', borderRadius: '4px'}} onClick={() => setIsAddingStage(true)}>
+                    + Adicionar fase
+                  </button>
+                )}
+              </div>
+            </main>
+          </>
+        ) : (
+          <ContactsView />
+        )}
       </div>
 
       {selectedCard && (
