@@ -43,8 +43,47 @@ function App() {
 
   useEffect(() => {
     fetchPipelines().then(data => {
-      if (data.length > 0) setActivePipelineId(data[0].id);
+      if (data.length > 0 && !window.location.hash.startsWith('#card-')) {
+        setActivePipelineId(data[0].id);
+      }
     });
+  }, []);
+
+  // Hash Routing para os Cards
+  useEffect(() => {
+    const handleHashChange = async () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#card-')) {
+        const cardIdStr = hash.replace('#card-', '');
+        const cardId = parseInt(cardIdStr);
+        if (isNaN(cardId)) return;
+
+        try {
+          const cardRes = await fetch(`${API_URL}/cards/${cardId}`);
+          if (!cardRes.ok) return;
+          const cardData = await cardRes.json();
+
+          const stagesRes = await fetch(`${API_URL}/stages`);
+          const allStages = await stagesRes.json();
+
+          const stage = allStages.find(s => s.id === cardData.stage_id);
+          if (stage) {
+            setCurrentView('crm');
+            setActivePipelineId(stage.pipeline_id);
+            setSelectedCard(cardData);
+          }
+        } catch (error) {
+          console.error("Erro ao carregar card da URL", error);
+        }
+      } else if (!hash) {
+        setSelectedCard(null);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Executar na carga inicial
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const fetchBoard = async () => {
@@ -317,7 +356,7 @@ function App() {
                   onDrop={handleDrop}
                   onAddCard={handleAddCard}
                   onUpdateStage={handleUpdateStage}
-                  onDoubleClickCard={setSelectedCard}
+                  onDoubleClickCard={card => window.location.hash = 'card-' + card.id}
                 />
               ))}
               
@@ -355,7 +394,7 @@ function App() {
         <CardModal 
           card={selectedCard} 
           stages={stages}
-          onClose={() => setSelectedCard(null)} 
+          onClose={() => window.location.hash = ''} 
           onSave={handleUpdateCardDetails}
         />
       )}

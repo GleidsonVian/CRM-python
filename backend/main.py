@@ -163,6 +163,13 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
     db.refresh(db_card)
     return db_card
 
+@app.get("/cards/{card_id}", response_model=schemas.Card)
+def get_card(card_id: int, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    return card
+
 @app.put("/cards/{card_id}", response_model=schemas.Card)
 def update_card(card_id: int, card_data: schemas.CardBase, db: Session = Depends(get_db)):
     card = db.query(models.Card).filter(models.Card.id == card_id).first()

@@ -83,7 +83,17 @@ export default function ContactModal({ contact, onClose }) {
                 </div>
               ) : (
                 deals.map(deal => (
-                  <div key={deal.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div 
+                    key={deal.id} 
+                    style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onClick={() => {
+                      onClose();
+                      window.location.hash = 'card-' + deal.id;
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#00adef'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#eee'}
+                    title="Clique para abrir este negócio"
+                  >
                     <div>
                       <div style={{ fontWeight: 'bold', color: '#333' }}>{deal.title}</div>
                       <div style={{ fontSize: '0.85rem', color: '#777', marginTop: '0.2rem' }}>ID: #{deal.id}</div>
