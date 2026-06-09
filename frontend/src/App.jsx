@@ -160,20 +160,29 @@ function App() {
     if (pipe) setEditPipelineName(pipe.name);
   }, [activePipelineId, pipelines, currentView]);
 
+  const [draggedCardId, setDraggedCardId] = useState(null);
+
   const handleDragStart = (e, card) => {
     e.dataTransfer.setData('text/plain', card.id.toString());
+    setDraggedCardId(card.id);
   };
 
   const handleDrop = async (e, newStageId) => {
+    e.preventDefault();
     const cardIdStr = e.dataTransfer.getData('text/plain');
-    if (!cardIdStr) return;
+    const cardId = cardIdStr ? parseInt(cardIdStr) : draggedCardId;
     
-    const cardId = parseInt(cardIdStr);
+    if (!cardId) return;
+    
     const card = cards.find(c => c.id === cardId);
-    
-    if (!card || card.stage_id === newStageId) return;
+    if (!card || card.stage_id === newStageId) {
+      setDraggedCardId(null);
+      return;
+    }
 
+    // Otimista: move o card visualmente
     setCards(prev => prev.map(c => c.id === cardId ? { ...c, stage_id: newStageId } : c));
+    setDraggedCardId(null);
 
     try {
       await fetch(`${API_URL}/cards/${cardId}/move`, {
