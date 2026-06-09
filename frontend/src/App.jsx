@@ -465,7 +465,6 @@ function App() {
           onClose={() => window.location.hash = `pipeline/${activePipelineId}`}
           onSave={handleUpdateCardDetails}
           onDelete={handleDeleteCard}
-          contacts={contacts}
         />
       )}
     </div>
