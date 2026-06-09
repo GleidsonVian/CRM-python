@@ -13,6 +13,11 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
 
+  const [users, setUsers] = useState([]);
+  const [userId, setUserId] = useState(card.user_id || '');
+  const [activities, setActivities] = useState(card.activities || []);
+  const [newNote, setNewNote] = useState('');
+
   React.useEffect(() => {
     fetch('http://localhost:8000/contacts')
       .then(r => r.json())
@@ -23,6 +28,11 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
           if (c) setSearchTerm(`${c.first_name} ${c.last_name || ''}`.trim());
         }
       })
+      .catch(err => console.error(err));
+
+    fetch('http://localhost:8000/users')
+      .then(r => r.json())
+      .then(data => setUsers(data))
       .catch(err => console.error(err));
   }, [card.contact_id]);
 
@@ -37,9 +47,27 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
       price: parseFloat(price) || 0, 
       description, 
       stage_id: stageId,
-      contact_id: contactId ? parseInt(contactId) : null
+      contact_id: contactId ? parseInt(contactId) : null,
+      user_id: userId ? parseInt(userId) : null
     });
     onClose();
+  };
+
+  const handlePostNote = async (e) => {
+    if (e.key === 'Enter' && newNote.trim() !== '') {
+      try {
+        const res = await fetch(`http://localhost:8000/cards/${card.id}/activities`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'note', content: newNote.trim() })
+        });
+        const newAct = await res.json();
+        setActivities(prev => [...prev, newAct]);
+        setNewNote('');
+      } catch (err) {
+        console.error("Erro ao postar nota", err);
+      }
+    }
   };
 
   const selectedContactObj = contactId ? contacts.find(c => c.id === parseInt(contactId)) : null;
@@ -78,7 +106,8 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                     price: parseFloat(price) || 0, 
                     description, 
                     stage_id: s.id,
-                    contact_id: contactId ? parseInt(contactId) : null
+                    contact_id: contactId ? parseInt(contactId) : null,
+                    user_id: userId ? parseInt(userId) : null
                   });
                 }}
                 style={{ cursor: 'pointer' }}
@@ -113,6 +142,16 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                   ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at.includes('+') || card.created_at.endsWith('Z') ? card.created_at : card.created_at + 'Z')) 
                   : 'Data desconhecida'}
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Responsável</label>
+              <select className="standard-input" value={userId} onChange={e => setUserId(e.target.value)}>
+                <option value="">Sem responsável</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group highlight-box">
@@ -193,13 +232,18 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
           {/* Coluna Direita: Timeline / Atividades */}
           <div className="modal-right">
             <div className="timeline-tabs">
-              <span className="tab active">Atividade</span>
-              <span className="tab">Comentário</span>
-              <span className="tab">Tarefa</span>
+              <span className="tab active">Histórico e Comentários</span>
             </div>
             
             <div className="timeline-input-area">
-              <input type="text" placeholder="Adicionar uma nova atividade..." className="timeline-input" />
+              <input 
+                type="text" 
+                placeholder="Adicionar uma nova nota... (pressione Enter para salvar)" 
+                className="timeline-input" 
+                value={newNote}
+                onChange={e => setNewNote(e.target.value)}
+                onKeyDown={handlePostNote}
+              />
             </div>
 
             <div className="timeline-events">
@@ -212,6 +256,22 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                   </div>
                 </div>
               </div>
+
+              {activities.map(act => (
+                <div className="timeline-event" key={act.id}>
+                  <div className="event-icon" style={{ background: act.type === 'system' ? '#00adef' : '#2ecc71', color: 'white' }}>
+                    {act.type === 'system' ? '➡️' : '💬'}
+                  </div>
+                  <div className="event-body">
+                    <div className="event-title" style={{ fontWeight: act.type === 'system' ? 'normal' : 'bold' }}>
+                      {act.content}
+                    </div>
+                    <div className="event-meta">
+                      {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(act.created_at.includes('+') || act.created_at.endsWith('Z') ? act.created_at : act.created_at + 'Z'))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           </div>

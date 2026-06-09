@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import KanbanColumn from './components/KanbanColumn';
 import CardModal from './components/CardModal';
 import ContactsView from './components/ContactsView';
+import UsersView from './components/UsersView';
 import './index.css';
 
 const API_URL = 'http://localhost:8000';
 
 function App() {
-  const [currentView, setCurrentView] = useState('crm'); // 'crm' | 'contacts'
+  const [currentView, setCurrentView] = useState('crm'); // 'crm' | 'contacts' | 'users'
   const [pipelines, setPipelines] = useState([]);
   const [activePipelineId, setActivePipelineId] = useState(null);
 
@@ -56,6 +57,12 @@ function App() {
 
       if (hash === 'contacts') {
         setCurrentView('contacts');
+        setSelectedCard(null);
+        return;
+      }
+
+      if (hash === 'users') {
+        setCurrentView('users');
         setSelectedCard(null);
         return;
       }
@@ -342,14 +349,17 @@ function App() {
     <div className="app-wrapper">
       <aside className="sidebar">
         <div className="sidebar-logo">NEXUS</div>
-        <div className={`nav-icon ${currentView === 'crm' ? 'active' : ''}`} title="CRM" onClick={() => setCurrentView('crm')}>💬</div>
-        <div className={`nav-icon ${currentView === 'contacts' ? 'active' : ''}`} title="Contatos" onClick={() => setCurrentView('contacts')}>👥</div>
+        <div className={`nav-icon ${currentView === 'crm' ? 'active' : ''}`} title="CRM Pipeline" onClick={() => { setCurrentView('crm'); window.location.hash = ''; }}>📊</div>
+        <div className={`nav-icon ${currentView === 'contacts' ? 'active' : ''}`} title="Contatos" onClick={() => { setCurrentView('contacts'); window.location.hash = 'contacts'; }}>👥</div>
+        <div className={`nav-icon ${currentView === 'users' ? 'active' : ''}`} title="Usuários" onClick={() => { setCurrentView('users'); window.location.hash = 'users'; }}>👨‍💼</div>
         <div className="nav-icon" title="Tarefas">✅</div>
         <div className="nav-icon" title="Calendário">📅</div>
         <div className="nav-icon" title="Drive">📁</div>
       </aside>
 
       <div className="main-content">
+        {currentView === 'contacts' && <ContactsView />}
+        {currentView === 'users' && <UsersView />}
         {currentView === 'crm' ? (
           <>
             <header className="top-header">

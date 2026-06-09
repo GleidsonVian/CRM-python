@@ -5,13 +5,6 @@ export default function KanbanCard({ card, onDragStart, onClick }) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
   };
 
-  const tagText = card.title.split(' ')[0] || "LEAD";
-  const mockNames = ['Mariana Monteiro', 'Antônia Canceira', 'Fabio João', 'Lola Almeida', 'João dos Santos'];
-  // Keep random visually stable by hashing ID
-  const mockClient = mockNames[card.id % mockNames.length];
-  const assignees = ['Ana Laura Lima', 'Julia Lima Costa', 'Zoe Fonseca'];
-  const mockAssignee = assignees[card.id % assignees.length];
-  const avatarInitials = mockAssignee.substring(0, 2).toUpperCase();
   const isPaid = (card.id % 2) === 0;
 
   return (
@@ -30,25 +23,29 @@ export default function KanbanCard({ card, onDragStart, onClick }) {
       </div>
       
       <div className="card-price">{formatCurrency(card.price)}</div>
-      <div className="card-client">{mockClient}</div>
+      <div className="card-client">Cliente ID: {card.contact_id || 'Nenhum'}</div>
       
       <div className="card-assignee-area">
-        <span className="card-assignee-label">Pessoa responsável</span>
+        <span className="card-assignee-label">Responsável</span>
         <div className="card-assignee-row">
-          <div className="card-avatar">{avatarInitials}</div>
-          <span className="card-assignee-name">{mockAssignee}</span>
+          {card.user ? (
+            <>
+              <div className="card-avatar" style={{ background: '#2ecc71' }}>{card.user.name.substring(0, 2).toUpperCase()}</div>
+              <span className="card-assignee-name">{card.user.name}</span>
+            </>
+          ) : (
+            <span className="card-assignee-name" style={{ color: '#aaa', fontStyle: 'italic' }}>Sem responsável</span>
+          )}
         </div>
       </div>
       
       <div className="card-footer">
-        <span className="card-activity">+ Atividade</span>
-        <span>Hoje</span>
-      </div>
-
-      <div className="card-icons">
-        <span>📞</span>
-        <span>✉️</span>
-        <span>💬</span>
+        <span className="card-activity" style={{ color: '#888' }}>
+          {card.activities && card.activities.length > 0 ? `${card.activities.length} Atividades` : 'Sem atividades'}
+        </span>
+        <span style={{ fontSize: '0.8em', color: '#666' }}>
+          {card.created_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(card.created_at.includes('+') || card.created_at.endsWith('Z') ? card.created_at : card.created_at + 'Z')) : ''}
+        </span>
       </div>
     </div>
   );
