@@ -45,7 +45,8 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
   const selectedContactObj = contactId ? contacts.find(c => c.id === parseInt(contactId)) : null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <>
+      <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-slider" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-header-top">
@@ -213,6 +214,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
               </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
       
@@ -222,6 +224,6 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
           onClose={() => setShowContactModal(false)} 
         />
       )}
-    </div>
+    </>
   );
 }
