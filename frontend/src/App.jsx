@@ -60,11 +60,12 @@ function App() {
         return;
       }
 
-      // Rota completa: pipeline/X/deal/Y
-      const dealMatch = hash.match(/^pipeline\/(\d+)\/deal\/(\d+)$/);
+      // Rota completa: pipeline/X/stage/S/deal/Y
+      const dealMatch = hash.match(/^pipeline\/(\d+)\/stage\/(\d+)\/deal\/(\d+)$/);
       if (dealMatch) {
         const pId = parseInt(dealMatch[1]);
-        const dId = parseInt(dealMatch[2]);
+        const sId = parseInt(dealMatch[2]);
+        const dId = parseInt(dealMatch[3]);
         setCurrentView('crm');
         setActivePipelineId(pId);
         try {
@@ -89,7 +90,7 @@ function App() {
         return;
       }
 
-      // Atalho: deal/Y (Usado no modal de contatos, auto-descobre o pipeline e reescreve a URL)
+      // Atalho: deal/Y (Usado no modal de contatos, auto-descobre o pipeline/stage e reescreve a URL)
       if (hash.startsWith('deal/')) {
         const dId = parseInt(hash.replace('deal/', ''));
         try {
@@ -100,7 +101,7 @@ function App() {
             const allStages = await stagesRes.json();
             const stage = allStages.find(s => s.id === cardData.stage_id);
             if (stage) {
-              window.history.replaceState(null, '', `#pipeline/${stage.pipeline_id}/deal/${dId}`);
+              window.history.replaceState(null, '', `#pipeline/${stage.pipeline_id}/stage/${stage.id}/deal/${dId}`);
               setCurrentView('crm');
               setActivePipelineId(stage.pipeline_id);
               setSelectedCard(cardData);
@@ -126,7 +127,7 @@ function App() {
   useEffect(() => {
     if (currentView === 'crm' && activePipelineId && !selectedCard) {
       const currentHash = window.location.hash.replace(/^#/, '');
-      if (!currentHash.startsWith(`pipeline/${activePipelineId}/deal/`)) {
+      if (!currentHash.startsWith(`pipeline/${activePipelineId}/stage/`)) {
         window.history.replaceState(null, '', `#pipeline/${activePipelineId}`);
       }
     }
@@ -236,6 +237,9 @@ function App() {
 
   const handleUpdateCardDetails = async (cardId, updatedData) => {
     setCards(prev => prev.map(c => c.id === cardId ? { ...c, ...updatedData } : c));
+    if (selectedCard && selectedCard.id === cardId && updatedData.stage_id) {
+       window.history.replaceState(null, '', `#pipeline/${activePipelineId}/stage/${updatedData.stage_id}/deal/${cardId}`);
+    }
 
     try {
       await fetch(`${API_URL}/cards/${cardId}`, {

@@ -49,7 +49,9 @@ export default function KanbanColumn({ stage, cards, onDragStart, onDrop, onAddC
       onDrop={handleDrop}
     >
       <div className="chevron-header" style={{ backgroundColor: stage.color || '#00adef' }}>
-        <span className="chevron-title" title={stage.name}>{stage.name}</span>
+        <span className="chevron-title" title={stage.name}>
+          {stage.name} <span style={{ fontSize: '0.7em', opacity: 0.7, marginLeft: '4px' }}>#{stage.id}</span>
+        </span>
         <span className="chevron-count">{cards.length}</span>
         <span className="gear-icon" onClick={() => setIsEditingStage(!isEditingStage)}>⚙️</span>
       </div>
