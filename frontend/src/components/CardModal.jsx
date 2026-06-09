@@ -108,7 +108,9 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
             <div className="form-group">
               <label>Criado em</label>
               <div className="static-value" style={{ background: '#f0f2f5', color: '#555' }}>
-                {card.created_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at.endsWith('Z') ? card.created_at : card.created_at + 'Z')) : 'Data desconhecida'}
+                {card.created_at 
+                  ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at.includes('+') || card.created_at.endsWith('Z') ? card.created_at : card.created_at + 'Z')) 
+                  : 'Data desconhecida'}
               </div>
             </div>
 
@@ -204,8 +206,8 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                 <div className="event-icon created">✨</div>
                 <div className="event-body">
                   <div className="event-title">Negócio criado</div>
-                  <div className="event-time">
-                    {card.created_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at.endsWith('Z') ? card.created_at : card.created_at + 'Z')) : 'Hoje'}
+                  <div className="event-meta">
+                    {card.created_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(card.created_at.includes('+') || card.created_at.endsWith('Z') ? card.created_at : card.created_at + 'Z')) : 'Hoje'}
                   </div>
                 </div>
               </div>
