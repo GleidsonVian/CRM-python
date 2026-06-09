@@ -261,6 +261,16 @@ function App() {
     }
   };
 
+  const handleDeleteCard = async (cardId) => {
+    try {
+      await fetch(`${API_URL}/cards/${cardId}`, { method: 'DELETE' });
+      setCards(prev => prev.filter(c => c.id !== cardId));
+      window.location.hash = `#pipeline/${activePipelineId}`;
+    } catch (err) {
+      console.error("Erro ao excluir card", err);
+    }
+  };
+
   const handlePipelineSelect = async (e) => {
     const val = e.target.value;
     if (val === 'new') {
@@ -451,9 +461,11 @@ function App() {
       {selectedCard && (
         <CardModal 
           card={selectedCard} 
-          stages={stages}
-          onClose={() => window.location.hash = ''} 
+          stages={stages.filter(s => s.pipeline_id === activePipelineId)}
+          onClose={() => window.location.hash = `pipeline/${activePipelineId}`}
           onSave={handleUpdateCardDetails}
+          onDelete={handleDeleteCard}
+          contacts={contacts}
         />
       )}
     </div>

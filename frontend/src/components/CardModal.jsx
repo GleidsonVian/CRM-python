@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ContactModal from './ContactModal';
 
-export default function CardModal({ card, stages, onClose, onSave }) {
+export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
   const [price, setPrice] = useState(card.price || 0);
   const [title, setTitle] = useState(card.title || '');
   const [description, setDescription] = useState(card.description || '');
@@ -53,7 +53,13 @@ export default function CardModal({ card, stages, onClose, onSave }) {
               <span className="modal-title-input"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nome do negócio" /></span>
               <span style={{ fontSize: '0.6em', color: '#888', fontWeight: 'normal' }}>ID: #{card.id}</span>
             </h2>
-            <div className="modal-actions">
+            <div className="modal-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                onClick={() => { if(window.confirm('Tem certeza que deseja excluir este card?')) onDelete(card.id); }} 
+                style={{ backgroundColor: '#ff4d4f', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85em' }}
+              >
+                Excluir
+              </button>
               <button className="btn-primary" onClick={handleSave}>Salvar</button>
               <button className="btn-icon" onClick={onClose}>✕</button>
             </div>

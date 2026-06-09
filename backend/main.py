@@ -155,11 +155,14 @@ def get_cards(pipeline_id: int = None, contact_id: int = None, db: Session = Dep
         query = query.filter(models.Card.contact_id == contact_id)
     return query.all()
 
+from datetime import datetime, timezone
+
 @app.post("/cards", response_model=schemas.Card)
 def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
     card_dict = card.dict(exclude_unset=True)
-    if "created_at" in card_dict and card_dict["created_at"] is None:
-        del card_dict["created_at"]
+    if not card_dict.get("created_at"):
+        card_dict["created_at"] = datetime.now(timezone.utc)
+    
     db_card = models.Card(**card_dict)
     db.add(db_card)
     db.commit()
@@ -172,6 +175,15 @@ def get_card(card_id: int, db: Session = Depends(get_db)):
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
     return card
+
+@app.delete("/cards/{card_id}")
+def delete_card(card_id: int, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    db.delete(card)
+    db.commit()
+    return {"message": "Card deleted successfully"}
 
 @app.put("/cards/{card_id}", response_model=schemas.Card)
 def update_card(card_id: int, card_data: schemas.CardBase, db: Session = Depends(get_db)):
