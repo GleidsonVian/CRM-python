@@ -4,6 +4,18 @@ from sqlalchemy.sql import func
 from database import Base
 
 # Many-to-many junction tables
+lead_contacts = Table(
+    'lead_contacts', Base.metadata,
+    Column('lead_id', Integer, ForeignKey('leads.id', ondelete='CASCADE')),
+    Column('contact_id', Integer, ForeignKey('contacts.id', ondelete='CASCADE'))
+)
+
+lead_users = Table(
+    'lead_users', Base.metadata,
+    Column('lead_id', Integer, ForeignKey('leads.id', ondelete='CASCADE')),
+    Column('user_id', Integer, ForeignKey('users.id', ondelete='CASCADE'))
+)
+
 card_contacts = Table(
     'card_contacts', Base.metadata,
     Column('card_id', Integer, ForeignKey('cards.id', ondelete='CASCADE')),
@@ -15,6 +27,53 @@ card_users = Table(
     Column('card_id', Integer, ForeignKey('cards.id', ondelete='CASCADE')),
     Column('user_id', Integer, ForeignKey('users.id', ondelete='CASCADE'))
 )
+
+company_contacts = Table(
+    'company_contacts', Base.metadata,
+    Column('company_id', Integer, ForeignKey('companies.id', ondelete='CASCADE')),
+    Column('contact_id', Integer, ForeignKey('contacts.id', ondelete='CASCADE'))
+)
+
+class Company(Base):
+    __tablename__ = "companies"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String, index=True)
+    company_number = Column(String, nullable=True)
+    logo_url = Column(String, nullable=True)
+    company_type = Column(String, nullable=True)
+    industry = Column(String, nullable=True)
+    annual_revenue = Column(Float, default=0.0)
+    phone = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    messenger = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    employees = Column(String, nullable=True)
+    available_to_all = Column(Boolean, default=True)
+    responsible_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    observers = Column(String, nullable=True)
+    comment = Column(String, nullable=True)
+    utm_source = Column(String, nullable=True)
+    utm_medium = Column(String, nullable=True)
+    utm_campaign = Column(String, nullable=True)
+    last_contact_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    responsible_user = relationship("User", foreign_keys=[responsible_user_id])
+    contacts = relationship("Contact", secondary=company_contacts, lazy="joined")
+
+class Webhook(Base):
+    __tablename__ = "webhooks"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    type = Column(String, default='outbound')        # 'inbound' | 'outbound'
+    token = Column(String, unique=True, index=True)  # secret token (inbound auth / outbound signing)
+    url = Column(String, nullable=True)              # outbound: URL to POST to
+    events = Column(String, default='[]')            # JSON: ['card.created', 'lead.moved', …]
+    allowed_entities = Column(String, default='[]')  # JSON: ['cards','leads','contacts','companies']
+    allowed_methods = Column(String, default='["POST"]')  # JSON: ['GET','POST','PUT','DELETE']
+    active = Column(Boolean, default=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Pipeline(Base):
     __tablename__ = "pipelines"
@@ -31,6 +90,7 @@ class Stage(Base):
     pipeline_id = Column(Integer, ForeignKey("pipelines.id"))
     pipeline = relationship("Pipeline", back_populates="stages")
     cards = relationship("Card", back_populates="stage", cascade="all, delete-orphan")
+    leads = relationship("Lead", back_populates="stage", cascade="all, delete-orphan")
 
 class Contact(Base):
     __tablename__ = "contacts"
@@ -41,6 +101,25 @@ class Contact(Base):
     cpf = Column(String)
     address = Column(String)
     phone = Column(String)
+    salutation = Column(String, nullable=True)
+    middle_name = Column(String, nullable=True)
+    position = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    messenger = Column(String, nullable=True)
+    company_name = Column(String, nullable=True)
+    source = Column(String, nullable=True)
+    source_info = Column(String, nullable=True)
+    available_to_all = Column(Boolean, default=True)
+    included_in_export = Column(Boolean, default=True)
+    contact_type = Column(String, nullable=True)
+    observers = Column(String, nullable=True)
+    comment = Column(String, nullable=True)
+    utm_source = Column(String, nullable=True)
+    utm_medium = Column(String, nullable=True)
+    utm_campaign = Column(String, nullable=True)
+    photo_url = Column(String, nullable=True)
+    responsible_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    responsible_user = relationship("User", foreign_keys=[responsible_user_id])
 
 class User(Base):
     __tablename__ = "users"
@@ -52,12 +131,14 @@ class User(Base):
 class Activity(Base):
     __tablename__ = "activities"
     id = Column(Integer, primary_key=True, index=True)
-    card_id = Column(Integer, ForeignKey("cards.id"))
+    card_id = Column(Integer, ForeignKey("cards.id"), nullable=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
     type = Column(String)
     content = Column(String)
     actor = Column(String, default='Usuário')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    card = relationship("Card", back_populates="activities")
+    card = relationship("Card", back_populates="activities", foreign_keys=[card_id])
+    lead = relationship("Lead", back_populates="activities", foreign_keys=[lead_id])
 
 class AutomationRule(Base):
     __tablename__ = "automation_rules"
@@ -111,6 +192,45 @@ class Comment(Base):
     author = Column(String, default='Usuário')
     content = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Lead(Base):
+    __tablename__ = "leads"
+    __table_args__ = {'sqlite_autoincrement': True}
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    title = Column(String, index=True)
+    description = Column(String, nullable=True)
+    price = Column(Float, default=0.0)
+    order = Column(Integer, default=0)
+    source = Column(String, nullable=True)
+    salutation = Column(String, nullable=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    middle_name = Column(String, nullable=True)
+    birth_date = Column(String, nullable=True)
+    position = Column(String, nullable=True)
+    company_name = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    source_info = Column(String, nullable=True)
+    available_to_all = Column(Boolean, default=True)
+    address = Column(String, nullable=True)
+    utm_source = Column(String, nullable=True)
+    utm_medium = Column(String, nullable=True)
+    utm_campaign = Column(String, nullable=True)
+    comment = Column(String, nullable=True)
+    converted = Column(Boolean, default=False)
+    converted_card_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    stage_id = Column(Integer, ForeignKey("stages.id"))
+    stage = relationship("Stage", back_populates="leads")
+    activities = relationship("Activity", back_populates="lead", cascade="all, delete-orphan",
+                              foreign_keys="Activity.lead_id")
+    contacts = relationship("Contact", secondary=lead_contacts, lazy="joined")
+    users = relationship("User", secondary=lead_users, lazy="joined")
+
 
 class Card(Base):
     __tablename__ = "cards"

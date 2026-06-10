@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 const ENTITIES = [
   { value: 'deal',    label: 'Negócios',  icon: '📋', desc: 'Campos que aparecem em cada card do pipeline' },
+  { value: 'lead',    label: 'Leads',     icon: '🎯', desc: 'Campos que aparecem no perfil de cada lead' },
   { value: 'contact', label: 'Contatos',  icon: '👤', desc: 'Campos que aparecem no perfil de cada contato' },
+  { value: 'company', label: 'Empresas',  icon: '🏢', desc: 'Campos que aparecem no perfil de cada empresa' },
   { value: 'user',    label: 'Equipe',    icon: '👥', desc: 'Campos que aparecem no perfil de cada membro' },
 ];
 
@@ -513,3 +515,4 @@ export default function CustomFieldsManager() {
     </div>
   );
 }
+

@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-import json, re, os, shutil, time
+import json, re, os, shutil, time, secrets, threading
 from urllib import request as urllib_req
+from urllib.request import urlopen
+from urllib.error import URLError
 from database import SessionLocal
 
 import models, schemas
@@ -21,6 +23,48 @@ _MIGRATIONS = [
     "ALTER TABLE activities ADD COLUMN actor VARCHAR DEFAULT 'Usuário'",
     "ALTER TABLE custom_fields ADD COLUMN uid VARCHAR DEFAULT ''",
     "ALTER TABLE custom_fields ADD COLUMN show_on_card BOOLEAN DEFAULT 0",
+    "ALTER TABLE activities ADD COLUMN lead_id INTEGER REFERENCES leads(id)",
+    "ALTER TABLE leads ADD COLUMN salutation VARCHAR",
+    "ALTER TABLE leads ADD COLUMN first_name VARCHAR",
+    "ALTER TABLE leads ADD COLUMN last_name VARCHAR",
+    "ALTER TABLE leads ADD COLUMN middle_name VARCHAR",
+    "ALTER TABLE leads ADD COLUMN birth_date VARCHAR",
+    "ALTER TABLE leads ADD COLUMN position VARCHAR",
+    "ALTER TABLE leads ADD COLUMN company_name VARCHAR",
+    "ALTER TABLE leads ADD COLUMN phone VARCHAR",
+    "ALTER TABLE leads ADD COLUMN email VARCHAR",
+    "ALTER TABLE leads ADD COLUMN website VARCHAR",
+    "ALTER TABLE leads ADD COLUMN source_info VARCHAR",
+    "ALTER TABLE leads ADD COLUMN available_to_all BOOLEAN DEFAULT 1",
+    "ALTER TABLE leads ADD COLUMN address VARCHAR",
+    "ALTER TABLE leads ADD COLUMN utm_source VARCHAR",
+    "ALTER TABLE leads ADD COLUMN utm_medium VARCHAR",
+    "ALTER TABLE leads ADD COLUMN utm_campaign VARCHAR",
+    "ALTER TABLE leads ADD COLUMN comment VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN salutation VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN middle_name VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN position VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN website VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN messenger VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN company_name VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN source VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN source_info VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN available_to_all BOOLEAN DEFAULT 1",
+    "ALTER TABLE contacts ADD COLUMN included_in_export BOOLEAN DEFAULT 1",
+    "ALTER TABLE contacts ADD COLUMN contact_type VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN observers VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN comment VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN utm_source VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN utm_medium VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN utm_campaign VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN photo_url VARCHAR",
+    "ALTER TABLE contacts ADD COLUMN responsible_user_id INTEGER REFERENCES users(id)",
+    # Companies table is created by SQLAlchemy; junction is also auto-created
+    # These are safe no-ops for columns that might not exist yet on older DBs:
+    "ALTER TABLE companies ADD COLUMN utm_source VARCHAR",
+    "ALTER TABLE companies ADD COLUMN utm_medium VARCHAR",
+    "ALTER TABLE companies ADD COLUMN utm_campaign VARCHAR",
+    "ALTER TABLE companies ADD COLUMN last_contact_at DATETIME",
 ]
 with engine.connect() as _conn:
     for _sql in _MIGRATIONS:
@@ -60,11 +104,14 @@ app.add_middleware(
 
 def create_default_negocios_stages(db: Session, pipeline_id: int):
     stages = [
-        {"name": "Proposta", "color": "#19497a"},
-        {"name": "Negociação", "color": "#2bb2e6"},
-        {"name": "Em andamento", "color": "#0f6e9f"},
-        {"name": "Sucesso", "color": "#11a65a"},
-        {"name": "Perdido / Desqualificado", "color": "#b91c1c"}
+        {"name": "Em Desenvolvimento",   "color": "#3b82f6"},
+        {"name": "Criar documentos",     "color": "#8b5cf6"},
+        {"name": "Fatura",               "color": "#f59e0b"},
+        {"name": "Em andamento",         "color": "#06b6d4"},
+        {"name": "Fatura final",         "color": "#f97316"},
+        {"name": "Negócios Fechados",    "color": "#22c55e"},
+        {"name": "Negócios Perdidos",    "color": "#ef4444"},
+        {"name": "Analisar falha",       "color": "#dc2626"},
     ]
     for i, stg in enumerate(stages):
         db.add(models.Stage(name=stg["name"], color=stg["color"], order=i, pipeline_id=pipeline_id))
@@ -74,23 +121,35 @@ def create_default_negocios_stages(db: Session, pipeline_id: int):
 @app.on_event("startup")
 def startup_event():
     db = next(get_db())
-    if not db.query(models.Pipeline).first():
+
+    DEFAULT_LEADS_STAGES = [
+        {"name": "Não atribuído",   "color": "#06b6d4"},
+        {"name": "Em andamento",    "color": "#06b6d4"},
+        {"name": "Processado",      "color": "#06b6d4"},
+        {"name": "Lead descartado", "color": "#ef4444"},
+        {"name": "Lead convertido", "color": "#22c55e"},
+    ]
+
+    p_leads = db.query(models.Pipeline).filter(models.Pipeline.name == "Leads").first()
+    if not p_leads:
         p_leads = models.Pipeline(name="Leads")
-        p_negocios = models.Pipeline(name="Negócios")
         db.add(p_leads)
+        db.commit()
+    # Garantir etapas mesmo em bancos antigos
+    existing_leads_stages = db.query(models.Stage).filter(models.Stage.pipeline_id == p_leads.id).count()
+    if existing_leads_stages == 0:
+        for i, stg in enumerate(DEFAULT_LEADS_STAGES):
+            db.add(models.Stage(name=stg["name"], color=stg["color"], order=i, pipeline_id=p_leads.id))
+        db.commit()
+
+    p_negocios = db.query(models.Pipeline).filter(models.Pipeline.name == "Negócios").first()
+    if not p_negocios:
+        p_negocios = models.Pipeline(name="Negócios")
         db.add(p_negocios)
         db.commit()
-        
-        stages_leads = [
-            {"name": "Novo Lead", "color": "#22164f"},
-            {"name": "Em Contato", "color": "#19497a"},
-            {"name": "Qualificação", "color": "#0f6e9f"},
-            {"name": "Convertido (Ganho)", "color": "#11a65a"},
-            {"name": "Perdido / Desqualificado", "color": "#b91c1c"}
-        ]
-        for i, stg in enumerate(stages_leads):
-            db.add(models.Stage(name=stg["name"], color=stg["color"], order=i, pipeline_id=p_leads.id))
-            
+    # Garantir etapas mesmo em bancos antigos
+    existing_neg_stages = db.query(models.Stage).filter(models.Stage.pipeline_id == p_negocios.id).count()
+    if existing_neg_stages == 0:
         create_default_negocios_stages(db, p_negocios.id)
 
 # ---- Rotas Pipelines ----
@@ -100,6 +159,8 @@ def get_pipelines(db: Session = Depends(get_db)):
 
 @app.post("/pipelines", response_model=schemas.Pipeline)
 def create_pipeline(pipeline: schemas.PipelineCreate, db: Session = Depends(get_db)):
+    if pipeline.name in ("Leads", "Negócios"):
+        raise HTTPException(status_code=400, detail="Não é permitido criar funis com o nome 'Leads' ou 'Negócios'.")
     db_pipe = models.Pipeline(name=pipeline.name)
     db.add(db_pipe)
     db.commit()
@@ -155,9 +216,19 @@ def update_stage(stage_id: int, stage_data: schemas.StageCreate, db: Session = D
         raise HTTPException(status_code=404, detail="Stage not found")
     stg.name = stage_data.name
     stg.color = stage_data.color
+    stg.order = stage_data.order
     db.commit()
     db.refresh(stg)
     return stg
+
+@app.delete("/stages/{stage_id}")
+def delete_stage(stage_id: int, db: Session = Depends(get_db)):
+    stg = db.query(models.Stage).filter(models.Stage.id == stage_id).first()
+    if not stg:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    db.delete(stg)
+    db.commit()
+    return {"ok": True}
 
 # ---- Rotas Contacts ----
 @app.get("/contacts", response_model=List[schemas.Contact])
@@ -185,8 +256,207 @@ def update_contact(contact_id: int, contact_data: schemas.ContactCreate, db: Ses
     db.refresh(db_contact)
     return db_contact
 
-# ---- Rotas Cards ----
+# ---- Rotas Companies ----
+
+@app.get("/companies", response_model=List[schemas.Company])
+def get_companies(db: Session = Depends(get_db)):
+    return db.query(models.Company).all()
+
+@app.post("/companies", response_model=schemas.Company)
+def create_company(company: schemas.CompanyCreate, db: Session = Depends(get_db)):
+    data = company.dict()
+    contact_ids = data.pop('contact_ids', [])
+    db_company = models.Company(**data)
+    if contact_ids:
+        db_company.contacts = db.query(models.Contact).filter(models.Contact.id.in_(contact_ids)).all()
+    db.add(db_company)
+    db.commit()
+    db.refresh(db_company)
+    return db_company
+
+@app.get("/companies/{company_id}", response_model=schemas.Company)
+def get_company(company_id: int, db: Session = Depends(get_db)):
+    c = db.query(models.Company).filter(models.Company.id == company_id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Company not found")
+    return c
+
+@app.put("/companies/{company_id}", response_model=schemas.Company)
+def update_company(company_id: int, company_data: schemas.CompanyCreate, db: Session = Depends(get_db)):
+    db_company = db.query(models.Company).filter(models.Company.id == company_id).first()
+    if not db_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    data = company_data.dict()
+    contact_ids = data.pop('contact_ids', [])
+    for key, value in data.items():
+        setattr(db_company, key, value)
+    if contact_ids is not None:
+        db_company.contacts = db.query(models.Contact).filter(models.Contact.id.in_(contact_ids)).all()
+    db.commit()
+    db.refresh(db_company)
+    return db_company
+
+@app.delete("/companies/{company_id}")
+def delete_company(company_id: int, db: Session = Depends(get_db)):
+    db_company = db.query(models.Company).filter(models.Company.id == company_id).first()
+    if not db_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    db.delete(db_company)
+    db.commit()
+    return {"ok": True}
+
+# ---- Webhooks ----
 from datetime import datetime, timezone
+from fastapi import Request as FastAPIRequest
+import urllib.request as _urllib_req2
+import urllib.parse as _urllib_parse
+
+ENTITY_ENDPOINT_MAP = {
+    "cards":     ["/cards", "/cards/{id}", "/cards/{id}/move", "/cards/{id}/activities"],
+    "leads":     ["/leads", "/leads/{id}", "/leads/{id}/move", "/leads/{id}/convert", "/leads/{id}/activities"],
+    "contacts":  ["/contacts", "/contacts/{id}"],
+    "companies": ["/companies", "/companies/{id}"],
+}
+
+ALL_EVENTS = [
+    "card.created", "card.updated", "card.moved", "card.deleted",
+    "lead.created", "lead.updated", "lead.moved", "lead.converted", "lead.deleted",
+    "contact.created", "contact.updated",
+    "company.created", "company.updated",
+]
+
+def _fire_outbound_webhooks(event: str, entity: str, payload: dict):
+    """Fire outbound webhooks in background thread — non-blocking."""
+    def _worker():
+        with SessionLocal() as db:
+            hooks = db.query(models.Webhook).filter(
+                models.Webhook.type == 'outbound',
+                models.Webhook.active == True,
+                models.Webhook.url != None,
+            ).all()
+            for h in hooks:
+                try:
+                    allowed_entities = json.loads(h.allowed_entities or '[]')
+                    events = json.loads(h.events or '[]')
+                    if allowed_entities and entity not in allowed_entities:
+                        continue
+                    if events and event not in events:
+                        continue
+                    body = json.dumps({
+                        "event": event,
+                        "entity": entity,
+                        "data": payload,
+                        "webhook_token": h.token,
+                    }).encode()
+                    req = _urllib_req2.Request(
+                        h.url,
+                        data=body,
+                        headers={"Content-Type": "application/json", "X-Webhook-Token": h.token},
+                        method="POST",
+                    )
+                    _urllib_req2.urlopen(req, timeout=5)
+                except Exception:
+                    pass
+    threading.Thread(target=_worker, daemon=True).start()
+
+@app.get("/webhooks", response_model=List[schemas.Webhook])
+def get_webhooks(db: Session = Depends(get_db)):
+    return db.query(models.Webhook).order_by(models.Webhook.id.desc()).all()
+
+@app.post("/webhooks", response_model=schemas.Webhook)
+def create_webhook(wh: schemas.WebhookCreate, db: Session = Depends(get_db)):
+    token = secrets.token_urlsafe(32)
+    db_wh = models.Webhook(**wh.dict(), token=token)
+    db.add(db_wh)
+    db.commit()
+    db.refresh(db_wh)
+    return db_wh
+
+@app.put("/webhooks/{wh_id}", response_model=schemas.Webhook)
+def update_webhook(wh_id: int, wh: schemas.WebhookCreate, db: Session = Depends(get_db)):
+    db_wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
+    if not db_wh:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    for k, v in wh.dict().items():
+        setattr(db_wh, k, v)
+    db.commit()
+    db.refresh(db_wh)
+    return db_wh
+
+@app.delete("/webhooks/{wh_id}")
+def delete_webhook(wh_id: int, db: Session = Depends(get_db)):
+    db_wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
+    if not db_wh:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    db.delete(db_wh)
+    db.commit()
+    return {"ok": True}
+
+@app.post("/webhooks/{wh_id}/regenerate-token", response_model=schemas.Webhook)
+def regenerate_token(wh_id: int, db: Session = Depends(get_db)):
+    db_wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
+    if not db_wh:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    db_wh.token = secrets.token_urlsafe(32)
+    db.commit()
+    db.refresh(db_wh)
+    return db_wh
+
+@app.api_route("/webhook/in/{token}/{entity}", methods=["GET", "POST", "PUT", "DELETE"])
+async def inbound_webhook(token: str, entity: str, request: FastAPIRequest, db: Session = Depends(get_db)):
+    """Inbound proxy: validates token permissions and forwards to internal endpoint."""
+    db_wh = db.query(models.Webhook).filter(
+        models.Webhook.token == token,
+        models.Webhook.type == 'inbound',
+        models.Webhook.active == True,
+    ).first()
+    if not db_wh:
+        raise HTTPException(status_code=403, detail="Token inválido ou webhook inativo")
+
+    allowed_entities = json.loads(db_wh.allowed_entities or '[]')
+    if allowed_entities and entity not in allowed_entities:
+        raise HTTPException(status_code=403, detail=f"Acesso à entidade '{entity}' não permitido para este webhook")
+
+    allowed_methods = json.loads(db_wh.allowed_methods or '["POST"]')
+    if request.method not in allowed_methods:
+        raise HTTPException(status_code=405, detail=f"Método '{request.method}' não permitido para este webhook")
+
+    # Read body and dispatch to internal API
+    try:
+        body = await request.body()
+        payload = json.loads(body) if body else {}
+    except Exception:
+        payload = {}
+
+    # Map entity → internal handler
+    from fastapi.testclient import TestClient
+    # Instead of re-routing internally we return what would be processed
+    # and let the caller use the real /entity endpoints with the token as proof
+    # Practical: forward body to the real endpoint via internal call
+    base = str(request.base_url).rstrip('/')
+    target_url = f"{base}/{entity}"
+    try:
+        inner_req = _urllib_req2.Request(
+            target_url,
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+            method=request.method,
+        )
+        with _urllib_req2.urlopen(inner_req, timeout=10) as resp:
+            result = json.loads(resp.read())
+        return {"ok": True, "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Erro ao processar requisição interna: {str(e)}")
+
+@app.get("/webhooks/meta/entities")
+def get_entities_meta():
+    return {
+        "entities": list(ENTITY_ENDPOINT_MAP.keys()),
+        "entity_endpoints": ENTITY_ENDPOINT_MAP,
+        "events": ALL_EVENTS,
+    }
+
+# ---- Rotas Cards ----
 
 def _sync_relations(card, contact_ids, user_ids, db):
     if contact_ids is not None:
@@ -219,6 +489,7 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
     db.add(models.Activity(card_id=db_card.id, type='created', content='Negócio criado', actor='Usuário'))
     db.commit()
     db.refresh(db_card)
+    _fire_outbound_webhooks("card.created", "cards", {"id": db_card.id, "title": db_card.title, "stage_id": db_card.stage_id})
     return db_card
 
 @app.get("/cards/{card_id}", response_model=schemas.Card)
@@ -694,26 +965,316 @@ def move_card(card_id: int, move_data: schemas.CardMove, background_tasks: Backg
     for rule in rules:
         background_tasks.add_task(_execute_rule, rule.id, card.id)
 
-    # AUTOMAÇÃO DE CONVERSÃO
-    if new_stage.name == "Convertido (Ganho)":
-        pipeline_negocios = db.query(models.Pipeline).filter(models.Pipeline.name == "Negócios").first()
-        if pipeline_negocios:
-            first_stage_negocios = db.query(models.Stage).filter(models.Stage.pipeline_id == pipeline_negocios.id).order_by(models.Stage.order).first()
-            if first_stage_negocios:
-                clone_card = models.Card(
-                    title=card.title,
-                    description=card.description,
-                    price=card.price,
-                    stage_id=first_stage_negocios.id,
-                    order=0
-                )
-                db.add(clone_card)
-                db.flush()
-                clone_card.contacts = list(card.contacts)
-                clone_card.users = list(card.users)
-                db.commit()
-
     return card
+
+@app.put("/pipelines/{pipeline_id}/cards/{card_id}/move", response_model=schemas.Card)
+def move_card_in_pipeline(
+    pipeline_id: int,
+    card_id: int,
+    stage_id: int,
+    order: int = 0,
+    background_tasks: BackgroundTasks = None,
+    db: Session = Depends(get_db),
+):
+    """Mover card de pipeline especificado para uma etapa dentro do mesmo pipeline."""
+    pipeline = db.query(models.Pipeline).filter(models.Pipeline.id == pipeline_id).first()
+    if not pipeline:
+        raise HTTPException(status_code=404, detail=f"Pipeline {pipeline_id} não encontrado")
+
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail=f"Card {card_id} não encontrado")
+
+    # Verifica que o card pertence ao pipeline informado
+    current_stage = db.query(models.Stage).filter(models.Stage.id == card.stage_id).first()
+    if not current_stage or current_stage.pipeline_id != pipeline_id:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Card {card_id} não pertence ao pipeline {pipeline_id} (pipeline atual: {current_stage.pipeline_id if current_stage else 'desconhecido'})"
+        )
+
+    new_stage = db.query(models.Stage).filter(
+        models.Stage.id == stage_id,
+        models.Stage.pipeline_id == pipeline_id,
+    ).first()
+    if not new_stage:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Etapa {stage_id} não encontrada no pipeline {pipeline_id}"
+        )
+
+    card.stage_id = new_stage.id
+    card.order = order
+    db.add(models.Activity(card_id=card.id, type='moved',
+        content=f'Movido para "{new_stage.name}"', actor='API'))
+    db.commit()
+    db.refresh(card)
+
+    if background_tasks:
+        rules = db.query(models.AutomationRule).filter(
+            models.AutomationRule.stage_id == new_stage.id,
+            models.AutomationRule.enabled == True,
+        ).order_by(models.AutomationRule.order).all()
+        for rule in rules:
+            background_tasks.add_task(_execute_rule, rule.id, card.id)
+
+    _fire_outbound_webhooks("card.moved", "cards", {
+        "id": card.id, "title": card.title,
+        "pipeline_id": pipeline_id,
+        "stage_id": new_stage.id, "stage_name": new_stage.name,
+    })
+    return card
+
+@app.put("/pipelines/{pipeline_id}/leads/{lead_id}/move", response_model=schemas.Lead)
+def move_lead_in_pipeline(
+    pipeline_id: int,
+    lead_id: int,
+    stage_id: int,
+    order: int = 0,
+    db: Session = Depends(get_db),
+):
+    """Mover lead dentro do Funil de Leads para uma etapa específica."""
+    pipeline = db.query(models.Pipeline).filter(models.Pipeline.id == pipeline_id).first()
+    if not pipeline:
+        raise HTTPException(status_code=404, detail=f"Pipeline {pipeline_id} não encontrado")
+
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail=f"Lead {lead_id} não encontrado")
+
+    current_stage = db.query(models.Stage).filter(models.Stage.id == lead.stage_id).first()
+    if not current_stage or current_stage.pipeline_id != pipeline_id:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Lead {lead_id} não pertence ao pipeline {pipeline_id}"
+        )
+
+    new_stage = db.query(models.Stage).filter(
+        models.Stage.id == stage_id,
+        models.Stage.pipeline_id == pipeline_id,
+    ).first()
+    if not new_stage:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Etapa {stage_id} não encontrada no pipeline {pipeline_id}"
+        )
+
+    lead.stage_id = new_stage.id
+    lead.order = order
+    db.add(models.Activity(lead_id=lead.id, type='moved',
+        content=f'Movido para "{new_stage.name}"', actor='API'))
+    db.commit()
+    db.refresh(lead)
+
+    _fire_outbound_webhooks("lead.moved", "leads", {
+        "id": lead.id, "title": lead.title,
+        "pipeline_id": pipeline_id,
+        "stage_id": new_stage.id, "stage_name": new_stage.name,
+    })
+    return lead
+
+@app.get("/pipelines/{pipeline_id}/stages", response_model=List[schemas.Stage])
+def get_pipeline_stages(pipeline_id: int, db: Session = Depends(get_db)):
+    """Lista todas as etapas de um pipeline, com seus cards/leads."""
+    pipeline = db.query(models.Pipeline).filter(models.Pipeline.id == pipeline_id).first()
+    if not pipeline:
+        raise HTTPException(status_code=404, detail=f"Pipeline {pipeline_id} não encontrado")
+    return db.query(models.Stage).filter(
+        models.Stage.pipeline_id == pipeline_id
+    ).order_by(models.Stage.order).all()
+
+# ── Leads ─────────────────────────────────────────────────────────────────────
+
+def _sync_lead_relations(lead, contact_ids, user_ids, db):
+    if contact_ids is not None:
+        lead.contacts = db.query(models.Contact).filter(models.Contact.id.in_(contact_ids)).all()
+    if user_ids is not None:
+        lead.users = db.query(models.User).filter(models.User.id.in_(user_ids)).all()
+
+@app.get("/leads", response_model=List[schemas.Lead])
+def get_leads(pipeline_id: int = None, db: Session = Depends(get_db)):
+    query = db.query(models.Lead)
+    if pipeline_id:
+        query = query.join(models.Stage).filter(models.Stage.pipeline_id == pipeline_id)
+    return query.all()
+
+@app.post("/leads", response_model=schemas.Lead)
+def create_lead(lead: schemas.LeadCreate, db: Session = Depends(get_db)):
+    data = lead.dict(exclude_unset=True)
+    contact_ids = data.pop("contact_ids", [])
+    user_ids = data.pop("user_ids", [])
+    if not data.get("created_at"):
+        data["created_at"] = datetime.now(timezone.utc)
+    db_lead = models.Lead(**data)
+    db.add(db_lead)
+    db.flush()
+    _sync_lead_relations(db_lead, contact_ids, user_ids, db)
+    db.add(models.Activity(lead_id=db_lead.id, type='created', content='Lead criado', actor='Usuário'))
+    db.commit()
+    db.refresh(db_lead)
+    _fire_outbound_webhooks("lead.created", "leads", {"id": db_lead.id, "title": db_lead.title, "stage_id": db_lead.stage_id})
+    return db_lead
+
+@app.get("/leads/{lead_id}", response_model=schemas.Lead)
+def get_lead(lead_id: int, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    return lead
+
+@app.put("/leads/{lead_id}", response_model=schemas.Lead)
+def update_lead(lead_id: int, lead_data: schemas.LeadBase, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    old_price  = lead.price
+    old_title  = lead.title
+    old_stage  = lead.stage_id
+    old_contact_ids = {c.id for c in lead.contacts}
+    old_user_ids    = {u.id for u in lead.users}
+
+    lead.title       = lead_data.title
+    lead.description = lead_data.description
+    lead.price       = lead_data.price
+    lead.source      = lead_data.source
+
+    _sync_lead_relations(lead, lead_data.contact_ids, lead_data.user_ids, db)
+
+    logs = []
+    if old_title != lead_data.title:
+        logs.append(models.Activity(lead_id=lead.id, type='title_changed',
+            content=f'Título alterado para "{lead_data.title}"', actor='Usuário'))
+    if round(old_price or 0, 2) != round(lead_data.price or 0, 2):
+        logs.append(models.Activity(lead_id=lead.id, type='price_changed',
+            content=f'Valor alterado de R$ {old_price or 0:.2f} para R$ {lead_data.price or 0:.2f}', actor='Usuário'))
+    if old_stage != lead_data.stage_id:
+        new_stage = db.query(models.Stage).filter(models.Stage.id == lead_data.stage_id).first()
+        if new_stage:
+            logs.append(models.Activity(lead_id=lead.id, type='moved',
+                content=f'Movido para a etapa {new_stage.name}', actor='Usuário'))
+        lead.stage_id = lead_data.stage_id
+    else:
+        lead.stage_id = lead_data.stage_id
+
+    new_contact_ids = set(lead_data.contact_ids or [])
+    for cid in new_contact_ids - old_contact_ids:
+        ct = db.query(models.Contact).filter(models.Contact.id == cid).first()
+        if ct:
+            logs.append(models.Activity(lead_id=lead.id, type='contact_added',
+                content=f'Contato {ct.first_name} {ct.last_name or ""}'.strip() + ' adicionado', actor='Usuário'))
+    for cid in old_contact_ids - new_contact_ids:
+        ct = db.query(models.Contact).filter(models.Contact.id == cid).first()
+        if ct:
+            logs.append(models.Activity(lead_id=lead.id, type='contact_removed',
+                content=f'Contato {ct.first_name} {ct.last_name or ""}'.strip() + ' removido', actor='Usuário'))
+
+    new_user_ids = set(lead_data.user_ids or [])
+    for uid in new_user_ids - old_user_ids:
+        u = db.query(models.User).filter(models.User.id == uid).first()
+        if u:
+            logs.append(models.Activity(lead_id=lead.id, type='user_assigned',
+                content=f'Responsável {u.name} adicionado', actor='Usuário'))
+    for uid in old_user_ids - new_user_ids:
+        u = db.query(models.User).filter(models.User.id == uid).first()
+        if u:
+            logs.append(models.Activity(lead_id=lead.id, type='user_removed',
+                content=f'Responsável {u.name} removido', actor='Usuário'))
+
+    for log in logs:
+        db.add(log)
+    db.commit()
+    db.refresh(lead)
+    return lead
+
+@app.delete("/leads/{lead_id}")
+def delete_lead(lead_id: int, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    db.delete(lead)
+    db.commit()
+    return {"message": "Lead deleted"}
+
+@app.put("/leads/{lead_id}/move", response_model=schemas.Lead)
+def move_lead(lead_id: int, move_data: schemas.CardMove, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    new_stage = db.query(models.Stage).filter(models.Stage.id == move_data.new_stage_id).first()
+    if not new_stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    lead.stage_id = new_stage.id
+    lead.order = move_data.new_order
+    db.add(models.Activity(lead_id=lead.id, type='moved',
+        content=f'Movido para a etapa {new_stage.name}', actor='Usuário'))
+    db.commit()
+    db.refresh(lead)
+    return lead
+
+@app.post("/leads/{lead_id}/convert", response_model=schemas.Card)
+def convert_lead(lead_id: int, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    if lead.converted:
+        existing = db.query(models.Card).filter(models.Card.id == lead.converted_card_id).first()
+        if existing:
+            return existing
+
+    pipeline_negocios = db.query(models.Pipeline).filter(models.Pipeline.name == "Negócios").first()
+    if not pipeline_negocios:
+        raise HTTPException(status_code=400, detail="Funil de Negócios não encontrado")
+
+    first_stage = (db.query(models.Stage)
+                   .filter(models.Stage.pipeline_id == pipeline_negocios.id)
+                   .order_by(models.Stage.order).first())
+    if not first_stage:
+        raise HTTPException(status_code=400, detail="Funil de Negócios sem etapas")
+
+    negocio = models.Card(
+        title=lead.title,
+        description=lead.description,
+        price=lead.price,
+        stage_id=first_stage.id,
+        order=0,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(negocio)
+    db.flush()
+    negocio.contacts = list(lead.contacts)
+    negocio.users    = list(lead.users)
+    db.add(models.Activity(card_id=negocio.id, type='created',
+        content=f'Negócio criado a partir do Lead #{lead.id}', actor='Sistema'))
+
+    lead.converted = True
+    lead.converted_card_id = negocio.id
+    db.add(models.Activity(lead_id=lead.id, type='system',
+        content=f'Lead convertido em Negócio #{negocio.id}', actor='Sistema'))
+
+    db.commit()
+    db.refresh(negocio)
+    _fire_outbound_webhooks("lead.converted", "leads", {"lead_id": lead.id, "card_id": negocio.id, "title": negocio.title})
+    _fire_outbound_webhooks("card.created", "cards", {"id": negocio.id, "title": negocio.title, "stage_id": negocio.stage_id})
+    return negocio
+
+@app.get("/leads/{lead_id}/activities", response_model=List[schemas.Activity])
+def get_lead_activities(lead_id: int, db: Session = Depends(get_db)):
+    return (db.query(models.Activity)
+              .filter(models.Activity.lead_id == lead_id)
+              .order_by(models.Activity.created_at.asc())
+              .all())
+
+@app.post("/leads/{lead_id}/activities", response_model=schemas.Activity)
+def create_lead_activity(lead_id: int, activity: schemas.ActivityCreate, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    db_activity = models.Activity(**activity.dict(), lead_id=lead_id)
+    db.add(db_activity)
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
 
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────

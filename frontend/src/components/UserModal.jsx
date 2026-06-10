@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 const avatarColor = (name) => {
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
@@ -201,3 +201,4 @@ export default function UserModal({ user, onClose, onUpdate, nested = false }) {
     </div>
   );
 }
+

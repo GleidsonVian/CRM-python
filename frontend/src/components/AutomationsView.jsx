@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import FlowBuilderModal from './FlowBuilderModal';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 const ACTION_META = {
   webhook:     { icon: '🔗', label: 'Webhook',       color: '#6366f1' },
@@ -227,3 +227,4 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
     </div>
   );
 }
+

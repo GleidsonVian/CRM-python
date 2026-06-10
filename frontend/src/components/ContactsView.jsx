@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import ContactModal from './ContactModal';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 const avatarColor = (name) => {
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
@@ -26,7 +26,15 @@ const formatPhone = (val) => {
   return `+${v.slice(0,2)} ${v.slice(2,4)} ${v.slice(4,9)}-${v.slice(9)}`;
 };
 
-const emptyForm = { first_name: '', last_name: '', email: '', cpf: '', phone: '', address: '' };
+const SOURCES = ['Chamada', 'Email', 'Site', 'Indicação', 'Redes Sociais', 'WhatsApp', 'Evento', 'Outro'];
+const CONTACT_TYPES = ['Clientes', 'Parceiros', 'Fornecedores', 'Concorrentes', 'Outros'];
+const SALUTATIONS = ['Sr.', 'Sra.', 'Dr.', 'Dra.', 'Prof.'];
+
+const emptyForm = {
+  first_name: '', last_name: '', middle_name: '', salutation: '',
+  email: '', cpf: '', phone: '', address: '', position: '',
+  company_name: '', source: '', contact_type: '',
+};
 
 export default function ContactsView() {
   const [contacts, setContacts] = useState([]);
@@ -115,9 +123,12 @@ export default function ContactsView() {
             <thead>
               <tr>
                 <th>Nome</th>
+                <th>Empresa</th>
+                <th>Cargo</th>
                 <th>Email</th>
                 <th>Telefone</th>
-                <th>CPF</th>
+                <th>Tipo</th>
+                <th>Fonte</th>
               </tr>
             </thead>
             <tbody>
@@ -134,9 +145,12 @@ export default function ContactsView() {
                         <span style={{ fontWeight: 500 }}>{fullName}</span>
                       </div>
                     </td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{c.company_name || '—'}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{c.position || '—'}</td>
                     <td style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
                     <td style={{ color: 'var(--text-secondary)' }}>{c.phone || '—'}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{c.cpf || '—'}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{c.contact_type || '—'}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{c.source || '—'}</td>
                   </tr>
                 );
               })}
@@ -153,7 +167,14 @@ export default function ContactsView() {
               <span className="small-modal-title">Novo contato</span>
               <button className="icon-btn" onClick={() => setIsCreating(false)}><IconX /></button>
             </div>
-            <div className="small-modal-body">
+            <div className="small-modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+              <div className="form-group" style={{ gridColumn: '1/3' }}>
+                <label className="form-label">Saudação</label>
+                <select className="form-input" value={form.salutation} onChange={e => setForm({ ...form, salutation: e.target.value })}>
+                  <option value="">—</option>
+                  {SALUTATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
               <div className="form-group">
                 <label className="form-label">Nome *</label>
                 <input autoFocus className="form-input" placeholder="Ex: João" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
@@ -171,12 +192,26 @@ export default function ContactsView() {
                 <input className="form-input" type="email" placeholder="joao@email.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">CPF</label>
-                <input className="form-input" placeholder="000.000.000-00" value={form.cpf} onChange={e => setForm({ ...form, cpf: e.target.value })} />
+                <label className="form-label">Empresa</label>
+                <input className="form-input" placeholder="Nome da empresa" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Endereço</label>
-                <input className="form-input" placeholder="Rua das Flores, 123" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
+                <label className="form-label">Cargo</label>
+                <input className="form-input" placeholder="Cargo / Posição" value={form.position} onChange={e => setForm({ ...form, position: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Tipo de contato</label>
+                <select className="form-input" value={form.contact_type} onChange={e => setForm({ ...form, contact_type: e.target.value })}>
+                  <option value="">—</option>
+                  {CONTACT_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Fonte</label>
+                <select className="form-input" value={form.source} onChange={e => setForm({ ...form, source: e.target.value })}>
+                  <option value="">—</option>
+                  {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
             </div>
             <div className="small-modal-footer">
@@ -200,3 +235,4 @@ export default function ContactsView() {
     </div>
   );
 }
+

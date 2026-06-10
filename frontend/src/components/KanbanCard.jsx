@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 const fmt = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 const fmtDate = (iso) => {
@@ -33,7 +33,15 @@ function renderCFValue(field, rawValue) {
   return rawValue;
 }
 
-export default function KanbanCard({ card, onDragStart, onClick, showOnCardFields = [] }) {
+export default function KanbanCard({
+  card,
+  onDragStart,
+  onOpen,      // double-click or button → opens modal
+  onSelect,    // single click → selects card
+  isSelected = false,
+  showOnCardFields = [],
+  isLead = false,
+}) {
   const [cfValues, setCfValues] = useState({});
 
   useEffect(() => {
@@ -64,11 +72,44 @@ export default function KanbanCard({ card, onDragStart, onClick, showOnCardField
 
   return (
     <div
-      className="card"
+      className={`card${isSelected ? ' card-selected' : ''}`}
       draggable
       onDragStart={e => onDragStart(e, card)}
-      onClick={() => onClick(card)}
+      onClick={e => { e.stopPropagation(); onSelect && onSelect(card); }}
+      onDoubleClick={e => { e.stopPropagation(); onOpen && onOpen(card); }}
     >
+      {/* Selection checkbox */}
+      <div
+        className="card-check"
+        onClick={e => { e.stopPropagation(); onSelect && onSelect(card); }}
+      >
+        {isSelected
+          ? <svg width="14" height="14" viewBox="0 0 14 14"><rect x="0.5" y="0.5" width="13" height="13" rx="3" fill="var(--accent)" stroke="var(--accent)"/><path d="M3 7l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          : <svg width="14" height="14" viewBox="0 0 14 14"><rect x="0.5" y="0.5" width="13" height="13" rx="3" fill="white" stroke="#cbd5e1"/></svg>
+        }
+      </div>
+
+      {/* Open modal button on hover */}
+      <button
+        className="card-open-btn"
+        title="Abrir detalhes"
+        onClick={e => { e.stopPropagation(); onOpen && onOpen(card); }}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M1 11L11 1M11 1H5M11 1v6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {isLead && (
+        <div style={{ marginBottom: 4 }}>
+          <span style={{
+            fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+            background: '#ede9fe', color: '#7c3aed', padding: '2px 6px', borderRadius: 4,
+          }}>
+            {card.converted ? '✓ Convertido' : 'Lead'}
+          </span>
+        </div>
+      )}
       <div className="card-title">{card.title}</div>
 
       {price > 0 ? (
@@ -87,7 +128,6 @@ export default function KanbanCard({ card, onDragStart, onClick, showOnCardField
         </div>
       )}
 
-      {/* Custom fields with show_on_card */}
       {visibleCFs.length > 0 && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {visibleCFs.map(({ field, display }) => (

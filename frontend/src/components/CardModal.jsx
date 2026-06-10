@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
 import CustomFieldValues from './CustomFieldValues';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 const fmtDate = (iso) => {
   if (!iso) return '—';
@@ -169,7 +169,8 @@ const NATIVE_FIELDS = [
   { uid: 'pipeline.name',    label: 'Nome do funil',  type: 'text'   },
 ];
 
-export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
+export default function CardModal({ card, stages, onClose, onSave, onDelete, isLead = false, onConvert }) {
+  const entityBase = isLead ? 'leads' : 'cards';
   const [title, setTitle] = useState(card.title || '');
   const [price, setPrice] = useState(card.price || 0);
   const [description, setDescription] = useState(card.description || '');
@@ -198,16 +199,18 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
 
   const fetchActivities = async () => {
     try {
-      const res = await fetch(`${API}/cards/${card.id}/activities`);
+      const res = await fetch(`${API}/${entityBase}/${card.id}/activities`);
       setActivities(await res.json());
     } catch {}
   };
 
   const fetchComments = async () => {
+    if (isLead) return;
     try { setComments(await fetch(`${API}/cards/${card.id}/comments`).then(r => r.json())); } catch {}
   };
 
   const fetchTasks = async () => {
+    if (isLead) return;
     try { setTasks(await fetch(`${API}/cards/${card.id}/tasks`).then(r => r.json())); } catch {}
   };
 
@@ -257,7 +260,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
   const handlePostNote = async (e) => {
     if (e.key !== 'Enter' || !newNote.trim()) return;
     try {
-      await fetch(`${API}/cards/${card.id}/activities`, {
+      await fetch(`${API}/${entityBase}/${card.id}/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'note', content: newNote.trim(), actor: 'Usuário' })
@@ -328,7 +331,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                   className="modal-title-input"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder="Nome do negócio"
+                  placeholder={isLead ? "Nome do lead" : "Nome do negócio"}
                 />
                 <div className="modal-id">ID #{card.id} · Criado em {fmtDate(card.created_at)}</div>
               </div>
@@ -344,10 +347,27 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                     transition: 'all 0.12s',
                   }}
                 >F12</button>
+                {isLead && !card.converted && onConvert && (
+                  <button
+                    className="btn btn-primary"
+                    style={{ fontSize: 12, background: '#7c3aed', borderColor: '#7c3aed' }}
+                    onClick={() => {
+                      if (window.confirm('Converter este lead em negócio?')) onConvert(card.id);
+                    }}
+                  >
+                    ⚡ Converter
+                  </button>
+                )}
+                {isLead && card.converted && (
+                  <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, padding: '4px 8px',
+                    background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6 }}>
+                    ✓ Convertido
+                  </span>
+                )}
                 <button
                   className="btn btn-danger"
                   style={{ fontSize: 12 }}
-                  onClick={() => { if (window.confirm('Excluir este negócio?')) onDelete(card.id); }}
+                  onClick={() => { if (window.confirm(isLead ? 'Excluir este lead?' : 'Excluir este negócio?')) onDelete(card.id); }}
                 >
                   Excluir
                 </button>
@@ -415,7 +435,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
           <div className="modal-content-grid">
             {/* Left panel */}
             <div className="modal-left">
-              <div className="form-section-title">Detalhes do negócio</div>
+              <div className="form-section-title">{isLead ? 'Detalhes do lead' : 'Detalhes do negócio'}</div>
 
               {/* Responsáveis */}
               <div className="form-group">
@@ -482,7 +502,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
                   rows={4}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  placeholder="Detalhes do negócio..."
+                  placeholder={isLead ? "Detalhes do lead..." : "Detalhes do negócio..."}
                 />
               </div>
 
@@ -564,3 +584,4 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete }) {
     </>
   );
 }
+

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, Fragment } from 'react';
+﻿import React, { useState, useEffect, Fragment } from 'react';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8002';
 
 // ── Meta dos tipos de nó ──────────────────────────────────────────────────────
 const NODE_META = {
@@ -972,3 +972,4 @@ export default function FlowBuilderModal({ rule, stageId, pipelineId, stageName,
     </div>
   );
 }
+
