@@ -5,16 +5,37 @@ __pycache__/
 venv/
 env/
 .env
+*.egg-info/
 
-# Banco de Dados (opcional manter local, mas é boa prática não commitar o SQLite se tiver dados sensíveis)
-# backend/crm.db
+# Logs
+*.log
+backend.log
+backend_err.log
+backend_err2.log
+backend_new.log
+frontend.log
+
+# Banco de dados
+# backend/crm.db  ← descomente para não versionar o banco
+
+# Scripts utilitários temporários
+fix_icon.py
 
 # Node.js
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
 frontend/npm-debug.log
 frontend/yarn-error.log
+frontend/.env.local
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.user

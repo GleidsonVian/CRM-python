@@ -1,6 +1,6 @@
 # Nexus CRM
 
-CRM leve com Kanban, dois funis pré-definidos e automação de conversão de Leads em Negócios.
+CRM completo estilo Bitrix24 — Kanban, Leads, Negócios, Tarefas, Projetos, Automações visuais, RBAC e muito mais.
 
 ---
 
@@ -10,6 +10,8 @@ Dê duplo-clique em **`start_crm.bat`** (ou execute `start_crm.ps1` pelo PowerSh
 
 O script instala as dependências automaticamente na primeira execução e abre o sistema no navegador em **http://localhost:5173**.
 
+Login padrão: `admin@nexus.com` / `admin123`
+
 Para encerrar: feche as duas janelas de terminal abertas pelo script.
 
 ### Início manual
@@ -18,7 +20,7 @@ Para encerrar: feche as duas janelas de terminal abertas pelo script.
 ```powershell
 cd backend
 .\venv\Scripts\Activate
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8001
 ```
 
 **Terminal 2 — Frontend**
@@ -33,70 +35,103 @@ npm run dev
 
 | Camada | Stack |
 |--------|-------|
-| Frontend | React + Vite, CSS puro |
-| Backend | Python, FastAPI, SQLAlchemy |
-| Banco | SQLite (arquivo `backend/crm.db`) |
+| Frontend | React 19 + Vite, CSS puro |
+| Backend | Python 3, FastAPI, SQLAlchemy |
+| Banco | SQLite (`backend/crm.db`) — gerado automaticamente |
+| Auth | JWT (stdlib only, sem dependências externas) |
 
 ---
 
-## Arquitetura dos Funis
+## Módulos
 
-O sistema possui dois funis pré-definidos, criados automaticamente a cada novo banco de dados.
+### CRM
+| Módulo | Descrição |
+|--------|-----------|
+| **Leads** | Funil exclusivo com entidade `Lead`. Conversão automática para Negócio ao chegar na etapa "Convertido". |
+| **Negócios** | Funil `Card` com múltiplos pipelines customizáveis além do padrão. |
+| **Contatos** | Cadastro completo (saudação, cargo, empresa, UTM, responsável, foto). |
+| **Empresas** | Cadastro de empresas com vínculos a contatos. |
 
-### Funil de Leads
-Entidade própria (`Lead`) com endpoints exclusivos (`/leads`). **Única** — não é possível criar mais de um funil de Leads. Acessível pela sidebar diretamente.
+### Kanban
+- Drag-and-drop entre etapas
+- Vista Kanban e Lista
+- Seleção múltipla de cards (bulk actions: mover etapa, atribuir responsável, excluir)
+- Filtro por status, etapa, responsável, valor e data
+- Campos personalizados exibidos no card
+- **Clique do meio** (scroll click) abre o card em nova aba
 
-| Etapa padrão | Tipo | Cor |
-|---|---|---|
-| Não atribuído | Normal | Ciano |
-| Em andamento | Normal | Ciano |
-| Processado | Normal | Ciano |
-| Lead descartado | Perda | Vermelho |
-| Lead convertido | Ganho → cria Negócio | Verde |
+### Tarefas
+- Kanban por prazo: Vencido / Hoje / Esta semana / Próxima semana / Sem prazo / Concluídas
+- Vinculação a negócios ou leads (com navegação bidirecional)
+- Prioridade, participantes, rastreamento de tempo
+- Busca de entidade por nome ou `#ID` com filtro por pipeline/etapa
 
-### Funil de Negócios
-Entidade `Card` com endpoints exclusivos (`/cards`). **Única** — não é possível criar mais de um funil de Negócios. Acessível pela sidebar diretamente.
+### Projetos
+- Gestão de projetos com tarefas vinculadas
+- Membros e permissões por projeto
 
-| Etapa padrão | Tipo | Cor |
-|---|---|---|
-| Em Desenvolvimento | Normal | Azul |
-| Criar documentos | Normal | Roxo |
-| Fatura | Normal | Amarelo |
-| Em andamento | Normal | Ciano |
-| Fatura final | Normal | Laranja |
-| Negócios Fechados | Ganho | Verde |
-| Negócios Perdidos | Perda | Vermelho |
-| Analisar falha | Perda | Vermelho escuro |
+### Automações
+- Flow builder visual (execução esquerda→direita)
+- Gatilhos: mudança de etapa
+- Ações: Alterar etapa, Mover pipeline, Criar tarefa, Enviar e-mail, Pausa, Webhook
+- Condições: if/else com operadores (igual, contém, maior que, etc.)
+
+### Fluxos de trabalho
+- Automações visuais executadas **manualmente** em um card
+- Mesmo flow builder das automações (modo workflow)
+- Contagem de blocos e status ativo/inativo
+
+### Relatórios
+- Resumo de negócios por etapa e pipeline
+- Evolução temporal de criações
+
+### Auditoria
+- Log completo de ações (criar, editar, mover, excluir, login)
+- Filtro por tipo de entidade, ação e ator
 
 ---
 
-## Fluxo de conversão Lead → Negócio
+## RBAC — Cargos e Permissões
 
-Quando um Lead é arrastado para a etapa **"Lead convertido"** no Funil de Leads (ou clica em ⚡ no modal):
+Sistema de permissões granular por cargo (estilo Bitrix24).
 
-1. O lead é movido para a etapa.
-2. `POST /leads/{id}/convert` é chamado automaticamente.
-3. Um novo Card é criado na **primeira etapa do Funil de Negócios**, copiando título, valor, contatos e responsáveis do lead.
-4. O lead recebe o flag `converted = true` e referência ao Card gerado (`converted_card_id`).
-5. O card do lead exibe o badge **"✓ Convertido"** no Kanban.
+**Permissões por entidade** (Contato, Empresa, Lead, Negócio):
+- Ler: `Próprios | Todos | Negar`
+- Adicionar / Editar / Excluir / Exportar / Importar
+- Extras para Lead/Negócio: Mover etapa, Ver valor (R$), Automações
 
-O botão **⚡ Converter** no modal do lead também aciona o mesmo fluxo manualmente.
+**Permissões de sistema:**
+- Gerenciar funis e etapas
+- Gerenciar equipe (usuários)
+- Visualizar relatórios
+- Configurações do sistema
+
+**Roles padrão seedados:**
+
+| Cargo | Negócios | Leads | Sistema |
+|-------|----------|-------|---------|
+| Administrador | Todos | Todos | Tudo |
+| Gerente | Todos | Todos | Só relatórios |
+| Vendedor | Apenas próprios | Apenas próprios | Nada |
+
+O backend filtra `GET /cards` e `GET /leads` automaticamente com base no token JWT do usuário logado.
 
 ---
 
-## Funcionalidades
+## URL Routing (Hash)
 
-- **Dois módulos fixos** — Leads e Negócios são entidades únicas, separadas na sidebar, não podem ser duplicadas nem excluídas
-- **Conversão automática** — ao atingir "Convertido (Ganho)", o lead vira um Negócio automaticamente
-- **Kanban drag-and-drop** — mova cards entre etapas arrastando
-- **Vista em lista** — alternativa tabular ao Kanban
-- **Modal de detalhes** — edição inline de título, valor, etapa, contatos, responsáveis e descrição
-- **Timeline de atividades** — histórico automático de movimentações, mudanças de valor, contatos e notas manuais
-- **Campos personalizados** — crie campos extras do tipo texto, número, seleção, data, checkbox, moeda, etc.
-- **Automações** — regras com flow builder visual (webhook, atribuir responsável, nota automática, alterar valor/campo)
-- **Contatos** — cadastro completo estilo Bitrix24 (saudação, nome do meio, cargo, empresa, website, messenger, tipo, fonte, UTM, responsável, observadores, foto)
-- **Múltiplos funis customizáveis** — além dos dois padrão, crie funis adicionais
-- **Etapas configuráveis** — renomeie, recolora e adicione etapas em qualquer funil
+A URL reflete sempre o estado atual para compartilhamento e automações HTTP:
+
+| URL | Estado |
+|-----|--------|
+| `#pipeline/1` | Pipeline 1 aberto |
+| `#pipeline/2/stage/5/deal/42` | Card 42 aberto |
+| `#tasks` | Aba de tarefas |
+| `#tasks/15` | Tarefa 15 aberta |
+| `#contacts` | Contatos |
+| `#roles` | Cargos e permissões |
+
+F5 restaura exatamente a view onde o usuário estava.
 
 ---
 
@@ -104,27 +139,43 @@ O botão **⚡ Converter** no modal do lead também aciona o mesmo fluxo manualm
 
 ```
 CRM-python/
-├── start_crm.bat          # Atalho para iniciar (Windows)
-├── start_crm.ps1          # Script principal de inicialização
+├── start_crm.bat              # Atalho Windows
+├── start_crm.ps1              # Script de inicialização
 ├── backend/
-│   ├── main.py            # FastAPI — rotas e lógica de negócio
-│   ├── models.py          # SQLAlchemy — modelos do banco
-│   ├── schemas.py         # Pydantic — validação de dados
-│   ├── database.py        # Conexão SQLite
-│   ├── requirements.txt   # Dependências Python
-│   └── crm.db             # Banco de dados (gerado automaticamente)
+│   ├── main.py                # FastAPI — rotas, lógica, migrations inline
+│   ├── models.py              # SQLAlchemy — todos os modelos
+│   ├── schemas.py             # Pydantic — validação
+│   ├── database.py            # Conexão SQLite
+│   ├── requirements.txt       # Dependências Python
+│   └── crm.db                 # Banco (gerado automaticamente)
 └── frontend/
     └── src/
-        ├── App.jsx                        # Roteamento e estado global
+        ├── App.jsx                          # Roteamento hash, estado global, sidebar
+        ├── AuthContext.jsx                  # Contexto de autenticação JWT
         └── components/
-            ├── KanbanColumn.jsx           # Coluna do Kanban
-            ├── KanbanCard.jsx             # Card individual
-            ├── CardModal.jsx              # Modal de Lead e Negócio
-            ├── ContactsView.jsx           # Tela de contatos
-            ├── UsersView.jsx              # Tela de equipe
-            ├── AutomationsView.jsx        # Tela de automações
-            ├── FlowBuilderModal.jsx       # Editor de fluxo de automação
-            └── CustomFieldsManager.jsx   # Gerenciador de campos personalizados
+            ├── KanbanColumn.jsx             # Coluna do Kanban
+            ├── KanbanCard.jsx               # Card individual
+            ├── CardModal.jsx                # Modal de Negócio/Lead
+            ├── LeadModal.jsx                # Modal específico de Lead
+            ├── ListView.jsx                 # Vista em lista
+            ├── ContactsView.jsx             # Tela de contatos
+            ├── CompaniesView.jsx            # Tela de empresas
+            ├── UsersView.jsx                # Tela de equipe
+            ├── RolesView.jsx                # Cargos e permissões (RBAC)
+            ├── TasksKanban.jsx              # Kanban de tarefas por prazo
+            ├── TaskModal.jsx                # Modal de tarefa com EntityPicker
+            ├── ProjectsView.jsx             # Gestão de projetos
+            ├── AutomationsView.jsx          # Tela de automações
+            ├── WorkflowsView.jsx            # Fluxos de trabalho manuais
+            ├── FlowBuilderModal.jsx         # Editor visual de fluxos
+            ├── ReportsView.jsx              # Relatórios
+            ├── AuditLogView.jsx             # Log de auditoria
+            ├── WebhooksView.jsx             # Gestão de webhooks
+            ├── SearchModal.jsx              # Busca global
+            ├── NotificationBell.jsx         # Notificações
+            ├── CustomFieldsManager.jsx      # Campos personalizados
+            ├── ImportLeadsModal.jsx         # Importação CSV de leads
+            └── LoginPage.jsx                # Tela de login
 ```
 
 ---
@@ -132,7 +183,13 @@ CRM-python/
 ## Portas
 
 | Serviço | URL |
-|---|---|
+|---------|-----|
 | Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8000 |
-| Swagger (docs) | http://localhost:8000/docs |
+| Backend API | http://localhost:8001 |
+| Swagger (docs) | http://localhost:8001/docs |
+
+---
+
+## Migrations
+
+Todas as migrations de banco são aplicadas automaticamente no startup via `_MIGRATIONS` em `main.py` (instruções SQL seguras com `IF NOT EXISTS` / `ADD COLUMN` que ignoram erros se a coluna já existir). Não é necessário rodar nenhum comando de migration manualmente.
