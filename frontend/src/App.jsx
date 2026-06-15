@@ -1,5 +1,5 @@
 ﻿// v2 — Slate & Emerald palette
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import LoginPage from './components/LoginPage';
 import KanbanColumn from './components/KanbanColumn';
@@ -26,6 +26,7 @@ import StageRequiredModal from './components/StageRequiredModal';
 import './index.css';
 
 import { API_URL as API } from './config.js';
+import { useAPI } from './hooks/useAPI';
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 function ToastContainer({ toasts, onRemove }) {
@@ -469,8 +470,18 @@ function UserKanban({ cards, stages, users, onOpenCard, showOnCardFields, isLead
 
 function AppInner() {
   const [currentView, setCurrentView] = useState('crm');
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const { apiFetch } = useAPI();
   const { toasts, toast, removeToast } = useToast();
+
+  // Wrapper que injeta o token JWT em todo fetch interno do App
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...opts.headers,
+    };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
   const confirm = useConfirm();
   const [pipelines, setPipelines] = useState([]);
   const [activePipelineId, setActivePipelineId] = useState(null);
@@ -510,7 +521,7 @@ function AppInner() {
 
   // Single entry-point: load pipelines once, then set the default active pipeline
   useEffect(() => {
-    fetch(`${API}/pipelines`)
+    authFetch(`${API}/pipelines`)
       .then(r => r.json())
       .then(data => {
         setPipelines(data);
@@ -526,7 +537,7 @@ function AppInner() {
       })
       .catch(() => setLoading(false));
 
-    fetch(`${API}/custom-fields?entity=deal`)
+    authFetch(`${API}/custom-fields?entity=deal`)
       .then(r => r.json())
       .then(all => {
         setShowOnCardFields(all.filter(f => f.show_on_card));
@@ -534,16 +545,16 @@ function AppInner() {
       })
       .catch(() => {});
 
-    fetch(`${API}/users`)
+    authFetch(`${API}/users`)
       .then(r => r.json())
       .then(data => setAllUsers(Array.isArray(data) ? data : []))
       .catch(() => {});
 
-    fetch(`${API}/contacts`)
+    authFetch(`${API}/contacts`)
       .then(r => r.json())
       .then(data => setAllContacts(Array.isArray(data) ? data : []))
       .catch(() => {});
-  }, []);
+  }, [authFetch]);
 
   useEffect(() => {
     const handleHashChange = async () => {
@@ -575,7 +586,7 @@ function AppInner() {
             isLeads = cachedPipes.find(p => p.id === pId)?.name === 'Leads';
           } else {
             // Pipelines not loaded yet — fetch them now
-            const pr = await fetch(`${API}/pipelines`);
+            const pr = await authFetch(`${API}/pipelines`);
             if (pr.ok) {
               const pipes = await pr.json();
               setPipelines(pipes);
@@ -585,8 +596,8 @@ function AppInner() {
           }
           const endpoint = isLeads ? 'leads' : 'cards';
           const [itemRes, stagesRes] = await Promise.all([
-            fetch(`${API}/${endpoint}/${dId}`),
-            fetch(`${API}/stages?pipeline_id=${pId}`)
+            authFetch(`${API}/${endpoint}/${dId}`),
+            authFetch(`${API}/stages?pipeline_id=${pId}`)
           ]);
           if (itemRes.ok) {
             const [itemData, stagesData] = await Promise.all([itemRes.json(), stagesRes.json()]);
@@ -608,11 +619,11 @@ function AppInner() {
       if (hash.startsWith('deal/')) {
         const dId = parseInt(hash.replace('deal/', ''));
         try {
-          const allStagesRes = await fetch(`${API}/stages`);
+          const allStagesRes = await authFetch(`${API}/stages`);
           const allStages = await allStagesRes.json();
           // Try leads first, then cards
           for (const endpoint of ['leads', 'cards']) {
-            const res = await fetch(`${API}/${endpoint}/${dId}`);
+            const res = await authFetch(`${API}/${endpoint}/${dId}`);
             if (res.ok) {
               const itemData = await res.json();
               const stage = allStages.find(s => s.id === itemData.stage_id);
@@ -655,8 +666,8 @@ function AppInner() {
     const isLeads = name === 'Leads';
     try {
       const [sr, ir] = await Promise.all([
-        fetch(`${API}/stages?pipeline_id=${pid}`),
-        fetch(`${API}/${isLeads ? 'leads' : 'cards'}?pipeline_id=${pid}`),
+        authFetch(`${API}/stages?pipeline_id=${pid}`),
+        authFetch(`${API}/${isLeads ? 'leads' : 'cards'}?pipeline_id=${pid}`),
       ]);
       const stagesData = await sr.json();
       const itemsData = await ir.json();
@@ -702,7 +713,7 @@ function AppInner() {
 
       setLeads(prev => prev.map(l => l.id === itemId ? { ...l, stage_id: newStageId } : l));
       try {
-        await fetch(`${API}/leads/${itemId}/move`, {
+        await authFetch(`${API}/leads/${itemId}/move`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ new_stage_id: newStageId, new_order: 0 })
@@ -713,7 +724,7 @@ function AppInner() {
           setPendingConvertLead({ ...freshLead, stage_id: newStageId });
           return;
         }
-        const res = await fetch(`${API}/leads?pipeline_id=${activePipelineId}`);
+        const res = await authFetch(`${API}/leads?pipeline_id=${activePipelineId}`);
         setLeads(await res.json());
       } catch {}
     } else {
@@ -722,7 +733,7 @@ function AppInner() {
       const prevStageId = card.stage_id;
       setCards(prev => prev.map(c => c.id === itemId ? { ...c, stage_id: newStageId } : c));
       try {
-        const res = await fetch(`${API}/cards/${itemId}/move`, {
+        const res = await authFetch(`${API}/cards/${itemId}/move`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ new_stage_id: newStageId, new_order: 0 })
@@ -744,7 +755,7 @@ function AppInner() {
         }
         const refreshCards = async () => {
           try {
-            const r = await fetch(`${API}/cards?pipeline_id=${activePipelineId}`);
+            const r = await authFetch(`${API}/cards?pipeline_id=${activePipelineId}`);
             setCards(await r.json());
           } catch {}
         };
@@ -774,10 +785,10 @@ function AppInner() {
     try {
       // Update builtin fields on the card
       if (Object.keys(updatePayload).length > 0) {
-        const cardRes = await fetch(`${API}/cards/${cardId}`);
+        const cardRes = await authFetch(`${API}/cards/${cardId}`);
         if (cardRes.ok) {
           const cardData = await cardRes.json();
-          await fetch(`${API}/cards/${cardId}`, {
+          await authFetch(`${API}/cards/${cardId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...cardData, ...updatePayload }),
@@ -788,7 +799,7 @@ function AppInner() {
       // Update custom fields
       for (const [k, v] of customUpdates) {
         const cfId = parseInt(k.replace('custom_', ''));
-        await fetch(`${API}/cards/${cardId}/custom-fields`, {
+        await authFetch(`${API}/cards/${cardId}/custom-fields`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ field_id: cfId, value: String(v) }),
@@ -796,7 +807,7 @@ function AppInner() {
       }
 
       // Retry the move
-      const moveRes = await fetch(`${API}/cards/${cardId}/move`, {
+      const moveRes = await authFetch(`${API}/cards/${cardId}/move`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_stage_id: newStageId, new_order: newOrder }),
@@ -813,7 +824,7 @@ function AppInner() {
 
   const handleUpdateRequiredFields = async (stageId, fields) => {
     try {
-      await fetch(`${API}/stages/${stageId}/required-fields`, {
+      await authFetch(`${API}/stages/${stageId}/required-fields`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fields),
@@ -824,7 +835,7 @@ function AppInner() {
   const handleAddCard = async (stageId, title) => {
     try {
       if (isLeadsPipeline) {
-        const res = await fetch(`${API}/leads`, {
+        const res = await authFetch(`${API}/leads`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, stage_id: stageId, order: 0, price: 0 })
@@ -832,7 +843,7 @@ function AppInner() {
         const lead = await res.json();
         setLeads(prev => [...prev, lead]);
       } else {
-        const res = await fetch(`${API}/cards`, {
+        const res = await authFetch(`${API}/cards`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, stage_id: stageId, order: 0, price: 0 })
@@ -845,14 +856,14 @@ function AppInner() {
 
   const doConvertLead = async (leadId, opts) => {
     try {
-      const res = await fetch(`${API}/leads/${leadId}/convert`, {
+      const res = await authFetch(`${API}/leads/${leadId}/convert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(opts),
       });
       if (res.ok) {
         const result = await res.json();
-        const updatedLeads = await fetch(`${API}/leads?pipeline_id=${activePipelineId}`).then(r => r.json());
+        const updatedLeads = await authFetch(`${API}/leads?pipeline_id=${activePipelineId}`).then(r => r.json());
         setLeads(updatedLeads);
         setSelectedCard(null);
         window.location.hash = `pipeline/${activePipelineId}`;
@@ -872,7 +883,7 @@ function AppInner() {
         window.history.replaceState(null, '', `#pipeline/${activePipelineId}/stage/${updatedData.stage_id}/deal/${cardId}`);
       }
       try {
-        await fetch(`${API}/leads/${cardId}`, {
+        await authFetch(`${API}/leads/${cardId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedData)
@@ -884,7 +895,7 @@ function AppInner() {
         window.history.replaceState(null, '', `#pipeline/${activePipelineId}/stage/${updatedData.stage_id}/deal/${cardId}`);
       }
       try {
-        await fetch(`${API}/cards/${cardId}`, {
+        await authFetch(`${API}/cards/${cardId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedData)
@@ -896,10 +907,10 @@ function AppInner() {
   const handleDeleteCard = async (cardId) => {
     try {
       if (isLeadsPipeline) {
-        await fetch(`${API}/leads/${cardId}`, { method: 'DELETE' });
+        await authFetch(`${API}/leads/${cardId}`, { method: 'DELETE' });
         setLeads(prev => prev.filter(l => l.id !== cardId));
       } else {
-        await fetch(`${API}/cards/${cardId}`, { method: 'DELETE' });
+        await authFetch(`${API}/cards/${cardId}`, { method: 'DELETE' });
         setCards(prev => prev.filter(c => c.id !== cardId));
       }
       setSelectedCard(null);
@@ -928,7 +939,7 @@ function AppInner() {
     if (!await confirm(`Excluir ${selectedCardIds.size} item(s)?`, 'Esta ação não pode ser desfeita.')) return;
     const endpoint = isLeadsPipeline ? 'leads' : 'cards';
     await Promise.all([...selectedCardIds].map(id =>
-      fetch(`${API}/${endpoint}/${id}`, { method: 'DELETE' }).catch(() => {})
+      authFetch(`${API}/${endpoint}/${id}`, { method: 'DELETE' }).catch(() => {})
     ));
     if (isLeadsPipeline) setLeads(prev => prev.filter(l => !selectedCardIds.has(l.id)));
     else setCards(prev => prev.filter(c => !selectedCardIds.has(c.id)));
@@ -940,7 +951,7 @@ function AppInner() {
     const stId = parseInt(bulkStageId);
     const endpoint = isLeadsPipeline ? 'leads' : 'cards';
     await Promise.all([...selectedCardIds].map(id =>
-      fetch(`${API}/${endpoint}/${id}/move`, {
+      authFetch(`${API}/${endpoint}/${id}/move`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_stage_id: stId, new_order: 0 })
@@ -957,7 +968,7 @@ function AppInner() {
     const uId = parseInt(bulkUserId);
     const endpoint = isLeadsPipeline ? 'leads' : 'cards';
     await Promise.all([...selectedCardIds].map(id =>
-      fetch(`${API}/${endpoint}/${id}`, {
+      authFetch(`${API}/${endpoint}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: uId })
@@ -972,7 +983,7 @@ function AppInner() {
   const handleUpdateStage = async (stageId, updatedData) => {
     setStages(prev => prev.map(s => s.id === stageId ? updatedData : s));
     try {
-      await fetch(`${API}/stages/${stageId}`, {
+      await authFetch(`${API}/stages/${stageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
@@ -982,7 +993,7 @@ function AppInner() {
 
   const handleDeleteStage = async (stageId) => {
     setStages(prev => prev.filter(s => s.id !== stageId));
-    try { await fetch(`${API}/stages/${stageId}`, { method: 'DELETE' }); } catch {}
+    try { await authFetch(`${API}/stages/${stageId}`, { method: 'DELETE' }); } catch {}
   };
 
   // Insert a new stage after a given stage index
@@ -991,7 +1002,7 @@ function AppInner() {
     const insertOrder = idx + 1;
     const name = 'Nova etapa';
     try {
-      const res = await fetch(`${API}/stages`, {
+      const res = await authFetch(`${API}/stages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, order: insertOrder, pipeline_id: activePipelineId, color: '#6366f1' })
@@ -1004,7 +1015,7 @@ function AppInner() {
         const reordered = list.map((s, i) => ({ ...s, order: i }));
         reordered.forEach(s => {
           if (s.id !== newStage.id) {
-            fetch(`${API}/stages/${s.id}`, {
+            authFetch(`${API}/stages/${s.id}`, {
               method: 'PUT', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(s)
             }).catch(() => {});
@@ -1027,7 +1038,7 @@ function AppInner() {
       list.splice(to, 0, moved);
       const reordered = list.map((s, i) => ({ ...s, order: i }));
       reordered.forEach(s => {
-        fetch(`${API}/stages/${s.id}`, {
+        authFetch(`${API}/stages/${s.id}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(s)
         }).catch(() => {});
@@ -1039,7 +1050,7 @@ function AppInner() {
   const handleSaveStage = async () => {
     if (!newStageName.trim() || !activePipelineId) return;
     try {
-      const res = await fetch(`${API}/stages`, {
+      const res = await authFetch(`${API}/stages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newStageName.trim(), order: stages.length, pipeline_id: activePipelineId, color: '#6366f1' })
@@ -1059,7 +1070,7 @@ function AppInner() {
   const handleSaveNewPipeline = async () => {
     if (!newPipelineName.trim()) { setIsAddingPipeline(false); return; }
     try {
-      const res = await fetch(`${API}/pipelines`, {
+      const res = await authFetch(`${API}/pipelines`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newPipelineName.trim() })
@@ -1077,7 +1088,7 @@ function AppInner() {
     setPipelines(prev => prev.map(p => p.id === activePipelineId ? { ...p, name: editPipelineName } : p));
     setIsEditingPipeline(false);
     try {
-      await fetch(`${API}/pipelines/${activePipelineId}`, {
+      await authFetch(`${API}/pipelines/${activePipelineId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: editPipelineName })
@@ -1089,7 +1100,7 @@ function AppInner() {
     if (isDefaultPipeline) return;
     if (!await confirm(`Excluir o funil "${activePipelineName}"?`, 'Todos os negócios nele serão removidos. Esta ação não pode ser desfeita.')) return;
     try {
-      await fetch(`${API}/pipelines/${activePipelineId}`, { method: 'DELETE' });
+      await authFetch(`${API}/pipelines/${activePipelineId}`, { method: 'DELETE' });
       const remaining = pipelines.filter(p => p.id !== activePipelineId);
       setPipelines(remaining);
       const nextDeal = remaining.find(p => p.name !== 'Leads');
@@ -1297,7 +1308,7 @@ function AppInner() {
         <div className="sidebar-section" style={{ marginTop: 'auto' }}>
           <div style={{ padding: '4px 10px 8px' }}>
             <NotificationBell onNavigateToCard={(cardId) => {
-              fetch(`${API}/cards/${cardId}`).then(r => r.json()).then(card => {
+              authFetch(`${API}/cards/${cardId}`).then(r => r.json()).then(card => {
                 setSelectedCard(card);
                 setCurrentView('crm');
               }).catch(() => {});
@@ -1706,13 +1717,13 @@ function AppInner() {
                   const { lead, newStageId } = pendingRevertLead;
                   setPendingRevertLead(null);
                   try {
-                    await fetch(`${API}/leads/${lead.id}/move`, {
+                    await authFetch(`${API}/leads/${lead.id}/move`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ new_stage_id: newStageId, new_order: 0 }),
                     });
-                    await fetch(`${API}/leads/${lead.id}/revert-convert`, { method: 'POST' });
-                    const res = await fetch(`${API}/leads?pipeline_id=${activePipelineId}`);
+                    await authFetch(`${API}/leads/${lead.id}/revert-convert`, { method: 'POST' });
+                    const res = await authFetch(`${API}/leads?pipeline_id=${activePipelineId}`);
                     setLeads(await res.json());
                     toast('Lead desvinculado', 'As entidades criadas foram mantidas no CRM.');
                   } catch {}
@@ -1746,7 +1757,7 @@ function AppInner() {
           onSelect={(result) => {
             setShowSearch(false);
             if (result.type === 'card') {
-              fetch(`${API}/cards/${result.id}`).then(r => r.json()).then(card => {
+              authFetch(`${API}/cards/${result.id}`).then(r => r.json()).then(card => {
                 setSelectedCard(card);
                 setCurrentView('crm');
               }).catch(() => {});
