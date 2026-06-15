@@ -83,4 +83,3 @@ coverage.xml
 
 # ── Scripts utilitários temporários ─────────────────────────────────────────
 fix_icon.py
-backend/migrate_*.py
