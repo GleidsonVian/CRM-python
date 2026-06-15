@@ -1,5 +1,6 @@
-import json, os
-from fastapi import FastAPI
+import json, os, time
+import config
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -8,6 +9,9 @@ from sqlalchemy.orm import Session
 from database import engine, get_db
 import models
 from services.auth import hash_password
+from logger import get_logger
+
+log = get_logger("main")
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -143,15 +147,45 @@ with engine.connect() as _conn:
         except Exception:
             pass
 
+log.info("migrations applied")
+
 # ── App ───────────────────────────────────────────────────────────────────────
 
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
+from limiter import limiter
+
+async def _rate_limit_handler(request, exc: RateLimitExceeded):
+    log.warning("rate_limit_exceeded", extra={"path": request.url.path, "ip": request.client.host if request.client else None})
+    return JSONResponse(
+        {"detail": "Muitas tentativas. Aguarde 1 minuto."},
+        status_code=429,
+    )
+
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+
+_req_log = get_logger("http")
+
+@app.middleware("http")
+async def _log_requests(request: Request, call_next):
+    t0 = time.perf_counter()
+    response = await call_next(request)
+    ms = round((time.perf_counter() - t0) * 1000)
+    level = "warning" if response.status_code >= 400 else "info"
+    getattr(_req_log, level)(
+        f"{request.method} {request.url.path} {response.status_code}",
+        extra={"method": request.method, "path": request.url.path,
+               "status": response.status_code, "ms": ms},
+    )
+    return response
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=config.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -195,6 +229,7 @@ def _create_default_negocios_stages(db: Session, pipeline_id: int):
 
 @app.on_event("startup")
 def startup_event():
+    log.info("startup", extra={"cors_origins": config.CORS_ORIGINS, "admin": config.ADMIN_EMAIL})
     db = next(get_db())
 
     DEFAULT_LEADS_STAGES = [
@@ -223,13 +258,13 @@ def startup_event():
     if db.query(models.Stage).filter(models.Stage.pipeline_id == p_negocios.id).count() == 0:
         _create_default_negocios_stages(db, p_negocios.id)
 
-    admin = db.query(models.User).filter(models.User.email == "admin@nexus.com").first()
+    admin = db.query(models.User).filter(models.User.email == config.ADMIN_EMAIL).first()
     if not admin:
         admin = models.User(
             name="Admin",
-            email="admin@nexus.com",
+            email=config.ADMIN_EMAIL,
             role="admin",
-            password_hash=hash_password("admin123"),
+            password_hash=hash_password(config.ADMIN_PASSWORD),
             is_active=True,
         )
         db.add(admin)

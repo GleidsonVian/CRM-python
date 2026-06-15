@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+﻿from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -16,12 +16,12 @@ router = APIRouter()
 @router.get("/leads", response_model=List[schemas.Lead])
 def get_leads(
     pipeline_id: int = None, stage_id: int = None,
-    q: Optional[str] = None, limit: int = 50,
+    q: Optional[str] = None, page: int = 1, limit: int = 50,
     authorization: Optional[str] = Header(default=None),
     db: Session = Depends(get_db)
 ):
     perms = _get_user_permissions(authorization, db)
-    query = db.query(models.Lead)
+    query = db.query(models.Lead).filter(models.Lead.deleted_at == None)
     if pipeline_id:
         query = query.join(models.Stage).filter(models.Stage.pipeline_id == pipeline_id)
     if stage_id:
@@ -45,12 +45,13 @@ def get_leads(
                 models.Lead.first_name.ilike(f'%{q}%') |
                 models.Lead.last_name.ilike(f'%{q}%')
             )
-    return _list_with_cf(query.order_by(models.Lead.id.desc()).limit(limit).all(), 'lead', db)
+    offset = (page - 1) * limit
+    return _list_with_cf(query.order_by(models.Lead.id.desc()).offset(offset).limit(limit).all(), 'lead', db)
 
 
 @router.post("/leads", response_model=schemas.Lead)
 def create_lead(lead: schemas.LeadCreate, db: Session = Depends(get_db)):
-    data = lead.dict(exclude_unset=True)
+    data = lead.model_dump(exclude_unset=True)
     contact_ids = data.pop("contact_ids", [])
     user_ids = data.pop("user_ids", [])
     if not data.get("created_at"):
@@ -69,7 +70,7 @@ def create_lead(lead: schemas.LeadCreate, db: Session = Depends(get_db)):
 
 @router.get("/leads/{lead_id}", response_model=schemas.Lead)
 def get_lead(lead_id: int, db: Session = Depends(get_db)):
-    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id, models.Lead.deleted_at == None).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     return _with_cf(lead, 'lead', db)
@@ -159,16 +160,32 @@ def update_lead(lead_id: int, lead_data: schemas.LeadBase, db: Session = Depends
     return lead
 
 
-@router.delete("/leads/{lead_id}")
+@router.delete("/leads/{lead_id}", response_model=schemas.MessageResponse)
 def delete_lead(lead_id: int, db: Session = Depends(get_db)):
-    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id, models.Lead.deleted_at == None).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
-    lead_title = lead.title
-    db.delete(lead)
+    lead.deleted_at = datetime.now(timezone.utc)
     db.commit()
-    log_audit(db, "deleted", "lead", lead_id, lead_title)
-    return {"message": "Lead deleted"}
+    log_audit(db, "deleted", "lead", lead_id, lead.title)
+    return {"message": "Lead moved to trash"}
+
+
+@router.post("/leads/{lead_id}/restore", response_model=schemas.Lead)
+def restore_lead(lead_id: int, db: Session = Depends(get_db)):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id, models.Lead.deleted_at != None).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found in trash")
+    lead.deleted_at = None
+    db.commit()
+    db.refresh(lead)
+    log_audit(db, "restored", "lead", lead_id, lead.title)
+    return lead
+
+
+@router.get("/leads/trash", response_model=List[schemas.Lead])
+def get_leads_trash(db: Session = Depends(get_db)):
+    return db.query(models.Lead).filter(models.Lead.deleted_at != None).order_by(models.Lead.deleted_at.desc()).all()
 
 
 @router.put("/leads/{lead_id}/move", response_model=schemas.Lead)
@@ -356,7 +373,7 @@ def create_lead_activity(lead_id: int, activity: schemas.ActivityCreate, db: Ses
     lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
-    db_activity = models.Activity(**activity.dict(), lead_id=lead_id)
+    db_activity = models.Activity(**activity.model_dump(), lead_id=lead_id)
     db.add(db_activity)
     db.commit()
     db.refresh(db_activity)

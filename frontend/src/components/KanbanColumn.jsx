@@ -1,7 +1,7 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
 import KanbanCard from './KanbanCard';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 // Returns white or black text depending on background luminance
 function contrastColor(hex) {

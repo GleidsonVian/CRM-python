@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -16,7 +16,7 @@ def get_companies(db: Session = Depends(get_db)):
 
 @router.post("/companies", response_model=schemas.Company)
 def create_company(company: schemas.CompanyCreate, db: Session = Depends(get_db)):
-    data = company.dict()
+    data = company.model_dump()
     contact_ids = data.pop('contact_ids', [])
     db_company = models.Company(**data)
     if contact_ids:
@@ -42,7 +42,7 @@ def update_company(company_id: int, company_data: schemas.CompanyCreate, db: Ses
     db_company = db.query(models.Company).filter(models.Company.id == company_id).first()
     if not db_company:
         raise HTTPException(status_code=404, detail="Company not found")
-    data = company_data.dict()
+    data = company_data.model_dump()
     contact_ids = data.pop('contact_ids', [])
     for key, value in data.items():
         setattr(db_company, key, value)
@@ -53,7 +53,7 @@ def update_company(company_id: int, company_data: schemas.CompanyCreate, db: Ses
     return db_company
 
 
-@router.delete("/companies/{company_id}")
+@router.delete("/companies/{company_id}", response_model=schemas.OkResponse)
 def delete_company(company_id: int, db: Session = Depends(get_db)):
     db_company = db.query(models.Company).filter(models.Company.id == company_id).first()
     if not db_company:

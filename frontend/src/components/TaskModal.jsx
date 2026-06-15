@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useConfirm } from '../App';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const STATUSES = [
   { id: 'todo',        label: 'A fazer',      color: '#6366f1', bg: '#eef2ff' },

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TaskModal from './TaskModal';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 // Deadline-based columns (like Bitrix planner view)
 const COLUMNS = [

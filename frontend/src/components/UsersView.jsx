@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import UserModal from './UserModal';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const avatarColor = (name) => {
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];

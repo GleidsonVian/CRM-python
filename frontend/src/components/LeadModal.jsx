@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
 import CustomFieldValues from './CustomFieldValues';
 import { useConfirm } from '../App';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const CONVERT_OPTIONS = [
   { id: 'deal_contact_company', label: 'Negócio + Contato + Empresa', deal: true,  contact: true,  company: true  },

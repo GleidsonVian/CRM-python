@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useCallback } from 'react';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const LEAD_FIELDS = [
   { key: '(skip)', label: '— Ignorar coluna —' },

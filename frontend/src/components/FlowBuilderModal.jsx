@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, Fragment } from 'react';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 // ── Meta dos tipos de nó ──────────────────────────────────────────────────────
 const NODE_META = {

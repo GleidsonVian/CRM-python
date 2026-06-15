@@ -2,9 +2,12 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 pydantic
+pydantic-settings
 python-multipart
 alembic
 httpx
+slowapi
+python-dotenv
 
 # dev / test
 pytest

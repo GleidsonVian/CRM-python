@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+﻿from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 
 import models, schemas
@@ -22,7 +23,11 @@ def create_pipeline(pipeline: schemas.PipelineCreate, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail="Não é permitido criar funis com o nome 'Leads' ou 'Negócios'.")
     db_pipe = models.Pipeline(name=pipeline.name)
     db.add(db_pipe)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Já existe um funil com esse nome.")
     db.refresh(db_pipe)
     _create_default_negocios_stages(db, db_pipe.id)
     return db_pipe
@@ -41,7 +46,7 @@ def update_pipeline(pipe_id: int, pipeline_data: schemas.PipelineCreate, db: Ses
     return pipe
 
 
-@router.delete("/pipelines/{pipe_id}")
+@router.delete("/pipelines/{pipe_id}", response_model=schemas.OkResponse)
 def delete_pipeline(pipe_id: int, db: Session = Depends(get_db)):
     pipe = db.query(models.Pipeline).filter(models.Pipeline.id == pipe_id).first()
     if not pipe:
@@ -75,11 +80,19 @@ def get_stages(pipeline_id: int = None, db: Session = Depends(get_db)):
 
 @router.post("/stages", response_model=schemas.Stage)
 def create_stage(stage: schemas.StageCreate, db: Session = Depends(get_db)):
-    db_stage = models.Stage(**stage.dict())
+    db_stage = models.Stage(**stage.model_dump())
     db.add(db_stage)
     db.commit()
     db.refresh(db_stage)
     return db_stage
+
+
+@router.get("/stages/{stage_id}", response_model=schemas.Stage)
+def get_stage(stage_id: int, db: Session = Depends(get_db)):
+    stg = db.query(models.Stage).filter(models.Stage.id == stage_id).first()
+    if not stg:
+        raise HTTPException(status_code=404, detail="Stage not found")
+    return stg
 
 
 @router.put("/stages/{stage_id}", response_model=schemas.Stage)
@@ -95,7 +108,7 @@ def update_stage(stage_id: int, stage_data: schemas.StageCreate, db: Session = D
     return stg
 
 
-@router.delete("/stages/{stage_id}")
+@router.delete("/stages/{stage_id}", response_model=schemas.OkResponse)
 def delete_stage(stage_id: int, db: Session = Depends(get_db)):
     stg = db.query(models.Stage).filter(models.Stage.id == stage_id).first()
     if not stg:

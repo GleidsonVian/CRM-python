@@ -1,4 +1,5 @@
 ﻿import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { API_URL as API } from '../config.js';
 
 /* ─── formatters ─────────────────────────────────────────────────────────── */
 const fmt = (val) =>
@@ -298,7 +299,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                     ? parseInt(editValue)
                     : card.stage_id,
       };
-      const res = await fetch(`http://localhost:8001/cards/${card.id}`, {
+      const res = await fetch(`${API}/cards/${card.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

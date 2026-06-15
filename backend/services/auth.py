@@ -1,9 +1,10 @@
-import os, json, time, hashlib, hmac, base64
+import json, time, hashlib, hmac, base64
 from fastapi import HTTPException
 import models
+import config
 from database import get_db
 
-_JWT_SECRET = os.environ.get("JWT_SECRET", "nexus-crm-dev-secret-change-in-prod")
+_JWT_SECRET = config.JWT_SECRET
 _JWT_ALGO   = "HS256"
 
 

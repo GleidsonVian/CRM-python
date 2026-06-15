@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useConfirm } from '../App';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const ENTITIES = [
   { value: 'deal',    label: 'Negócios',  icon: '📋', desc: 'Campos que aparecem em cada card do pipeline' },

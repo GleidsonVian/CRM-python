@@ -1,0 +1,33 @@
+services:
+
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    volumes:
+      # Persist the SQLite database and uploads outside the container
+      - ./backend/crm.db:/app/crm.db
+      - ./backend/uploads:/app/uploads
+    env_file:
+      - ./backend/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # URL the browser will use to reach the backend.
+        # Override on deploy: VITE_API_URL=https://api.example.com docker-compose up
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8001}
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

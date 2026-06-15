@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import TasksKanban from './TasksKanban';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const PRIVACY_META = {
   public:  { label: 'Público',  icon: '🌐', desc: 'Qualquer colaborador pode visualizar' },

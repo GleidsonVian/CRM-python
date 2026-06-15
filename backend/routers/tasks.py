@@ -1,4 +1,4 @@
-from datetime import datetime as _dt
+﻿from datetime import datetime as _dt
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -44,9 +44,9 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
     return _task_out(obj, db)
 
 
-@router.post("/tasks")
+@router.post("/tasks", response_model=schemas.Task)
 def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
-    data = task.dict()
+    data = task.model_dump()
     count = db.query(models.Task).count() + 1
     data['uid'] = f"TSK-{count:04d}"
     if data.get('status') == 'done': data['done'] = True
@@ -61,7 +61,7 @@ def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
 def update_task(task_id: int, task: schemas.TaskCreate, db: Session = Depends(get_db)):
     obj = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Task not found")
-    data = task.dict()
+    data = task.model_dump()
     if data.get('status') == 'done': data['done'] = True
     else: data['done'] = False
     data['updated_at'] = _dt.utcnow()
@@ -84,7 +84,7 @@ def set_task_status(task_id: int, body: dict = Body(...), db: Session = Depends(
     return _task_out(obj, db)
 
 
-@router.delete("/tasks/{task_id}")
+@router.delete("/tasks/{task_id}", response_model=schemas.OkResponse)
 def delete_task(task_id: int, db: Session = Depends(get_db)):
     obj = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Task not found")
@@ -106,7 +106,7 @@ def toggle_task(task_id: int, db: Session = Depends(get_db)):
 
 # ── Task time tracking ────────────────────────────────────────────────────────
 
-@router.post("/tasks/{task_id}/time/start")
+@router.post("/tasks/{task_id}/time/start", response_model=schemas.OkResponse)
 def start_timer(task_id: int, body: dict = Body(default={}), db: Session = Depends(get_db)):
     obj = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Task not found")
@@ -120,7 +120,7 @@ def start_timer(task_id: int, body: dict = Body(default={}), db: Session = Depen
     return {"ok": True, "entry_id": entry.id}
 
 
-@router.post("/tasks/{task_id}/time/stop")
+@router.post("/tasks/{task_id}/time/stop", response_model=schemas.OkResponse)
 def stop_timer(task_id: int, body: dict = Body(default={}), db: Session = Depends(get_db)):
     obj = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Task not found")
@@ -155,7 +155,7 @@ def get_projects(db: Session = Depends(get_db)):
 
 @router.post("/projects")
 def create_project(proj: schemas.ProjectCreate, db: Session = Depends(get_db)):
-    data = proj.dict(exclude={'member_ids', 'moderator_ids'})
+    data = proj.model_dump(exclude={'member_ids', 'moderator_ids'})
     obj = models.Project(**data)
     db.add(obj)
     db.flush()
@@ -179,7 +179,7 @@ def create_project(proj: schemas.ProjectCreate, db: Session = Depends(get_db)):
 def update_project(project_id: int, proj: schemas.ProjectCreate, db: Session = Depends(get_db)):
     obj = db.query(models.Project).filter(models.Project.id == project_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Project not found")
-    for k, v in proj.dict(exclude={'member_ids', 'moderator_ids'}).items():
+    for k, v in proj.model_dump(exclude={'member_ids', 'moderator_ids'}).items():
         setattr(obj, k, v)
     for m in list(obj.members): db.delete(m)
     db.flush()
@@ -199,7 +199,7 @@ def update_project(project_id: int, proj: schemas.ProjectCreate, db: Session = D
             'members': [{'id': m.id, 'user_id': m.user_id, 'role': m.role} for m in obj.members]}
 
 
-@router.delete("/projects/{project_id}")
+@router.delete("/projects/{project_id}", response_model=schemas.OkResponse)
 def delete_project(project_id: int, db: Session = Depends(get_db)):
     obj = db.query(models.Project).filter(models.Project.id == project_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Project not found")
@@ -225,7 +225,7 @@ def get_teams(db: Session = Depends(get_db)):
 
 @router.post("/teams")
 def create_team(team: schemas.TeamCreate, db: Session = Depends(get_db)):
-    data = team.dict(exclude={'member_ids'})
+    data = team.model_dump(exclude={'member_ids'})
     obj = models.Team(**data)
     db.add(obj)
     db.flush()
@@ -242,7 +242,7 @@ def create_team(team: schemas.TeamCreate, db: Session = Depends(get_db)):
 def update_team(team_id: int, team: schemas.TeamCreate, db: Session = Depends(get_db)):
     obj = db.query(models.Team).filter(models.Team.id == team_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Team not found")
-    for k, v in team.dict(exclude={'member_ids'}).items():
+    for k, v in team.model_dump(exclude={'member_ids'}).items():
         setattr(obj, k, v)
     for m in list(obj.members): db.delete(m)
     db.flush()
@@ -255,7 +255,7 @@ def update_team(team_id: int, team: schemas.TeamCreate, db: Session = Depends(ge
             'members': [{'id': m.id, 'user_id': m.user_id, 'role': m.role} for m in obj.members]}
 
 
-@router.delete("/teams/{team_id}")
+@router.delete("/teams/{team_id}", response_model=schemas.OkResponse)
 def delete_team(team_id: int, db: Session = Depends(get_db)):
     obj = db.query(models.Team).filter(models.Team.id == team_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Team not found")

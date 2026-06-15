@@ -1,8 +1,9 @@
-"""Miscellaneous endpoints: custom fields, field values, file upload, comments, leads/import."""
+﻿"""Miscellaneous endpoints: custom fields, field values, file upload, comments, leads/import, health."""
 import re, os, shutil, time
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 
@@ -11,6 +12,17 @@ from database import get_db
 from services.helpers import _generate_uid
 
 router = APIRouter()
+
+
+@router.get("/health", response_model=schemas.HealthResponse, tags=["health"])
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        db_status = "error"
+    return {"status": "ok", "db": db_status}
+
 
 
 # ── Custom Fields ─────────────────────────────────────────────────────────────
@@ -25,7 +37,7 @@ def get_custom_fields(entity: str = None, db: Session = Depends(get_db)):
 
 @router.post("/custom-fields", response_model=schemas.CustomField)
 def create_custom_field(field: schemas.CustomFieldCreate, db: Session = Depends(get_db)):
-    data = field.dict()
+    data = field.model_dump()
     if not data.get('key'):
         slug = re.sub(r'\s+', '_', re.sub(r'[^\w\s]', '', data['name'].lower().strip()))
         base = slug or 'campo'
@@ -50,14 +62,14 @@ def update_custom_field(field_id: int, field: schemas.CustomFieldCreate, db: Ses
     db_field = db.query(models.CustomField).filter(models.CustomField.id == field_id).first()
     if not db_field:
         raise HTTPException(status_code=404, detail="Custom field not found")
-    for k, v in field.dict().items():
+    for k, v in field.model_dump().items():
         setattr(db_field, k, v)
     db.commit()
     db.refresh(db_field)
     return db_field
 
 
-@router.delete("/custom-fields/{field_id}")
+@router.delete("/custom-fields/{field_id}", response_model=schemas.OkResponse)
 def delete_custom_field(field_id: int, db: Session = Depends(get_db)):
     db_field = db.query(models.CustomField).filter(models.CustomField.id == field_id).first()
     if not db_field:
@@ -122,14 +134,14 @@ def get_comments(card_id: int, db: Session = Depends(get_db)):
 
 @router.post("/comments", response_model=schemas.Comment)
 def create_comment(comment: schemas.CommentCreate, db: Session = Depends(get_db)):
-    obj = models.Comment(**comment.dict())
+    obj = models.Comment(**comment.model_dump())
     db.add(obj)
     db.commit()
     db.refresh(obj)
     return obj
 
 
-@router.delete("/comments/{comment_id}")
+@router.delete("/comments/{comment_id}", response_model=schemas.OkResponse)
 def delete_comment(comment_id: int, db: Session = Depends(get_db)):
     obj = db.query(models.Comment).filter(models.Comment.id == comment_id).first()
     if not obj:

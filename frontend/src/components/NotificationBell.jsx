@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const SEV = {
   danger:  { bg: '#fef2f2', border: '#fecaca', icon: '🔴', color: '#dc2626' },

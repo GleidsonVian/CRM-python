@@ -1,4 +1,4 @@
-import json, secrets
+﻿import json, secrets
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest
 from sqlalchemy.orm import Session
@@ -44,7 +44,7 @@ def get_webhooks(db: Session = Depends(get_db)):
 @router.post("/webhooks", response_model=schemas.Webhook)
 def create_webhook(wh: schemas.WebhookCreate, db: Session = Depends(get_db)):
     token = secrets.token_urlsafe(32)
-    db_wh = models.Webhook(**wh.dict(), token=token)
+    db_wh = models.Webhook(**wh.model_dump(), token=token)
     db.add(db_wh)
     db.commit()
     db.refresh(db_wh)
@@ -56,14 +56,14 @@ def update_webhook(wh_id: int, wh: schemas.WebhookCreate, db: Session = Depends(
     db_wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
     if not db_wh:
         raise HTTPException(status_code=404, detail="Webhook not found")
-    for k, v in wh.dict().items():
+    for k, v in wh.model_dump().items():
         setattr(db_wh, k, v)
     db.commit()
     db.refresh(db_wh)
     return db_wh
 
 
-@router.delete("/webhooks/{wh_id}")
+@router.delete("/webhooks/{wh_id}", response_model=schemas.OkResponse)
 def delete_webhook(wh_id: int, db: Session = Depends(get_db)):
     db_wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
     if not db_wh:
@@ -84,7 +84,7 @@ def regenerate_token(wh_id: int, db: Session = Depends(get_db)):
     return db_wh
 
 
-@router.post("/webhooks/{wh_id}/test")
+@router.post("/webhooks/{wh_id}/test", response_model=schemas.OkResponse)
 def test_webhook(wh_id: int, db: Session = Depends(get_db)):
     wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
     if not wh:

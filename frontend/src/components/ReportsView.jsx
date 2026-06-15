@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const fmt = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n || 0);
 const fmtN = (n) => new Intl.NumberFormat('pt-BR').format(n || 0);

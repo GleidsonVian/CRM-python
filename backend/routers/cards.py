@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+﻿from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -23,12 +23,12 @@ router = APIRouter()
 def get_cards(
     pipeline_id: int = None, stage_id: int = None,
     contact_id: int = None, user_id: int = None,
-    q: Optional[str] = None, limit: int = 50,
+    q: Optional[str] = None, page: int = 1, limit: int = 50,
     authorization: Optional[str] = Header(default=None),
     db: Session = Depends(get_db)
 ):
     perms = _get_user_permissions(authorization, db)
-    query = db.query(models.Card)
+    query = db.query(models.Card).filter(models.Card.deleted_at == None)
     if pipeline_id:
         query = query.join(models.Stage).filter(models.Stage.pipeline_id == pipeline_id)
     if stage_id:
@@ -57,12 +57,13 @@ def get_cards(
                 pass
         else:
             query = query.filter(models.Card.title.ilike(f'%{q}%'))
-    return _list_with_cf(query.order_by(models.Card.id.desc()).limit(limit).all(), 'deal', db)
+    offset = (page - 1) * limit
+    return _list_with_cf(query.order_by(models.Card.id.desc()).offset(offset).limit(limit).all(), 'deal', db)
 
 
 @router.post("/cards", response_model=schemas.Card)
 def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
-    data = card.dict(exclude_unset=True)
+    data = card.model_dump(exclude_unset=True)
     contact_ids = data.pop("contact_ids", [])
     user_ids = data.pop("user_ids", [])
     custom_fields_input = data.pop("custom_fields", None) or {}
@@ -98,7 +99,7 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
 
 @router.get("/cards/{card_id}", response_model=schemas.Card)
 def get_card(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    card = db.query(models.Card).filter(models.Card.id == card_id, models.Card.deleted_at == None).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
     return _with_cf(card, 'deal', db)
@@ -187,16 +188,32 @@ def update_card(card_id: int, card_data: schemas.CardBase, db: Session = Depends
     return card
 
 
-@router.delete("/cards/{card_id}")
+@router.delete("/cards/{card_id}", response_model=schemas.MessageResponse)
 def delete_card(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    card = db.query(models.Card).filter(models.Card.id == card_id, models.Card.deleted_at == None).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
-    card_title = card.title
-    db.delete(card)
+    card.deleted_at = datetime.now(timezone.utc)
     db.commit()
-    log_audit(db, "deleted", "card", card_id, card_title)
-    return {"message": "Card deleted successfully"}
+    log_audit(db, "deleted", "card", card_id, card.title)
+    return {"message": "Card moved to trash"}
+
+
+@router.post("/cards/{card_id}/restore", response_model=schemas.Card)
+def restore_card(card_id: int, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id, models.Card.deleted_at != None).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found in trash")
+    card.deleted_at = None
+    db.commit()
+    db.refresh(card)
+    log_audit(db, "restored", "card", card_id, card.title)
+    return card
+
+
+@router.get("/cards/trash", response_model=List[schemas.Card])
+def get_cards_trash(db: Session = Depends(get_db)):
+    return db.query(models.Card).filter(models.Card.deleted_at != None).order_by(models.Card.deleted_at.desc()).all()
 
 
 @router.put("/cards/{card_id}/move", response_model=schemas.Card)
@@ -353,7 +370,7 @@ def create_activity(card_id: int, activity: schemas.ActivityCreate, db: Session 
     card = db.query(models.Card).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
-    db_activity = models.Activity(**activity.dict(), card_id=card_id)
+    db_activity = models.Activity(**activity.model_dump(), card_id=card_id)
     db.add(db_activity)
     db.commit()
     db.refresh(db_activity)

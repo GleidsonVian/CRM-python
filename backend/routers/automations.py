@@ -1,4 +1,4 @@
-import json
+﻿import json
 from fastapi import APIRouter, Depends, HTTPException, Header, Body, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -28,7 +28,7 @@ def get_automations(stage_id: int = None, pipeline_id: int = None, db: Session =
 
 @router.post("/automations", response_model=schemas.AutomationRule)
 def create_automation(rule: schemas.AutomationRuleCreate, db: Session = Depends(get_db)):
-    db_rule = models.AutomationRule(**rule.dict())
+    db_rule = models.AutomationRule(**rule.model_dump())
     db.add(db_rule)
     db.commit()
     db.refresh(db_rule)
@@ -40,7 +40,7 @@ def update_automation(rule_id: int, rule: schemas.AutomationRuleBase, db: Sessio
     db_rule = db.query(models.AutomationRule).filter(models.AutomationRule.id == rule_id).first()
     if not db_rule:
         raise HTTPException(status_code=404, detail="Rule not found")
-    for k, v in rule.dict().items():
+    for k, v in rule.model_dump().items():
         setattr(db_rule, k, v)
     db.commit()
     db.refresh(db_rule)
@@ -159,7 +159,7 @@ def get_workflows(entity_type: str = None, pipeline_id: int = None, db: Session 
 @router.post("/workflows", response_model=schemas.WorkflowTemplate)
 def create_workflow(data: schemas.WorkflowTemplateCreate, db: Session = Depends(get_db)):
     steps_data = data.steps
-    tpl_data = data.dict(exclude={'steps'})
+    tpl_data = data.model_dump(exclude={'steps'})
     tpl = models.WorkflowTemplate(**tpl_data)
     db.add(tpl)
     db.flush()
@@ -177,7 +177,7 @@ def update_workflow(tpl_id: int, data: schemas.WorkflowTemplateCreate, db: Sessi
     if not tpl:
         raise HTTPException(status_code=404, detail="Workflow not found")
     steps_data = data.steps
-    for k, v in data.dict(exclude={'steps'}).items():
+    for k, v in data.model_dump(exclude={'steps'}).items():
         setattr(tpl, k, v)
     db.query(models.WorkflowStep).filter(models.WorkflowStep.template_id == tpl_id).delete()
     for i, s in enumerate(steps_data):

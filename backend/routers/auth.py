@@ -1,30 +1,39 @@
-import time
-from fastapi import APIRouter, Depends, HTTPException, Header, Body
+﻿import time
+from fastapi import APIRouter, Depends, HTTPException, Header, Body, Request
 from sqlalchemy.orm import Session
 from typing import List
 
 import models, schemas
 from database import get_db
 from services.auth import jwt_encode, jwt_decode, hash_password, verify_password, log_audit
+from limiter import limiter
+from logger import get_logger
+
+log = get_logger("auth")
 
 router = APIRouter()
 
 
 @router.post("/auth/login", response_model=schemas.TokenResponse)
-def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, data: schemas.LoginRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == data.email).first()
     if not user:
+        log.warning("login_failed", extra={"email": data.email, "reason": "user_not_found"})
         raise HTTPException(status_code=401, detail="Usuário não encontrado")
     if not user.password_hash:
+        log.warning("login_failed", extra={"email": data.email, "reason": "no_password"})
         raise HTTPException(status_code=401, detail="Senha não configurada. Use /auth/set-password.")
     if not verify_password(data.password, user.password_hash):
+        log.warning("login_failed", extra={"email": data.email, "reason": "wrong_password"})
         raise HTTPException(status_code=401, detail="Senha incorreta")
     token = jwt_encode({"sub": user.id, "email": user.email, "role": user.role, "exp": time.time() + 86400 * 30})
     log_audit(db, "login", "user", user.id, user.name, actor=user.name, actor_email=user.email)
+    log.info("login_ok", extra={"email": user.email, "role": user.role})
     return {"access_token": token, "user_id": user.id, "user_name": user.name, "user_email": user.email, "role": user.role}
 
 
-@router.post("/auth/set-password")
+@router.post("/auth/set-password", response_model=schemas.OkResponse)
 def set_password(data: dict, db: Session = Depends(get_db)):
     """Allow setting a password for a user by email (used for initial setup)."""
     email = data.get("email")
@@ -57,7 +66,7 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 @router.post("/users", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = models.User(**user.dict())
+    db_user = models.User(**user.model_dump())
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useConfirm } from '../App';
 import FlowBuilderModal from './FlowBuilderModal';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const ENTITY_LABELS = { deal: 'Negócio', lead: 'Lead', any: 'Qualquer' };
 const ENTITY_COLORS = { deal: '#6366f1', lead: '#10b981', any: '#f59e0b' };

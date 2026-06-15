@@ -27,6 +27,7 @@ frontend/dist/
 frontend/.vite/
 frontend/npm-debug.log
 frontend/yarn-error.log
+frontend/.env
 frontend/.env.local
 
 # OS

@@ -146,8 +146,8 @@ class User(Base):
 class Activity(Base):
     __tablename__ = "activities"
     id = Column(Integer, primary_key=True, index=True)
-    card_id = Column(Integer, ForeignKey("cards.id"), nullable=True)
-    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
+    card_id = Column(Integer, ForeignKey("cards.id"), nullable=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True, index=True)
     type = Column(String)
     content = Column(String)
     actor = Column(String, default='Usuário')
@@ -306,7 +306,9 @@ class Lead(Base):
     converted_card_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    stage_id = Column(Integer, ForeignKey("stages.id"))
+    deleted_at = Column(DateTime, nullable=True)
+
+    stage_id = Column(Integer, ForeignKey("stages.id"), index=True)
     stage = relationship("Stage", back_populates="leads")
     activities = relationship("Activity", back_populates="lead", cascade="all, delete-orphan",
                               foreign_keys="Activity.lead_id")
@@ -327,7 +329,9 @@ class Card(Base):
     updated_at = Column(DateTime(timezone=True), nullable=True)
     stage_changed_by = Column(String, nullable=True)
 
-    stage_id = Column(Integer, ForeignKey("stages.id"))
+    deleted_at = Column(DateTime, nullable=True)
+
+    stage_id = Column(Integer, ForeignKey("stages.id"), index=True)
     # Legacy single FK kept for migration compatibility (not used in API)
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -354,7 +358,7 @@ class AuditLog(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     action = Column(String, nullable=False)          # "created" | "updated" | "deleted" | "moved" | "converted" | "login"
     entity_type = Column(String, nullable=False)     # "card" | "lead" | "contact" | "company" | "user" | "pipeline"
-    entity_id = Column(Integer, nullable=True)
+    entity_id = Column(Integer, nullable=True, index=True)
     entity_name = Column(String, nullable=True)      # e.g. card title at time of action
     actor = Column(String, nullable=False, default="Sistema")  # user name or "Sistema"
     actor_email = Column(String, nullable=True)

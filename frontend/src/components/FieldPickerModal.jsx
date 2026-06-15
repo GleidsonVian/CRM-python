@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from '../config.js';
 
 const FIELD_TYPES = [
   { value: 'text',       label: 'Texto',       icon: 'T'  },

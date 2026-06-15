@@ -25,7 +25,7 @@ import SearchModal, { useSearchShortcut } from './components/SearchModal';
 import StageRequiredModal from './components/StageRequiredModal';
 import './index.css';
 
-const API = 'http://localhost:8001';
+import { API_URL as API } from './config.js';
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 function ToastContainer({ toasts, onRemove }) {
@@ -1297,7 +1297,7 @@ function AppInner() {
         <div className="sidebar-section" style={{ marginTop: 'auto' }}>
           <div style={{ padding: '4px 10px 8px' }}>
             <NotificationBell onNavigateToCard={(cardId) => {
-              fetch(`http://localhost:8001/cards/${cardId}`).then(r => r.json()).then(card => {
+              fetch(`${API}/cards/${cardId}`).then(r => r.json()).then(card => {
                 setSelectedCard(card);
                 setCurrentView('crm');
               }).catch(() => {});
