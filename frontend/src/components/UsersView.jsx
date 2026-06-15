@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import UserModal from './UserModal';
 
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8001';
 
 const avatarColor = (name) => {
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
@@ -9,9 +9,6 @@ const avatarColor = (name) => {
   for (let i = 0; i < (name||'').length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
   return colors[Math.abs(h) % colors.length];
 };
-
-const roleLabel = { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' };
-const roleBadgeClass = { admin: 'badge badge-admin', gerente: 'badge badge-gerente', vendedor: 'badge badge-vendedor' };
 
 const IconX = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -22,28 +19,37 @@ const IconX = () => (
 const emptyForm = { name: '', email: '', role: 'vendedor' };
 
 export default function UsersView() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers]     = useState([]);
+  const [roles, setRoles]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm]       = useState(emptyForm);
+  const token = localStorage.getItem('nexus_token');
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  useEffect(() => {
-    fetch(`${API}/users`)
-      .then(r => r.json())
-      .then(data => {
-        setUsers(data);
-        setLoading(false);
-        const hash = window.location.hash.replace(/^#/, '');
-        const m = hash.match(/^users\/(\d+)$/);
-        if (m) {
-          const found = data.find(u => u.id === parseInt(m[1]));
-          if (found) setSelectedUser(found);
-        }
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const load = async () => {
+    try {
+      const [uRes, rRes] = await Promise.all([
+        fetch(`${API}/users`, { headers }),
+        fetch(`${API}/roles`, { headers }),
+      ]);
+      const uData = await uRes.json();
+      const rData = await rRes.json();
+      setUsers(Array.isArray(uData) ? uData : []);
+      setRoles(Array.isArray(rData) ? rData : []);
+      setLoading(false);
+      const hash = window.location.hash.replace(/^#/, '');
+      const m = hash.match(/^users\/(\d+)$/);
+      if (m) {
+        const found = uData.find(u => u.id === parseInt(m[1]));
+        if (found) setSelectedUser(found);
+      }
+    } catch { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
 
   const openUser = (u) => {
     setSelectedUser(u);
@@ -58,16 +64,26 @@ export default function UsersView() {
   const handleSave = async () => {
     if (!form.name.trim() || !form.email.trim()) return;
     try {
-      const res = await fetch(`${API}/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
+      const res = await fetch(`${API}/users`, { method: 'POST', headers, body: JSON.stringify(form) });
       const created = await res.json();
       setUsers(prev => [...prev, created]);
       setIsCreating(false);
       setForm(emptyForm);
     } catch {}
+  };
+
+  const handleChangeRole = async (userId, roleId) => {
+    await fetch(`${API}/users/${userId}/role`, { method: 'PUT', headers, body: JSON.stringify({ role_id: roleId || null }) });
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role_id: roleId || null } : u));
+  };
+
+  const getRoleName = (u) => {
+    if (u.role_id) { const r = roles.find(r => r.id === u.role_id); if (r) return r.name; }
+    return { admin: 'Admin', gerente: 'Gerente', vendedor: 'Vendedor' }[u.role] || u.role;
+  };
+  const getRoleColor = (u) => {
+    if (u.role_id) { const r = roles.find(r => r.id === u.role_id); if (r) return r.color; }
+    return { admin: '#ef4444', gerente: '#f59e0b', vendedor: '#10b981' }[u.role] || '#6366f1';
   };
 
   const filtered = users.filter(u => {
@@ -106,27 +122,31 @@ export default function UsersView() {
               <tr>
                 <th>Nome</th>
                 <th>Email</th>
-                <th>Função</th>
+                <th>Cargo / Função</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(u => {
                 const initials = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                const roleColor = getRoleColor(u);
                 return (
                   <tr key={u.id} onClick={() => openUser(u)}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div className="avatar-circle" style={{ background: avatarColor(u.name) }}>
-                          {initials}
-                        </div>
+                        <div className="avatar-circle" style={{ background: avatarColor(u.name) }}>{initials}</div>
                         <span style={{ fontWeight: 500 }}>{u.name}</span>
                       </div>
                     </td>
                     <td style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
-                    <td>
-                      <span className={roleBadgeClass[u.role] || 'badge'}>
-                        {roleLabel[u.role] || u.role}
-                      </span>
+                    <td onClick={e => e.stopPropagation()}>
+                      <select
+                        value={u.role_id || ''}
+                        onChange={e => handleChangeRole(u.id, e.target.value ? parseInt(e.target.value) : null)}
+                        style={{ fontSize: 12, padding: '3px 8px', borderRadius: 8, border: `1px solid ${roleColor}40`, background: roleColor + '18', color: roleColor, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+                      >
+                        <option value="">— sem cargo —</option>
+                        {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                      </select>
                     </td>
                   </tr>
                 );

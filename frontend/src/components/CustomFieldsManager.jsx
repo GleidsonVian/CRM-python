@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useConfirm } from '../App';
 
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8001';
 
 const ENTITIES = [
   { value: 'deal',    label: 'Negócios',  icon: '📋', desc: 'Campos que aparecem em cada card do pipeline' },
@@ -306,6 +307,7 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
 export default function CustomFieldsManager() {
   const [entity, setEntity]   = useState('deal');
   const [fields, setFields]   = useState([]);
+  const confirm = useConfirm();
   const [editor, setEditor]   = useState(null);   // null | { field, isNew }
   const [deleting, setDeleting] = useState(null);
 
@@ -331,7 +333,7 @@ export default function CustomFieldsManager() {
   };
 
   const handleDelete = async (field) => {
-    if (!window.confirm(`Excluir o campo "${field.name}"? Os valores preenchidos serão perdidos.`)) return;
+    if (!await confirm(`Excluir o campo "${field.name}"?`, 'Os valores preenchidos serão perdidos.')) return;
     setDeleting(field.id);
     try {
       await fetch(`${API}/custom-fields/${field.id}`, { method: 'DELETE' });

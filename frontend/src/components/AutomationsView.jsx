@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import FlowBuilderModal from './FlowBuilderModal';
+import { useConfirm } from '../App';
 
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8001';
 
 const ACTION_META = {
   webhook:     { icon: '🔗', label: 'Webhook',       color: '#6366f1' },
@@ -11,9 +12,13 @@ const ACTION_META = {
 };
 
 export default function AutomationsView({ stages, pipelineId, pipelineName, onClose }) {
+  const confirm = useConfirm();
   const [rules, setRules] = useState([]);
   const [users, setUsers] = useState([]);
   const [editor, setEditor] = useState(null); // { rule: null|obj, stageId, stageName }
+  const importRef = useRef(null);
+  const [importStatus, setImportStatus] = useState(null); // null | {ok, created, skipped, skipped_stages, error}
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -34,9 +39,54 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
   };
 
   const handleDelete = async (ruleId) => {
-    if (!window.confirm('Excluir esta regra?')) return;
+    if (!await confirm('Excluir esta automação?', 'Esta ação não pode ser desfeita.')) return;
     await fetch(`${API}/automations/${ruleId}`, { method: 'DELETE' });
     setRules(prev => prev.filter(r => r.id !== ruleId));
+  };
+
+  const handleExport = async () => {
+    try {
+      const data = await fetch(`${API}/automations/export?pipeline_id=${pipelineId}`).then(r => r.json());
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `automacoes-${(pipelineName || 'pipeline').toLowerCase().replace(/\s+/g, '-')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setImportStatus({ error: 'Erro ao exportar automações.' });
+      setTimeout(() => setImportStatus(null), 4000);
+    }
+  };
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setImporting(true);
+    setImportStatus(null);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const res = await fetch(`${API}/automations/import?pipeline_id=${pipelineId}&mode=append`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.detail || 'Erro ao importar');
+      setImportStatus(result);
+      // Reload rules
+      const updated = await fetch(`${API}/automations?pipeline_id=${pipelineId}`).then(r => r.json());
+      setRules(updated);
+      setTimeout(() => setImportStatus(null), 5000);
+    } catch (err) {
+      setImportStatus({ error: err.message || 'Arquivo inválido ou erro no servidor.' });
+      setTimeout(() => setImportStatus(null), 5000);
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleToggle = async (rule) => {
@@ -67,8 +117,57 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
           <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>⚡ Automações</span>
           <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>{pipelineName}</span>
         </div>
-        <div style={{ marginLeft: 'auto', fontSize: 12, color: '#94a3b8' }}>
-          {rules.length} regra{rules.length !== 1 ? 's' : ''} configurada{rules.length !== 1 ? 's' : ''}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: '#94a3b8', marginRight: 4 }}>
+            {rules.length} regra{rules.length !== 1 ? 's' : ''} configurada{rules.length !== 1 ? 's' : ''}
+          </span>
+
+          {/* Export button */}
+          <button
+            onClick={handleExport}
+            disabled={rules.length === 0}
+            title="Exportar automações deste pipeline como JSON"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '6px 12px', borderRadius: 7, border: '1px solid #e2e8f0',
+              background: 'white', color: '#374151', fontSize: 12, fontWeight: 600,
+              cursor: rules.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: rules.length === 0 ? 0.4 : 1, fontFamily: 'inherit',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M6.5 1v7M4 6l2.5 2.5L9 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1 9.5v1A1.5 1.5 0 0 0 2.5 12h8A1.5 1.5 0 0 0 12 10.5v-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            Exportar
+          </button>
+
+          {/* Import button + hidden file input */}
+          <input
+            ref={importRef}
+            type="file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={handleImportFile}
+          />
+          <button
+            onClick={() => importRef.current?.click()}
+            disabled={importing}
+            title="Importar automações de um arquivo JSON exportado"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '6px 12px', borderRadius: 7, border: '1px solid #6366f1',
+              background: '#6366f1', color: 'white', fontSize: 12, fontWeight: 600,
+              cursor: importing ? 'not-allowed' : 'pointer',
+              opacity: importing ? 0.7 : 1, fontFamily: 'inherit',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M6.5 9V2M4 4.5 6.5 2 9 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1 9.5v1A1.5 1.5 0 0 0 2.5 12h8A1.5 1.5 0 0 0 12 10.5v-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            {importing ? 'Importando...' : 'Importar'}
+          </button>
         </div>
       </div>
 
@@ -80,6 +179,24 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
         <span>💡</span>
         <span>As regras são executadas automaticamente quando um negócio é <strong>movido para</strong> a etapa correspondente.</span>
       </div>
+
+      {/* Import/Export status banner */}
+      {importStatus && (
+        <div style={{
+          padding: '8px 24px', fontSize: 12, flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: importStatus.error ? '#fef2f2' : '#f0fdf4',
+          borderBottom: `1px solid ${importStatus.error ? '#fca5a5' : '#bbf7d0'}`,
+          color: importStatus.error ? '#dc2626' : '#15803d',
+        }}>
+          <span>{importStatus.error ? '✕' : '✓'}</span>
+          {importStatus.error
+            ? importStatus.error
+            : `${importStatus.created} automação${importStatus.created !== 1 ? 'ões' : ''} importada${importStatus.created !== 1 ? 's' : ''} com sucesso${importStatus.skipped > 0 ? ` · ${importStatus.skipped} etapa(s) não encontrada(s): ${importStatus.skipped_stages.join(', ')}` : ''}`
+          }
+          <button onClick={() => setImportStatus(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 14 }}>×</button>
+        </div>
+      )}
 
       {/* Stage columns */}
       <div style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', display: 'flex', gap: 0 }}>

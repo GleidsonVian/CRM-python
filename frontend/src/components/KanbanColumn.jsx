@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import KanbanCard from './KanbanCard';
+
+const API = 'http://localhost:8001';
 
 // Returns white or black text depending on background luminance
 function contrastColor(hex) {
@@ -21,16 +23,28 @@ export default function KanbanColumn({
   selectedCardIds = new Set(),
   showOnCardFields = [],
   isLead = false,
+  customFields = [],
+  onUpdateRequiredFields,
 }) {
-  const [isDragOver, setIsDragOver]         = useState(false);
-  const [isColDragOver, setIsColDragOver]   = useState(false);
-  const [isAdding, setIsAdding]             = useState(false);
-  const [newCardTitle, setNewCardTitle]     = useState('');
-  const [isEditingStage, setIsEditingStage] = useState(false);
-  const [editName, setEditName]             = useState(stage.name);
-  const [editColor, setEditColor]           = useState(stage.color || '#6366f1');
-  const [confirmDelete, setConfirmDelete]   = useState(false);
+  const [isDragOver, setIsDragOver]               = useState(false);
+  const [isColDragOver, setIsColDragOver]         = useState(false);
+  const [isAdding, setIsAdding]                   = useState(false);
+  const [newCardTitle, setNewCardTitle]           = useState('');
+  const [isEditingStage, setIsEditingStage]       = useState(false);
+  const [editName, setEditName]                   = useState(stage.name);
+  const [editColor, setEditColor]                 = useState(stage.color || '#6366f1');
+  const [confirmDelete, setConfirmDelete]         = useState(false);
+  const [showRequiredConfig, setShowRequiredConfig] = useState(false);
+  const [reqFields, setReqFields]                 = useState([]);
   const colRef = useRef(null);
+
+  // Fetch required fields for this stage on mount
+  useEffect(() => {
+    fetch(`${API}/stages/${stage.id}/required-fields`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setReqFields(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [stage.id]);
 
   const stageColor = stage.color || '#6366f1';
   const textColor  = contrastColor(stageColor);
@@ -123,12 +137,46 @@ export default function KanbanColumn({
           color: textColor,
         }}>{cards.length}</span>
 
+        {/* Select-all checkbox */}
+        {cards.length > 0 && onSelectCard && (() => {
+          const allSelected = cards.every(c => selectedCardIds?.has(c.id));
+          const someSelected = !allSelected && cards.some(c => selectedCardIds?.has(c.id));
+          return (
+            <button
+              title={allSelected ? 'Desmarcar todos' : 'Selecionar todos nesta etapa'}
+              onClick={e => {
+                e.stopPropagation();
+                if (allSelected) {
+                  // deselect all in this column
+                  cards.forEach(c => selectedCardIds?.has(c.id) && onSelectCard(c));
+                } else {
+                  // select only the unselected ones
+                  cards.filter(c => !selectedCardIds?.has(c.id)).forEach(c => onSelectCard(c));
+                }
+              }}
+              style={{
+                background: (allSelected || someSelected)
+                  ? `rgba(${textColor === '#ffffff' ? '255,255,255' : '0,0,0'}, 0.25)`
+                  : `rgba(${textColor === '#ffffff' ? '255,255,255' : '0,0,0'}, 0.12)`,
+                border: `1.5px solid rgba(${textColor === '#ffffff' ? '255,255,255' : '0,0,0'}, 0.35)`,
+                borderRadius: 5,
+                width: 22, height: 22,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: textColor, fontSize: 11, flexShrink: 0,
+                marginLeft: 'auto',
+              }}
+            >
+              {allSelected ? '✓' : someSelected ? '–' : ''}
+            </button>
+          );
+        })()}
+
         {onAddStageAfter && (
           <button
             title="Adicionar etapa ao lado"
             onClick={e => { e.stopPropagation(); onAddStageAfter(stage.id); }}
             className="col-add-stage-btn"
-            style={{ color: textColor, borderColor: `rgba(${textColor === '#ffffff' ? '255,255,255' : '0,0,0'}, 0.4)` }}
+            style={{ color: textColor, borderColor: `rgba(${textColor === '#ffffff' ? '255,255,255' : '0,0,0'}, 0.4)`, marginLeft: (cards.length === 0 || !onSelectCard) ? 'auto' : 0 }}
           >+</button>
         )}
 
@@ -166,6 +214,78 @@ export default function KanbanColumn({
                 <button className="btn btn-ghost" style={{ fontSize: 12, color: '#ef4444' }} onClick={() => onDeleteStage(stage.id)}>Sim</button>
                 <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setConfirmDelete(false)}>Não</button>
               </>
+            )}
+          </div>
+
+          {/* Required fields config */}
+          <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+            <button
+              className="btn btn-ghost"
+              style={{ fontSize: 11, width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 4 }}
+              onClick={() => setShowRequiredConfig(v => !v)}
+            >
+              <span>🔒</span>
+              <span>Campos obrigatórios</span>
+              {reqFields.length > 0 && (
+                <span style={{ marginLeft: 'auto', background: '#6366f1', color: '#fff', borderRadius: 10, fontSize: 10, padding: '1px 6px' }}>
+                  {reqFields.length}
+                </span>
+              )}
+              <span style={{ marginLeft: reqFields.length > 0 ? 0 : 'auto', opacity: 0.5 }}>
+                {showRequiredConfig ? '▲' : '▼'}
+              </span>
+            </button>
+            {showRequiredConfig && (
+              <div style={{ paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {[
+                  { field_type: 'builtin', field_key: 'price',       label: 'Valor > 0' },
+                  { field_type: 'builtin', field_key: 'contact',     label: 'Contato vinculado' },
+                  { field_type: 'builtin', field_key: 'responsible', label: 'Responsável definido' },
+                  { field_type: 'builtin', field_key: 'description', label: 'Descrição preenchida' },
+                  { field_type: 'builtin', field_key: 'source',      label: 'Fonte preenchida' },
+                  ...customFields.map(cf => ({ field_type: 'custom', custom_field_id: cf.id, label: cf.name })),
+                ].map(opt => {
+                  const key = opt.field_type === 'builtin' ? opt.field_key : `custom_${opt.custom_field_id}`;
+                  const checked = reqFields.some(r =>
+                    r.field_type === opt.field_type &&
+                    (opt.field_type === 'builtin'
+                      ? r.field_key === opt.field_key
+                      : r.custom_field_id === opt.custom_field_id)
+                  );
+                  return (
+                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', padding: '2px 0' }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        style={{ accentColor: '#6366f1' }}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setReqFields(prev => [...prev, opt]);
+                          } else {
+                            setReqFields(prev => prev.filter(r =>
+                              !(r.field_type === opt.field_type &&
+                                (opt.field_type === 'builtin'
+                                  ? r.field_key === opt.field_key
+                                  : r.custom_field_id === opt.custom_field_id))
+                            ));
+                          }
+                        }}
+                      />
+                      {opt.label}
+                    </label>
+                  );
+                })}
+                <button
+                  className="btn btn-primary"
+                  style={{ fontSize: 11, marginTop: 4 }}
+                  onClick={() => {
+                    if (onUpdateRequiredFields) onUpdateRequiredFields(stage.id, reqFields);
+                    setShowRequiredConfig(false);
+                  }}
+                >
+                  Salvar campos obrigatórios
+                </button>
+              </div>
             )}
           </div>
         </div>

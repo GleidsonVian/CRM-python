@@ -121,12 +121,26 @@ class Contact(Base):
     responsible_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     responsible_user = relationship("User", foreign_keys=[responsible_user_id])
 
+class Role(Base):
+    __tablename__ = "roles"
+    id          = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name        = Column(String, nullable=False)
+    description = Column(String, default='')
+    color       = Column(String, default='#6366f1')
+    permissions = Column(String, default='{}')  # JSON
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+    members     = relationship("User", back_populates="crm_role", foreign_keys="User.role_id")
+
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
-    role = Column(String, default="vendedor")
+    id       = Column(Integer, primary_key=True, index=True)
+    name     = Column(String, index=True)
+    email    = Column(String, unique=True, index=True)
+    role     = Column(String, default="vendedor")   # 'admin' | 'user' — kept for auth
+    role_id  = Column(Integer, ForeignKey("roles.id", ondelete="SET NULL"), nullable=True)
+    password_hash = Column(String, nullable=True)
+    is_active     = Column(Boolean, default=True)
+    crm_role      = relationship("Role", back_populates="members", foreign_keys=[role_id])
 
 class Activity(Base):
     __tablename__ = "activities"
@@ -145,11 +159,13 @@ class AutomationRule(Base):
     id = Column(Integer, primary_key=True, index=True)
     stage_id = Column(Integer, ForeignKey("stages.id", ondelete="CASCADE"))
     pipeline_id = Column(Integer, ForeignKey("pipelines.id", ondelete="CASCADE"))
+    entity_type = Column(String, default='deal')  # 'deal' | 'lead' | 'any'
     name = Column(String, default="Regra")
     action_type = Column(String)  # webhook | assign_user | add_note | set_price
     config = Column(String, default="{}")  # JSON
     order = Column(Integer, default=0)
     enabled = Column(Boolean, default=True)
+    entity_type = Column(String, default='deal')  # 'deal' | 'lead' | 'any'
 
 class CustomField(Base):
     __tablename__ = "custom_fields"
@@ -174,16 +190,81 @@ class CustomFieldValue(Base):
     value = Column(String, default='')
     field = relationship("CustomField", back_populates="values")
 
+class Project(Base):
+    __tablename__ = "projects"
+    id          = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name        = Column(String, nullable=False)
+    description = Column(String, default='')
+    icon        = Column(String, default='📁')
+    theme_color = Column(String, default='#6366f1')
+    privacy     = Column(String, default='public')   # public | private | hidden
+    owner_id    = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+    owner       = relationship("User", foreign_keys=[owner_id])
+    members     = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
+    tasks       = relationship("Task", back_populates="project", foreign_keys="Task.project_id")
+
+class ProjectMember(Base):
+    __tablename__ = "project_members"
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"))
+    user_id    = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    role       = Column(String, default='member')   # owner | moderator | member
+    project    = relationship("Project", back_populates="members")
+    user       = relationship("User")
+
+class Team(Base):
+    __tablename__ = "teams"
+    id          = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name        = Column(String, nullable=False)
+    description = Column(String, default='')
+    permissions = Column(String, default='[]')   # JSON list of permission strings
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+    members     = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
+
+class TeamMember(Base):
+    __tablename__ = "team_members"
+    id      = Column(Integer, primary_key=True, autoincrement=True)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    role    = Column(String, default='member')   # manager | member
+    team    = relationship("Team", back_populates="members")
+    user    = relationship("User")
+
 class Task(Base):
     __tablename__ = "tasks"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    card_id = Column(Integer, ForeignKey("cards.id", ondelete="CASCADE"))
-    title = Column(String, nullable=False)
-    description = Column(String, default='')
-    due_date = Column(String, default=None)   # ISO date string YYYY-MM-DD
-    assigned_to = Column(String, default='')  # free-text name
-    done = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id             = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    uid            = Column(String, default='')         # TSK-001
+    title          = Column(String, nullable=False)
+    description    = Column(String, default='')
+    status         = Column(String, default='todo')     # todo | in_progress | done
+    priority       = Column(String, default='normal')   # low | normal | high | urgent
+    due_date       = Column(String, default=None)       # YYYY-MM-DD
+    assigned_to    = Column(String, default='')
+    participants   = Column(String, default='[]')       # JSON array of user names
+    done           = Column(Boolean, default=False)
+    card_id        = Column(Integer, ForeignKey("cards.id", ondelete="SET NULL"), nullable=True)
+    lead_id        = Column(Integer, ForeignKey("leads.id", ondelete="SET NULL"), nullable=True)
+    project_id     = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    parent_task_id = Column(Integer, ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True)
+    created_at     = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at     = Column(DateTime(timezone=True), nullable=True)
+    project        = relationship("Project", back_populates="tasks", foreign_keys=[project_id])
+    subtasks       = relationship("Task", foreign_keys=[parent_task_id],
+                                  backref="parent_task", remote_side=[id], lazy="select",
+                                  primaryjoin="Task.parent_task_id==Task.id")
+    time_entries   = relationship("TaskTimeEntry", back_populates="task",
+                                  cascade="all, delete-orphan")
+
+class TaskTimeEntry(Base):
+    __tablename__ = "task_time_entries"
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    task_id          = Column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"))
+    user_name        = Column(String, default='')
+    started_at       = Column(DateTime(timezone=True), nullable=True)
+    ended_at         = Column(DateTime(timezone=True), nullable=True)
+    duration_seconds = Column(Integer, default=0)  # filled on stop
+    task             = relationship("Task", back_populates="time_entries")
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -242,13 +323,94 @@ class Card(Base):
     price = Column(Float, default=0.0)
     order = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=True)
+    stage_changed_by = Column(String, nullable=True)
 
     stage_id = Column(Integer, ForeignKey("stages.id"))
     # Legacy single FK kept for migration compatibility (not used in API)
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
+    source = Column(String, nullable=True)
+    source_info = Column(String, nullable=True)
+    deal_type = Column(String, nullable=True)
+    start_date = Column(String, nullable=True)
+    available_to_all = Column(Boolean, default=True)
+    responsible_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    observers = Column(String, nullable=True)
+    comment = Column(String, nullable=True)
+    utm_source = Column(String, nullable=True)
+    utm_medium = Column(String, nullable=True)
+    utm_campaign = Column(String, nullable=True)
+
     stage = relationship("Stage", back_populates="cards")
     activities = relationship("Activity", back_populates="card", cascade="all, delete-orphan")
     contacts = relationship("Contact", secondary=card_contacts, lazy="joined")
     users = relationship("User", secondary=card_users, lazy="joined")
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    action = Column(String, nullable=False)          # "created" | "updated" | "deleted" | "moved" | "converted" | "login"
+    entity_type = Column(String, nullable=False)     # "card" | "lead" | "contact" | "company" | "user" | "pipeline"
+    entity_id = Column(Integer, nullable=True)
+    entity_name = Column(String, nullable=True)      # e.g. card title at time of action
+    actor = Column(String, nullable=False, default="Sistema")  # user name or "Sistema"
+    actor_email = Column(String, nullable=True)
+    details = Column(String, nullable=True)          # JSON string with extra context
+    ip_address = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class WebhookLog(Base):
+    __tablename__ = "webhook_logs"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    webhook_id = Column(Integer, ForeignKey("webhooks.id", ondelete="CASCADE"))
+    event = Column(String, nullable=True)       # e.g. "card.created" or "test"
+    status_code = Column(Integer, nullable=True)
+    response_body = Column(String, nullable=True)
+    latency_ms = Column(Integer, nullable=True)
+    success = Column(Boolean, default=False)
+    error_message = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class StageRequiredField(Base):
+    __tablename__ = "stage_required_fields"
+    id             = Column(Integer, primary_key=True, autoincrement=True)
+    stage_id       = Column(Integer, ForeignKey("stages.id", ondelete="CASCADE"))
+    field_type     = Column(String)           # 'builtin' or 'custom'
+    field_key      = Column(String, nullable=True)   # for builtin: 'price','contact','responsible','description','source'
+    custom_field_id = Column(Integer, ForeignKey("custom_fields.id", ondelete="CASCADE"), nullable=True)
+
+class WorkflowTemplate(Base):
+    __tablename__ = "workflow_templates"
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    name        = Column(String)
+    description = Column(String, default='')
+    entity_type = Column(String, default='deal')   # 'deal' | 'lead' | 'any'
+    pipeline_id = Column(Integer, ForeignKey("pipelines.id", ondelete="SET NULL"), nullable=True)
+    is_active   = Column(Boolean, default=True)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+    steps       = relationship("WorkflowStep", back_populates="template",
+                               cascade="all, delete-orphan", order_by="WorkflowStep.step_order")
+
+class WorkflowStep(Base):
+    __tablename__ = "workflow_steps"
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    template_id   = Column(Integer, ForeignKey("workflow_templates.id", ondelete="CASCADE"))
+    step_order    = Column(Integer, default=0)
+    action_type   = Column(String)   # 'change_stage'|'assign_user'|'add_note'|'send_webhook'|'move_to_pipeline'|'set_price'
+    action_config = Column(String, default='{}')  # JSON
+    template      = relationship("WorkflowTemplate", back_populates="steps")
+
+class WorkflowExecution(Base):
+    __tablename__ = "workflow_executions"
+    id               = Column(Integer, primary_key=True, autoincrement=True)
+    template_id      = Column(Integer, ForeignKey("workflow_templates.id", ondelete="SET NULL"), nullable=True)
+    template_name    = Column(String, default='')
+    card_id          = Column(Integer, ForeignKey("cards.id", ondelete="CASCADE"))
+    executed_by_id   = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    executed_by_name = Column(String, default='')
+    executed_at      = Column(DateTime(timezone=True), server_default=func.now())
+    status           = Column(String, default='completed')   # 'completed' | 'failed'
+    result_log       = Column(String, default='[]')          # JSON array of step results
+

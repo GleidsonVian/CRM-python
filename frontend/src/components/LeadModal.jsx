@@ -1,8 +1,68 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
+import CustomFieldValues from './CustomFieldValues';
+import { useConfirm } from '../App';
 
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8001';
+
+const CONVERT_OPTIONS = [
+  { id: 'deal_contact_company', label: 'Negócio + Contato + Empresa', deal: true,  contact: true,  company: true  },
+  { id: 'deal_contact',         label: 'Negócio + Contato',           deal: true,  contact: true,  company: false },
+  { id: 'deal_company',         label: 'Negócio + Empresa',           deal: true,  contact: false, company: true  },
+  { id: 'deal',                 label: 'Negócio',                     deal: true,  contact: false, company: false },
+  { id: 'contact_company',      label: 'Contato + Empresa',           deal: false, contact: true,  company: true  },
+  { id: 'contact',              label: 'Contato',                     deal: false, contact: true,  company: false },
+  { id: 'company',              label: 'Empresa',                     deal: false, contact: false, company: true  },
+];
+
+export function LeadConvertModal({ lead, onConfirm, onClose }) {
+  const [selected, setSelected] = useState('deal_contact_company');
+  const [converting, setConverting] = useState(false);
+  const opt = CONVERT_OPTIONS.find(o => o.id === selected);
+  const handleConfirm = async () => {
+    setConverting(true);
+    await onConfirm({ create_deal: opt.deal, create_contact: opt.contact, create_company: opt.company });
+    setConverting(false);
+  };
+  return (
+    <div className="modal-backdrop" style={{ zIndex: 1100 }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--bg-card)', borderRadius: 12, padding: 28, width: 420,
+        boxShadow: '0 8px 40px rgba(0,0,0,0.22)', position: 'relative',
+      }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18 }}>×</button>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 18, color: 'var(--text-primary)' }}>
+          Selecione o resultado de conversão do Lead
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 22 }}>
+          {CONVERT_OPTIONS.map(opt => (
+            <label key={opt.id} style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px',
+              borderRadius: 8, cursor: 'pointer', fontSize: 14,
+              background: selected === opt.id ? 'var(--accent-light, #ede9fe)' : 'transparent',
+              color: selected === opt.id ? 'var(--accent, #7c3aed)' : 'var(--text-primary)',
+              fontWeight: selected === opt.id ? 600 : 400,
+              border: `1.5px solid ${selected === opt.id ? 'var(--accent, #7c3aed)' : 'var(--border)'}`,
+              transition: 'all 0.12s',
+            }}>
+              <input type="radio" name="convert_opt" value={opt.id} checked={selected === opt.id}
+                onChange={() => setSelected(opt.id)} style={{ accentColor: 'var(--accent, #7c3aed)' }} />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button className="btn btn-ghost" onClick={onClose} style={{ fontSize: 13 }}>Cancelar</button>
+          <button className="btn btn-primary" style={{ fontSize: 13, background: '#7c3aed', borderColor: '#7c3aed', minWidth: 120 }}
+            onClick={handleConfirm} disabled={converting}>
+            {converting ? 'Convertendo...' : 'Confirmar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const fmtDate = (iso) => {
   if (!iso) return '—';
@@ -46,94 +106,23 @@ const avatarColor = (name) => {
 };
 
 const SOURCES = ['Chamada', 'Email', 'Site', 'Indicação', 'Redes Sociais', 'WhatsApp', 'Evento', 'Outro'];
-const SALUTATIONS = ['', 'Sr.', 'Sra.', 'Dr.', 'Dra.', 'Prof.'];
+const SALUTATIONS = ['Sr.', 'Sra.', 'Dr.', 'Dra.', 'Prof.'];
 
-function FieldRow({ label, children }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '7px 0',
-      borderBottom: '1px solid #f1f5f9' }}>
-      <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 140, paddingTop: 2, flexShrink: 0 }}>
-        {label}
-      </span>
-      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
-    </div>
-  );
-}
-
-function InlineInput({ value, onChange, placeholder, type = 'text' }) {
-  return (
-    <input
-      type={type}
-      value={value || ''}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder || 'o campo está vazio'}
-      style={{
-        width: '100%', border: 'none', outline: 'none', background: 'transparent',
-        fontSize: 12, color: '#0f172a', fontFamily: 'inherit', padding: 0,
-      }}
-      onFocus={e => e.target.style.borderBottom = '1px solid #6366f1'}
-      onBlur={e => e.target.style.borderBottom = 'none'}
-    />
-  );
-}
-
-function InlineSelect({ value, onChange, options }) {
-  return (
-    <select
-      value={value || ''}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        border: 'none', outline: 'none', background: 'transparent',
-        fontSize: 12, color: '#0f172a', fontFamily: 'inherit', padding: 0, cursor: 'pointer',
-        appearance: 'none', WebkitAppearance: 'none',
-      }}
-    >
-      <option value="">o campo está vazio</option>
-      {options.map(o => <option key={o} value={o}>{o}</option>)}
-    </select>
-  );
-}
-
-function Section({ title, children, collapsible = true }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <div style={{ marginBottom: 0, borderBottom: '2px solid #f1f5f9' }}>
-      <div
-        onClick={() => collapsible && setOpen(v => !v)}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 20px', cursor: collapsible ? 'pointer' : 'default',
-          background: '#f8fafc',
-        }}
-      >
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase',
-          letterSpacing: '0.06em' }}>{title}</span>
-        {collapsible && (
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>{open ? '▲' : '▼'}</span>
-        )}
-      </div>
-      {open && (
-        <div style={{ padding: '4px 20px 12px' }}>{children}</div>
-      )}
-    </div>
-  );
-}
-
-function UserChip({ user, onRemove }) {
+function ChipUser({ user, onRemove }) {
   const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const bg = avatarColor(user.name);
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
       background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 20,
       padding: '3px 8px 3px 4px', fontSize: 12, marginRight: 4, marginBottom: 4 }}>
-      <div style={{ width: 18, height: 18, borderRadius: '50%', background: bg, color: 'white',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700 }}>
+      <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg, color: 'white',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
         {initials}
       </div>
-      {user.name}
+      <span style={{ fontWeight: 500 }}>{user.name}</span>
       {onRemove && (
         <button onClick={() => onRemove(user.id)} style={{ background: 'none', border: 'none',
-          cursor: 'pointer', color: '#94a3b8', padding: 0, fontSize: 10, lineHeight: 1 }}>×</button>
+          cursor: 'pointer', color: '#94a3b8', padding: 0, fontSize: 13, lineHeight: 1 }}>×</button>
       )}
     </div>
   );
@@ -165,15 +154,18 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
     stage_id: lead.stage_id,
   });
 
+  const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
+
   const [selectedUsers, setSelectedUsers] = useState(lead.users || []);
   const [allUsers, setAllUsers] = useState([]);
   const [activities, setActivities] = useState([]);
   const [newNote, setNewNote] = useState('');
-  const [profileUser, setProfileUser] = useState(null);
+  const [rightTab, setRightTab] = useState('activity');
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [showIds, setShowIds] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-
-  const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
+  const confirm = useConfirm();
 
   const fetchActivities = async () => {
     try {
@@ -210,8 +202,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
     if (e.key !== 'Enter' || !newNote.trim()) return;
     try {
       await fetch(`${API}/leads/${lead.id}/activities`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'note', content: newNote.trim(), actor: 'Usuário' })
       });
       setNewNote('');
@@ -221,29 +212,35 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
 
   const addUser = (u) => {
     if (!selectedUsers.find(x => x.id === u.id)) setSelectedUsers(prev => [...prev, u]);
-    setUserSearch('');
-    setShowUserDropdown(false);
+    setUserSearch(''); setShowUserDropdown(false);
   };
   const removeUser = (id) => setSelectedUsers(prev => prev.filter(u => u.id !== id));
-
-  const currentStage = stages.find(s => s.id === form.stage_id);
 
   const isConverted = lead.converted;
 
   return (
     <>
+      {showConvertModal && (
+        <LeadConvertModal
+          lead={lead}
+          onClose={() => setShowConvertModal(false)}
+          onConfirm={async (opts) => { await onConvert(lead.id, opts); setShowConvertModal(false); }}
+        />
+      )}
       <div className="modal-backdrop" onClick={onClose}>
-        <div className="modal-slider" style={{ maxWidth: 900 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-slider" onClick={e => e.stopPropagation()}>
 
           {/* Header */}
           <div className="modal-header" style={{ paddingBottom: 0 }}>
             <div className="modal-header-top">
               <div className="modal-title-wrap">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em',
-                    textTransform: 'uppercase', background: isConverted ? '#f0fdf4' : '#ede9fe',
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                    background: isConverted ? '#f0fdf4' : '#ede9fe',
                     color: isConverted ? '#10b981' : '#7c3aed',
-                    padding: '2px 7px', borderRadius: 4 }}>
+                    padding: '2px 7px', borderRadius: 4, flexShrink: 0,
+                  }}>
                     {isConverted ? '✓ Convertido' : 'Lead'}
                   </span>
                   <input
@@ -253,25 +250,21 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                     placeholder="Nome do lead"
                   />
                 </div>
-                <div className="modal-id">ID #{lead.id} · Criado em {fmtDate(lead.created_at)}</div>
+                <span className="modal-id">ID #{lead.id} · Criado em {fmtDate(lead.created_at)}</span>
               </div>
               <div className="modal-header-actions">
                 {!isConverted && onConvert && (
-                  <button
-                    className="btn btn-primary"
+                  <button className="btn btn-primary"
                     style={{ fontSize: 12, background: '#7c3aed', borderColor: '#7c3aed' }}
-                    onClick={() => { if (window.confirm('Converter este lead em negócio?')) onConvert(lead.id); }}
-                  >
+                    onClick={() => setShowConvertModal(true)}>
                     ⚡ Lead convertido
                   </button>
                 )}
                 <button className="btn btn-danger" style={{ fontSize: 12 }}
-                  onClick={() => { if (window.confirm('Excluir este lead?')) onDelete(lead.id); }}>
+                  onClick={async () => { if (await confirm('Excluir este lead?', 'Esta ação não pode ser desfeita.')) onDelete(lead.id); }}>
                   Excluir
                 </button>
-                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSave}>
-                  Salvar
-                </button>
+                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSave}>Salvar</button>
                 <button className="icon-btn" onClick={onClose}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -280,239 +273,313 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
               </div>
             </div>
 
-            {/* Stage ribbon */}
-            <div className="modal-stages-ribbon">
-              {stages.map(s => (
-                <div
-                  key={s.id}
-                  className={`ribbon-item ${s.id === form.stage_id ? 'active' : ''}`}
-                  onClick={() => handleStageClick(s.id)}
-                  style={s.id === form.stage_id ? { borderBottomColor: s.color || '#6366f1' } : {}}
-                >
-                  {s.name}
-                </div>
-              ))}
+            {/* Stage tab bar */}
+            <div className="modal-stages-bar">
+              {stages.map((s, idx) => {
+                const activeIdx = stages.findIndex(x => x.id === form.stage_id);
+                const isActive = s.id === form.stage_id;
+                const isPast = idx < activeIdx;
+                const col = s.color || '#6366f1';
+                return (
+                  <button key={s.id}
+                    className={`stage-tab${isActive ? ' active' : ''}${isPast ? ' past' : ''}`}
+                    style={isActive
+                      ? { background: col, borderColor: col, color: '#fff' }
+                      : isPast ? { borderColor: col, color: col, background: col + '18' } : {}
+                    }
+                    onClick={() => handleStageClick(s.id)}
+                  >{s.name}</button>
+                );
+              })}
             </div>
           </div>
 
           {/* Body */}
-          <div className="modal-content-grid" style={{ alignItems: 'flex-start' }}>
+          <div className="modal-content-grid">
 
-            {/* Left — sections */}
-            <div className="modal-left" style={{ padding: 0 }}>
-
-              <Section title="Informações do Lead">
-                <FieldRow label="Saudação">
-                  <InlineSelect value={form.salutation} onChange={set('salutation')} options={SALUTATIONS.filter(Boolean)} />
-                </FieldRow>
-                <FieldRow label="Nome">
-                  <InlineInput value={form.first_name} onChange={set('first_name')} placeholder="Nome" />
-                </FieldRow>
-                <FieldRow label="Sobrenome">
-                  <InlineInput value={form.last_name} onChange={set('last_name')} placeholder="Sobrenome" />
-                </FieldRow>
-                <FieldRow label="Nome do meio">
-                  <InlineInput value={form.middle_name} onChange={set('middle_name')} placeholder="Nome do meio" />
-                </FieldRow>
-                <FieldRow label="Telefone">
-                  <InlineInput value={form.phone} onChange={set('phone')} placeholder="Telefone" type="tel" />
-                </FieldRow>
-                <FieldRow label="E-mail">
-                  <InlineInput value={form.email} onChange={set('email')} placeholder="E-mail" type="email" />
-                </FieldRow>
-                <FieldRow label="Website">
-                  <InlineInput value={form.website} onChange={set('website')} placeholder="https://" />
-                </FieldRow>
-                <FieldRow label="Data de nascimento">
-                  <InlineInput value={form.birth_date} onChange={set('birth_date')} type="date" />
-                </FieldRow>
-                <FieldRow label="Cargo">
-                  <InlineInput value={form.position} onChange={set('position')} placeholder="Cargo / Posição" />
-                </FieldRow>
-                <FieldRow label="Empresa">
-                  <InlineInput value={form.company_name} onChange={set('company_name')} placeholder="Nome da empresa" />
-                </FieldRow>
-              </Section>
-
-              <Section title="Mais">
-                <FieldRow label="Fonte">
-                  <InlineSelect value={form.source} onChange={set('source')} options={SOURCES} />
-                </FieldRow>
-                <FieldRow label="Informações da fonte">
-                  <InlineInput value={form.source_info} onChange={set('source_info')} placeholder="Detalhes da origem" />
-                </FieldRow>
-                <FieldRow label="Disponível para todos">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div
-                      onClick={() => set('available_to_all')(!form.available_to_all)}
-                      style={{
-                        width: 32, height: 18, borderRadius: 9,
-                        background: form.available_to_all ? '#10b981' : '#e2e8f0',
-                        position: 'relative', cursor: 'pointer', transition: 'background 0.2s',
-                      }}
-                    >
-                      <div style={{
-                        width: 14, height: 14, borderRadius: '50%', background: 'white',
-                        position: 'absolute', top: 2,
-                        left: form.available_to_all ? 16 : 2,
-                        transition: 'left 0.2s',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                      }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: form.available_to_all ? '#10b981' : '#94a3b8' }}>
-                      {form.available_to_all ? 'Sim' : 'Não'}
-                    </span>
-                  </div>
-                </FieldRow>
-                <FieldRow label="Pessoa responsável">
-                  <div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 4 }}>
-                      {selectedUsers.map(u => (
-                        <UserChip key={u.id} user={u} onRemove={removeUser} />
-                      ))}
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        style={{
-                          width: '100%', border: 'none', borderBottom: '1px dashed #e2e8f0',
-                          outline: 'none', background: 'transparent', fontSize: 12,
-                          color: '#6366f1', cursor: 'pointer', fontFamily: 'inherit', padding: '2px 0',
-                        }}
-                        placeholder="+ Adicionar responsável"
-                        value={userSearch}
-                        onChange={e => { setUserSearch(e.target.value); setShowUserDropdown(true); }}
-                        onFocus={() => setShowUserDropdown(true)}
-                        onBlur={() => setTimeout(() => setShowUserDropdown(false), 150)}
-                      />
-                      {showUserDropdown && (
-                        <div className="contact-dropdown">
-                          {allUsers
-                            .filter(u => !selectedUsers.find(s => s.id === u.id) &&
-                              u.name.toLowerCase().includes(userSearch.toLowerCase()))
-                            .slice(0, 6)
-                            .map(u => (
-                              <div key={u.id} className="contact-dropdown-item"
-                                onMouseDown={() => addUser(u)}>
-                                {u.name}
-                                <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>{u.role}</span>
+            {/* Left — CustomFieldValues with nativeFields */}
+            <div className="modal-left">
+              <div className="form-group">
+                <CustomFieldValues
+                  entity="lead"
+                  entityId={lead.id}
+                  showIds={showIds}
+                  pipelineId={stages?.[0]?.pipeline_id ?? null}
+                  stages={stages ?? []}
+                  nativeFields={[
+                    {
+                      id: 'lead.salutation', name: 'Saudação',
+                      renderContent: () => (
+                        <select className="form-select" value={form.salutation} onChange={e => set('salutation')(e.target.value)}>
+                          <option value="">o campo está vazio</option>
+                          {SALUTATIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      ),
+                    },
+                    {
+                      id: 'lead.first_name', name: 'Nome',
+                      renderContent: () => (
+                        <input className="form-input" value={form.first_name} onChange={e => set('first_name')(e.target.value)} placeholder="Nome" />
+                      ),
+                    },
+                    {
+                      id: 'lead.last_name', name: 'Sobrenome',
+                      renderContent: () => (
+                        <input className="form-input" value={form.last_name} onChange={e => set('last_name')(e.target.value)} placeholder="Sobrenome" />
+                      ),
+                    },
+                    {
+                      id: 'lead.middle_name', name: 'Nome do meio',
+                      renderContent: () => (
+                        <input className="form-input" value={form.middle_name} onChange={e => set('middle_name')(e.target.value)} placeholder="Nome do meio" />
+                      ),
+                    },
+                    {
+                      id: 'lead.phone', name: 'Telefone',
+                      renderContent: () => (
+                        <input className="form-input" type="tel" value={form.phone} onChange={e => set('phone')(e.target.value)} placeholder="Telefone" />
+                      ),
+                    },
+                    {
+                      id: 'lead.email', name: 'E-mail',
+                      renderContent: () => (
+                        <input className="form-input" type="email" value={form.email} onChange={e => set('email')(e.target.value)} placeholder="E-mail" />
+                      ),
+                    },
+                    {
+                      id: 'lead.website', name: 'Website',
+                      renderContent: () => (
+                        <input className="form-input" value={form.website} onChange={e => set('website')(e.target.value)} placeholder="https://" />
+                      ),
+                    },
+                    {
+                      id: 'lead.birth_date', name: 'Data de nascimento',
+                      renderContent: () => (
+                        <input className="form-input" type="date" value={form.birth_date} onChange={e => set('birth_date')(e.target.value)} />
+                      ),
+                    },
+                    {
+                      id: 'lead.position', name: 'Cargo',
+                      renderContent: () => (
+                        <input className="form-input" value={form.position} onChange={e => set('position')(e.target.value)} placeholder="Cargo / Posição" />
+                      ),
+                    },
+                    {
+                      id: 'lead.company_name', name: 'Empresa',
+                      renderContent: () => (
+                        <input className="form-input" value={form.company_name} onChange={e => set('company_name')(e.target.value)} placeholder="Nome da empresa" />
+                      ),
+                    },
+                    {
+                      id: 'lead.users', name: 'Responsáveis',
+                      renderContent: () => (
+                        <>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 4 }}>
+                            {selectedUsers.map(u => <ChipUser key={u.id} user={u} onRemove={removeUser} />)}
+                          </div>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              className="form-input"
+                              placeholder="Adicionar responsável..."
+                              value={userSearch}
+                              onChange={e => { setUserSearch(e.target.value); setShowUserDropdown(true); }}
+                              onFocus={() => setShowUserDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowUserDropdown(false), 150)}
+                            />
+                            {showUserDropdown && (
+                              <div className="contact-dropdown">
+                                {allUsers
+                                  .filter(u => !selectedUsers.find(s => s.id === u.id) && u.name.toLowerCase().includes(userSearch.toLowerCase()))
+                                  .slice(0, 6)
+                                  .map(u => (
+                                    <div key={u.id} className="contact-dropdown-item" onMouseDown={() => addUser(u)}>
+                                      {u.name}
+                                      <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>{u.role}</span>
+                                    </div>
+                                  ))}
                               </div>
-                            ))}
+                            )}
+                          </div>
+                        </>
+                      ),
+                    },
+                    {
+                      id: 'lead.price', name: 'Valor',
+                      renderContent: () => (
+                        <div className="price-box">
+                          <span className="price-symbol">R$</span>
+                          <input type="number" className="price-input" value={form.price}
+                            onChange={e => set('price')(e.target.value)} placeholder="0" />
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </FieldRow>
-                <FieldRow label="Comentário">
-                  <textarea
-                    value={form.comment || ''}
-                    onChange={e => set('comment')(e.target.value)}
-                    placeholder="Observações sobre este lead..."
-                    rows={2}
-                    style={{
-                      width: '100%', border: 'none', borderBottom: '1px solid #f1f5f9',
-                      outline: 'none', background: 'transparent', fontSize: 12,
-                      color: '#0f172a', fontFamily: 'inherit', resize: 'vertical', padding: 0,
-                    }}
-                  />
-                </FieldRow>
-                <FieldRow label="Endereço">
-                  <InlineInput value={form.address} onChange={set('address')} placeholder="Endereço" />
-                </FieldRow>
-                <FieldRow label="Parâmetros UTM">
-                  {(form.utm_source || form.utm_medium || form.utm_campaign) ? (
-                    <div style={{ fontSize: 11, color: '#64748b' }}>
-                      {form.utm_source && <div>utm_source: <b>{form.utm_source}</b></div>}
-                      {form.utm_medium && <div>utm_medium: <b>{form.utm_medium}</b></div>}
-                      {form.utm_campaign && <div>utm_campaign: <b>{form.utm_campaign}</b></div>}
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 12, color: '#cbd5e1' }}>Nenhum</span>
-                  )}
-                </FieldRow>
-              </Section>
-
-              <Section title="Valor">
-                <FieldRow label="Valor (R$)">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 12, color: '#94a3b8' }}>R$</span>
-                    <input
-                      type="number"
-                      value={form.price}
-                      onChange={e => set('price')(e.target.value)}
-                      style={{
-                        border: 'none', outline: 'none', background: 'transparent',
-                        fontSize: 12, color: '#0f172a', fontFamily: 'inherit', padding: 0, width: 100,
-                      }}
-                    />
-                  </div>
-                </FieldRow>
-              </Section>
-
-            </div>
-
-            {/* Right — timeline */}
-            <div className="modal-right">
-              <div className="timeline-header">Atividades</div>
-
-              <div className="timeline-note-area">
-                <input
-                  className="timeline-note-input"
-                  placeholder="Adicionar nota... (Enter para salvar)"
-                  value={newNote}
-                  onChange={e => setNewNote(e.target.value)}
-                  onKeyDown={handlePostNote}
+                      ),
+                    },
+                    {
+                      id: 'lead.source', name: 'Fonte',
+                      renderContent: () => (
+                        <select className="form-select" value={form.source} onChange={e => set('source')(e.target.value)}>
+                          <option value="">Selecionar...</option>
+                          {SOURCES.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      ),
+                    },
+                    {
+                      id: 'lead.source_info', name: 'Informações da fonte',
+                      renderContent: () => (
+                        <input className="form-input" value={form.source_info} onChange={e => set('source_info')(e.target.value)} placeholder="Detalhes da origem..." />
+                      ),
+                    },
+                    {
+                      id: 'lead.available_to_all', name: 'Disponível para todos',
+                      renderContent: () => (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button type="button" onClick={() => set('available_to_all')(!form.available_to_all)} style={{
+                            width: 38, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', padding: 0, position: 'relative',
+                            background: form.available_to_all ? '#10b981' : '#e2e8f0', transition: 'background 0.2s',
+                          }}>
+                            <span style={{
+                              position: 'absolute', top: 3, width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                              transition: 'left 0.2s', left: form.available_to_all ? 19 : 3,
+                            }} />
+                          </button>
+                          <span style={{ fontSize: 13, color: form.available_to_all ? '#10b981' : '#94a3b8' }}>
+                            {form.available_to_all ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'lead.comment', name: 'Comentário',
+                      renderContent: () => (
+                        <textarea className="form-textarea" rows={3} value={form.comment}
+                          onChange={e => set('comment')(e.target.value)} placeholder="Observações sobre este lead..." />
+                      ),
+                    },
+                    {
+                      id: 'lead.address', name: 'Endereço',
+                      renderContent: () => (
+                        <input className="form-input" value={form.address} onChange={e => set('address')(e.target.value)} placeholder="Endereço" />
+                      ),
+                    },
+                    {
+                      id: 'lead.description', name: 'Descrição',
+                      renderContent: () => (
+                        <textarea className="form-textarea" rows={4} value={form.description}
+                          onChange={e => set('description')(e.target.value)} placeholder="Detalhes do lead..." />
+                      ),
+                    },
+                    {
+                      id: 'lead.utm', name: 'Parâmetros UTM',
+                      renderContent: () => (
+                        <div style={{ fontSize: 13, color: '#64748b' }}>
+                          {(lead.utm_source || lead.utm_medium || lead.utm_campaign) ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {lead.utm_source   && <span>utm_source: <b>{lead.utm_source}</b></span>}
+                              {lead.utm_medium   && <span>utm_medium: <b>{lead.utm_medium}</b></span>}
+                              {lead.utm_campaign && <span>utm_campaign: <b>{lead.utm_campaign}</b></span>}
+                            </div>
+                          ) : <span style={{ color: '#cbd5e1', fontStyle: 'italic' }}>Nenhum</span>}
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'lead.id', name: 'ID',
+                      renderContent: () => <span style={{ fontSize: 14, color: '#64748b', fontFamily: 'monospace' }}>#{lead.id}</span>,
+                    },
+                    {
+                      id: 'lead.stage', name: 'Etapa',
+                      renderContent: () => {
+                        const s = stages?.find(st => st.id === form.stage_id);
+                        return <span style={{ fontSize: 14, color: '#334155' }}>{s?.name ?? '—'}</span>;
+                      },
+                    },
+                    {
+                      id: 'lead.created_at', name: 'Criado em',
+                      renderContent: () => <span style={{ fontSize: 14, color: '#64748b' }}>{fmtDate(lead.created_at)}</span>,
+                    },
+                  ]}
                 />
               </div>
+            </div>
 
-              <div className="timeline-events">
-                {activities.length === 0 && (
-                  <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center',
-                    padding: '20px 0', fontStyle: 'italic' }}>
-                    Nenhuma atividade registrada
-                  </div>
-                )}
-                {activities.map(act => {
-                  const meta = ACTIVITY_META[act.type] || { icon: '•', color: '#94a3b8' };
-                  const isAuto = act.actor === 'Automação' || act.actor === 'Sistema';
-                  return (
-                    <div className="timeline-event" key={act.id}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                        background: meta.color + '18',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 13, border: `1.5px solid ${meta.color}30`,
-                      }}>{meta.icon}</div>
-                      <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
-                        <div className="event-content">{act.content}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                          <span style={{
-                            fontSize: 10, fontWeight: 600,
-                            color: isAuto ? '#0ea5e9' : '#64748b',
-                            background: isAuto ? '#f0f9ff' : '#f1f5f9',
-                            padding: '1px 5px', borderRadius: 4,
-                          }}>{isAuto ? '⚙️ ' + (act.actor || 'Sistema') : '👤 ' + (act.actor || 'Usuário')}</span>
-                          <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                          <span className="event-time" style={{ fontSize: 10 }}>{relTime(act.created_at)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* Right panel: tabbed */}
+            <div className="modal-right">
+              {/* Tab header */}
+              <div style={{ display: 'flex', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+                {[
+                  { key: 'activity', label: 'Atividades' },
+                  { key: 'history',  label: 'Histórico' },
+                ].map(t => (
+                  <button key={t.key} onClick={() => setRightTab(t.key)} style={{
+                    flex: 1, background: 'none', border: 'none',
+                    borderBottom: `2px solid ${rightTab === t.key ? '#6366f1' : 'transparent'}`,
+                    color: rightTab === t.key ? '#6366f1' : '#64748b',
+                    fontWeight: rightTab === t.key ? 700 : 500,
+                    fontSize: 11, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+                  }}>{t.label}</button>
+                ))}
               </div>
+
+              {/* Activity tab */}
+              {rightTab === 'activity' && (
+                <>
+                  <div className="timeline-note-area">
+                    <input
+                      className="timeline-note-input"
+                      placeholder="Adicionar nota... (Enter para salvar)"
+                      value={newNote}
+                      onChange={e => setNewNote(e.target.value)}
+                      onKeyDown={handlePostNote}
+                    />
+                  </div>
+                  <div className="timeline-events">
+                    {activities.length === 0 && (
+                      <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                        Nenhuma atividade registrada
+                      </div>
+                    )}
+                    {activities.map(act => {
+                      const meta = ACTIVITY_META[act.type] || { icon: '•', color: '#94a3b8' };
+                      const isAuto = act.actor === 'Automação' || act.actor === 'Sistema';
+                      return (
+                        <div className="timeline-event" key={act.id}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                            background: meta.color + '18',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 13, border: `1.5px solid ${meta.color}30`,
+                          }}>{meta.icon}</div>
+                          <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
+                            <div className="event-content">{act.content}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                              <span style={{
+                                fontSize: 10, fontWeight: 600,
+                                color: isAuto ? '#0ea5e9' : '#64748b',
+                                background: isAuto ? '#f0f9ff' : '#f1f5f9',
+                                padding: '1px 5px', borderRadius: 4,
+                              }}>{isAuto ? '🤖 ' + (act.actor || 'Sistema') : '👤 ' + (act.actor || 'Usuário')}</span>
+                              <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
+                              <span className="event-time" style={{ fontSize: 10 }}>{relTime(act.created_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* History tab */}
+              {rightTab === 'history' && (
+                <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                    Histórico não disponível para leads
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      {profileUser && (
-        <UserModal
-          user={profileUser}
-          onClose={() => setProfileUser(null)}
-          onUpdate={updated => setSelectedUsers(prev => prev.map(u => u.id === updated.id ? updated : u))}
-          nested
-        />
-      )}
     </>
   );
 }
-

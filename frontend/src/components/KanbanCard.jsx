@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8001';
 
 const fmt = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 const fmtDate = (iso) => {
@@ -18,7 +18,7 @@ const avatarColor = (name) => {
 
 function renderCFValue(field, rawValue) {
   if (!rawValue && rawValue !== 0) return null;
-  if (field.field_type === 'checkbox') return rawValue === 'true' ? '✓ Sim' : '✗ Não';
+  if (field.field_type === 'checkbox') return rawValue === 'true' ? 'âœ“ Sim' : 'âœ— NÃ£o';
   if (field.field_type === 'currency') return `R$ ${parseFloat(rawValue || 0).toFixed(2).replace('.', ',')}`;
   if (field.field_type === 'select') {
     let opts = [];
@@ -28,7 +28,7 @@ function renderCFValue(field, rawValue) {
   if (field.field_type === 'attachment') {
     let files = [];
     try { files = JSON.parse(rawValue || '[]'); } catch {}
-    return files.length ? `📎 ${files.length} arquivo${files.length !== 1 ? 's' : ''}` : null;
+    return files.length ? `ðŸ“Ž ${files.length} arquivo${files.length !== 1 ? 's' : ''}` : null;
   }
   return rawValue;
 }
@@ -36,13 +36,14 @@ function renderCFValue(field, rawValue) {
 export default function KanbanCard({
   card,
   onDragStart,
-  onOpen,      // double-click or button → opens modal
-  onSelect,    // single click → selects card
+  onOpen,      // double-click or button â†’ opens modal
+  onSelect,    // single click â†’ selects card
   isSelected = false,
   showOnCardFields = [],
   isLead = false,
 }) {
   const [cfValues, setCfValues] = useState({});
+  const clickTimer = useRef(null);
 
   useEffect(() => {
     if (!showOnCardFields.length) return;
@@ -70,13 +71,34 @@ export default function KanbanCard({
     .map(f => ({ field: f, display: renderCFValue(f, cfValues[f.id]) }))
     .filter(({ display }) => display !== null && display !== '');
 
+  function handleCardClick(e) {
+    e.stopPropagation();
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+      onOpen && onOpen(card);
+    } else {
+      clickTimer.current = setTimeout(() => {
+        clickTimer.current = null;
+        onSelect && onSelect(card);
+      }, 220);
+    }
+  }
+
+  const handleAuxClick = (e) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      window.open(`${location.origin}${location.pathname}#deal/${card.id}`, '_blank');
+    }
+  };
+
   return (
     <div
       className={`card${isSelected ? ' card-selected' : ''}`}
       draggable
       onDragStart={e => onDragStart(e, card)}
-      onClick={e => { e.stopPropagation(); onSelect && onSelect(card); }}
-      onDoubleClick={e => { e.stopPropagation(); onOpen && onOpen(card); }}
+      onClick={handleCardClick}
+      onMouseDown={handleAuxClick}
     >
       {/* Selection checkbox */}
       <div
@@ -106,7 +128,7 @@ export default function KanbanCard({
             fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
             background: '#ede9fe', color: '#7c3aed', padding: '2px 6px', borderRadius: 4,
           }}>
-            {card.converted ? '✓ Convertido' : 'Lead'}
+            {card.converted ? 'âœ“ Convertido' : 'Lead'}
           </span>
         </div>
       )}
@@ -167,7 +189,7 @@ export default function KanbanCard({
               )}
             </div>
           ) : (
-            <span className="card-assignee-name" style={{ fontStyle: 'italic' }}>Sem responsável</span>
+            <span className="card-assignee-name" style={{ fontStyle: 'italic' }}>Sem responsÃ¡vel</span>
           )}
         </div>
         <span className="card-date">{fmtDate(card.created_at)}</span>

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class ContactBase(BaseModel):
@@ -104,16 +104,33 @@ class Activity(ActivityBase):
     class Config:
         from_attributes = True
 
+class RoleBase(BaseModel):
+    name: str
+    description: str = ''
+    color: str = '#6366f1'
+    permissions: str = '{}'
+
+class RoleCreate(RoleBase):
+    pass
+
+class Role(RoleBase):
+    id: int
+    created_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
 class UserBase(BaseModel):
     name: str
     email: str
     role: str = "vendedor"
+    role_id: Optional[int] = None
 
 class UserCreate(UserBase):
     pass
 
 class User(UserBase):
     id: int
+    is_active: bool = True
     class Config:
         from_attributes = True
 
@@ -149,20 +166,91 @@ class CustomFieldValueOut(BaseModel):
     class Config:
         from_attributes = True
 
+class ProjectMemberOut(BaseModel):
+    id: int
+    user_id: int
+    role: str
+    class Config:
+        from_attributes = True
+
+class ProjectBase(BaseModel):
+    name: str
+    description: str = ''
+    icon: str = '📁'
+    theme_color: str = '#6366f1'
+    privacy: str = 'public'
+    owner_id: Optional[int] = None
+
+class ProjectCreate(ProjectBase):
+    member_ids: List[int] = []
+    moderator_ids: List[int] = []
+
+class Project(ProjectBase):
+    id: int
+    created_at: datetime
+    members: List[ProjectMemberOut] = []
+    class Config:
+        from_attributes = True
+
+class TeamMemberOut(BaseModel):
+    id: int
+    user_id: int
+    role: str
+    class Config:
+        from_attributes = True
+
+class TeamBase(BaseModel):
+    name: str
+    description: str = ''
+    permissions: str = '[]'
+
+class TeamCreate(TeamBase):
+    member_ids: List[int] = []
+
+class Team(TeamBase):
+    id: int
+    created_at: datetime
+    members: List[TeamMemberOut] = []
+    class Config:
+        from_attributes = True
+
+class TaskTimeEntryOut(BaseModel):
+    id: int
+    task_id: int
+    user_name: str
+    started_at: Optional[datetime] = None
+    ended_at: Optional[datetime] = None
+    duration_seconds: int = 0
+    class Config:
+        from_attributes = True
+
 class TaskBase(BaseModel):
-    card_id: int
     title: str
     description: str = ''
+    status: str = 'todo'
+    priority: str = 'normal'
     due_date: Optional[str] = None
     assigned_to: str = ''
+    participants: str = '[]'
     done: bool = False
+    card_id: Optional[int] = None
+    lead_id: Optional[int] = None
+    project_id: Optional[int] = None
+    parent_task_id: Optional[int] = None
 
 class TaskCreate(TaskBase):
     pass
 
 class Task(TaskBase):
     id: int
+    uid: str = ''
     created_at: datetime
+    updated_at: Optional[datetime] = None
+    card_title: Optional[str] = None
+    lead_title: Optional[str] = None
+    project_name: Optional[str] = None
+    time_entries: List[TaskTimeEntryOut] = []
+    total_time_seconds: int = 0
     class Config:
         from_attributes = True
 
@@ -188,9 +276,21 @@ class CardBase(BaseModel):
     contact_ids: List[int] = []
     user_ids: List[int] = []
     created_at: Optional[datetime] = None
+    source: Optional[str] = None
+    source_info: Optional[str] = None
+    deal_type: Optional[str] = None
+    start_date: Optional[str] = None
+    available_to_all: bool = True
+    responsible_user_id: Optional[int] = None
+    observers: Optional[str] = None
+    comment: Optional[str] = None
+    utm_source: Optional[str] = None
+    utm_medium: Optional[str] = None
+    utm_campaign: Optional[str] = None
 
 class CardCreate(CardBase):
     order: int = 0
+    custom_fields: Optional[Dict[str, Any]] = None  # {"cnpj": "12.345/0001-90"} or {"3": "value"}
 
 class Card(BaseModel):
     id: int
@@ -200,9 +300,23 @@ class Card(BaseModel):
     order: int
     stage_id: int
     created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    stage_changed_by: Optional[str] = None
+    source: Optional[str] = None
+    source_info: Optional[str] = None
+    deal_type: Optional[str] = None
+    start_date: Optional[str] = None
+    available_to_all: bool = True
+    responsible_user_id: Optional[int] = None
+    observers: Optional[str] = None
+    comment: Optional[str] = None
+    utm_source: Optional[str] = None
+    utm_medium: Optional[str] = None
+    utm_campaign: Optional[str] = None
     activities: List[Activity] = []
     contacts: List[Contact] = []
     users: List[User] = []
+    custom_fields: Optional[Dict[str, Any]] = {}
     class Config:
         from_attributes = True
 
@@ -241,6 +355,8 @@ class AutomationRuleBase(BaseModel):
     config: str = "{}"
     order: int = 0
     enabled: bool = True
+    entity_type: str = 'deal'
+    entity_type: str = 'deal'
 
 class AutomationRuleCreate(AutomationRuleBase):
     pass
@@ -315,6 +431,7 @@ class Lead(BaseModel):
     activities: List[Activity] = []
     contacts: List[Contact] = []
     users: List[User] = []
+    custom_fields: Optional[Dict[str, Any]] = {}
     class Config:
         from_attributes = True
 
@@ -324,3 +441,68 @@ class WebhookLead(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
     message: Optional[str] = None
+
+class LeadConvertOptions(BaseModel):
+    create_deal: bool = True
+    create_contact: bool = False
+    create_company: bool = False
+
+class LeadConvertResult(BaseModel):
+    deal_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    company_id: Optional[int] = None
+
+class WorkflowStepBase(BaseModel):
+    step_order: int = 0
+    action_type: str
+    action_config: str = "{}"
+
+class WorkflowStepCreate(WorkflowStepBase):
+    pass
+
+class WorkflowStep(WorkflowStepBase):
+    id: int
+    template_id: int
+    class Config:
+        from_attributes = True
+
+class WorkflowTemplateBase(BaseModel):
+    name: str
+    description: str = ''
+    entity_type: str = 'deal'
+    pipeline_id: Optional[int] = None
+    is_active: bool = True
+
+class WorkflowTemplateCreate(WorkflowTemplateBase):
+    steps: List[WorkflowStepBase] = []
+
+class WorkflowTemplate(WorkflowTemplateBase):
+    id: int
+    created_at: datetime
+    steps: List[WorkflowStep] = []
+    class Config:
+        from_attributes = True
+
+class WorkflowExecutionOut(BaseModel):
+    id: int
+    template_id: Optional[int]
+    template_name: str
+    card_id: int
+    executed_by_name: str
+    executed_at: datetime
+    status: str
+    result_log: str
+    class Config:
+        from_attributes = True
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_id: int
+    user_name: str
+    user_email: str
+    role: str

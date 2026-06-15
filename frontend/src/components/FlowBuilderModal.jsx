@@ -1,20 +1,27 @@
 ﻿import React, { useState, useEffect, Fragment } from 'react';
 
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8001';
 
 // ── Meta dos tipos de nó ──────────────────────────────────────────────────────
 const NODE_META = {
-  trigger:     { label: 'Gatilho',              icon: '⚡', color: '#10b981', bg: '#ecfdf5' },
-  webhook:     { label: 'Disparar Webhook',     icon: '🔗', color: '#6366f1', bg: '#eef2ff' },
-  assign_user: { label: 'Atribuir Responsável', icon: '👤', color: '#f59e0b', bg: '#fffbeb' },
-  add_note:    { label: 'Adicionar Nota',        icon: '📝', color: '#3b82f6', bg: '#eff6ff' },
-  set_price:   { label: 'Definir Valor',         icon: '💰', color: '#ec4899', bg: '#fdf2f8' },
-  set_field:   { label: 'Modificar Elemento',    icon: '✏️', color: '#0ea5e9', bg: '#f0f9ff' },
-  if_else:     { label: 'Se / Então',            icon: '◇',  color: '#8b5cf6', bg: '#f5f3ff' },
+  trigger:       { label: 'Gatilho',              icon: '⚡', color: '#10b981', bg: '#ecfdf5' },
+  webhook:       { label: 'Disparar Webhook',     icon: '🔗', color: '#6366f1', bg: '#eef2ff' },
+  assign_user:   { label: 'Atribuir Responsável', icon: '👤', color: '#f59e0b', bg: '#fffbeb' },
+  add_note:      { label: 'Adicionar Nota',        icon: '📝', color: '#3b82f6', bg: '#eff6ff' },
+  set_price:     { label: 'Definir Valor',         icon: '💰', color: '#ec4899', bg: '#fdf2f8' },
+  set_field:     { label: 'Modificar Elemento',    icon: '✏️', color: '#0ea5e9', bg: '#f0f9ff' },
+  if_else:       { label: 'Se / Então',            icon: '◇',  color: '#8b5cf6', bg: '#f5f3ff' },
+  change_stage:  { label: 'Alterar Etapa',         icon: '→',  color: '#0284c7', bg: '#e0f2fe' },
+  move_pipeline: { label: 'Mover Pipeline',        icon: '⇄',  color: '#7c3aed', bg: '#f5f3ff' },
+  create_task:   { label: 'Criar Tarefa',          icon: '✅', color: '#16a34a', bg: '#f0fdf4' },
+  pause:         { label: 'Pausar Execução',       icon: '⏸', color: '#64748b', bg: '#f8fafc' },
+  send_email:    { label: 'Enviar E-mail',         icon: '✉️', color: '#db2777', bg: '#fdf2f8' },
 };
 
-const ACTION_TYPES = ['webhook', 'assign_user', 'add_note', 'set_price', 'set_field'];
-const LOGIC_TYPES  = ['if_else'];
+const CRM_TYPES     = ['change_stage', 'move_pipeline', 'assign_user'];
+const ACTION_TYPES  = ['webhook', 'add_note', 'set_price', 'set_field', 'create_task', 'send_email'];
+const CONTROL_TYPES = ['if_else', 'pause'];
+const LOGIC_TYPES   = ['if_else'];
 
 // Campos do negócio que podem ser modificados
 const MODIFIABLE_FIELDS = [
@@ -74,12 +81,17 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 function createStep(type) {
   const base = { id: uid(), type };
   switch (type) {
-    case 'webhook':     return { ...base, config: { method: 'POST', url: '', payload: '{\n  "negocio": "{{deal.title}}",\n  "valor": "{{deal.price}}",\n  "etapa": "{{stage.name}}"\n}' } };
-    case 'assign_user': return { ...base, config: { user_id: '', user_name: '' } };
-    case 'add_note':    return { ...base, config: { content: 'Negócio "{{deal.title}}" movido para {{stage.name}}.' } };
-    case 'set_price':   return { ...base, config: { price: '' } };
-    case 'set_field':   return { ...base, config: { field: 'deal.price', value: '', pipeline_id: null, stage_id: null, stage_name: '' } };
-    case 'if_else':     return { ...base, condition: '', true_steps: [], false_steps: [] };
+    case 'webhook':       return { ...base, config: { method: 'POST', url: '', payload: '{\n  "negocio": "{{deal.title}}",\n  "valor": "{{deal.price}}",\n  "etapa": "{{stage.name}}"\n}' } };
+    case 'assign_user':   return { ...base, config: { user_id: '', user_name: '' } };
+    case 'add_note':      return { ...base, config: { content: 'Negócio "{{deal.title}}" movido para {{stage.name}}.' } };
+    case 'set_price':     return { ...base, config: { price: '' } };
+    case 'set_field':     return { ...base, config: { field: 'deal.price', value: '', pipeline_id: null, stage_id: null, stage_name: '' } };
+    case 'if_else':       return { ...base, condition: '', true_steps: [], false_steps: [] };
+    case 'change_stage':  return { ...base, config: { pipeline_id: null, stage_id: null, stage_name: '', pipeline_name: '' } };
+    case 'move_pipeline': return { ...base, config: { pipeline_id: null, stage_id: null, stage_name: '', pipeline_name: '' } };
+    case 'create_task':   return { ...base, config: { title: 'Tarefa: {{deal.title}}', description: '', priority: 'normal', due_days: 1 } };
+    case 'pause':         return { ...base, config: { delay_amount: 1, delay_unit: 'hours' } };
+    case 'send_email':    return { ...base, config: { to: '{{contact.email}}', subject: '', body: '' } };
     default: return base;
   }
 }
@@ -118,6 +130,11 @@ function stepSummary(step) {
       } catch {}
       return step.condition || 'Condição não definida';
     }
+    case 'change_stage':  return c.stage_name ? `→ "${c.stage_name}"` : 'Etapa não selecionada';
+    case 'move_pipeline': return c.pipeline_name ? `→ "${c.pipeline_name}"` : 'Pipeline não selecionado';
+    case 'create_task':   return c.title ? c.title.slice(0, 50) + (c.title.length > 50 ? '…' : '') : 'Título não definido';
+    case 'pause':         return `Aguardar ${c.delay_amount || 1} ${c.delay_unit === 'days' ? 'dia(s)' : c.delay_unit === 'minutes' ? 'min' : 'hora(s)'}`;
+    case 'send_email':    return c.subject ? `Assunto: ${c.subject.slice(0, 40)}` : 'Sem assunto';
     default: return '';
   }
 }
@@ -331,8 +348,9 @@ function NodePicker({ onSelect, onClose }) {
         <div style={{ fontSize: 12, color: '#64748b', marginBottom: 16, marginTop: 3 }}>Escolha uma ação ou condição lógica</div>
 
         {[
+          { title: 'CRM', types: CRM_TYPES },
           { title: 'Ações', types: ACTION_TYPES },
-          { title: 'Lógica', types: LOGIC_TYPES },
+          { title: 'Controle de Fluxo', types: CONTROL_TYPES },
         ].map(group => (
           <div key={group.title}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 12 }}>{group.title}</div>
@@ -751,6 +769,63 @@ function ConditionEditor({ step, onChange }) {
   );
 }
 
+function ChangeStageEditor({ step, cfg, onChange, Lbl, label = 'Etapa destino' }) {
+  const [pipelines, setPipelines] = useState([]);
+  const [stages, setStages] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API}/pipelines`).then(r => r.json()).then(setPipelines).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (cfg.pipeline_id) {
+      fetch(`${API}/stages?pipeline_id=${cfg.pipeline_id}`).then(r => r.json()).then(setStages).catch(() => {});
+    } else {
+      setStages([]);
+    }
+  }, [cfg.pipeline_id]);
+
+  const set = (patch) => onChange({ ...step, config: { ...cfg, ...patch } });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div>
+        <Lbl>Pipeline</Lbl>
+        <select className="form-select" value={cfg.pipeline_id || ''} onChange={e => {
+          const p = pipelines.find(x => x.id === +e.target.value);
+          set({ pipeline_id: +e.target.value, pipeline_name: p?.name || '', stage_id: null, stage_name: '' });
+        }}>
+          <option value="">Selecionar pipeline...</option>
+          {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      </div>
+      {cfg.pipeline_id && (
+        <div>
+          <Lbl>{label}</Lbl>
+          {stages.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {stages.map(s => (
+                <button key={s.id} onClick={() => set({ stage_id: s.id, stage_name: s.name })} style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '7px 10px', borderRadius: 7, cursor: 'pointer',
+                  border: `2px solid ${cfg.stage_id === s.id ? s.color : '#e2e8f0'}`,
+                  background: cfg.stage_id === s.id ? s.color + '15' : 'white',
+                  textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s',
+                }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, fontWeight: cfg.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EditPanel({ step, users, onChange, onClose }) {
   const meta = NODE_META[step.type] || {};
   const cfg = step.config || {};
@@ -850,22 +925,127 @@ function EditPanel({ step, users, onChange, onClose }) {
         {step.type === 'if_else' && (
           <ConditionEditor step={step} onChange={onChange} />
         )}
+
+        {/* Change Stage */}
+        {step.type === 'change_stage' && (
+          <ChangeStageEditor step={step} cfg={cfg} onChange={onChange} Lbl={Lbl} />
+        )}
+
+        {/* Move Pipeline */}
+        {step.type === 'move_pipeline' && (
+          <ChangeStageEditor step={step} cfg={cfg} onChange={onChange} Lbl={Lbl} label="Pipeline destino" />
+        )}
+
+        {/* Create Task */}
+        {step.type === 'create_task' && <>
+          <div>
+            <Lbl>Título da tarefa</Lbl>
+            <input className="form-input" style={{ fontSize: 12 }} value={cfg.title || ''} onChange={e => set('title', e.target.value)} placeholder="Ex: Tarefa: {{deal.title}}" />
+            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>Suporta variáveis: <code style={{ fontSize: 10 }}>{'{{deal.title}}'}</code></div>
+          </div>
+          <div>
+            <Lbl>Descrição</Lbl>
+            <textarea className="form-textarea" style={{ fontSize: 12, minHeight: 60 }} value={cfg.description || ''} onChange={e => set('description', e.target.value)} placeholder="Opcional..." />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div>
+              <Lbl>Prioridade</Lbl>
+              <select className="form-select" style={{ fontSize: 12 }} value={cfg.priority || 'normal'} onChange={e => set('priority', e.target.value)}>
+                <option value="low">Baixa</option>
+                <option value="normal">Normal</option>
+                <option value="high">Alta</option>
+                <option value="urgent">Urgente</option>
+              </select>
+            </div>
+            <div>
+              <Lbl>Prazo (dias)</Lbl>
+              <input type="number" className="form-input" style={{ fontSize: 12 }} value={cfg.due_days ?? 1} onChange={e => set('due_days', +e.target.value)} min={0} placeholder="1" />
+            </div>
+          </div>
+        </>}
+
+        {/* Pause */}
+        {step.type === 'pause' && <>
+          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8 }}>
+            <div>
+              <Lbl>Quantidade</Lbl>
+              <input type="number" className="form-input" style={{ fontSize: 12 }} value={cfg.delay_amount ?? 1} onChange={e => set('delay_amount', +e.target.value)} min={1} />
+            </div>
+            <div>
+              <Lbl>Unidade</Lbl>
+              <select className="form-select" style={{ fontSize: 12 }} value={cfg.delay_unit || 'hours'} onChange={e => set('delay_unit', e.target.value)}>
+                <option value="minutes">Minutos</option>
+                <option value="hours">Horas</option>
+                <option value="days">Dias</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ background: '#fef9c3', border: '1px solid #fde047', borderRadius: 7, padding: '8px 10px', fontSize: 11, color: '#854d0e' }}>
+            Pausa registrada no fluxo. Na versão atual a execução é imediata; suporte a delay assíncrono em breve.
+          </div>
+        </>}
+
+        {/* Send Email */}
+        {step.type === 'send_email' && <>
+          <div>
+            <Lbl>Para (e-mail)</Lbl>
+            <input className="form-input" style={{ fontSize: 12 }} value={cfg.to || ''} onChange={e => set('to', e.target.value)} placeholder="{{contact.email}}" />
+          </div>
+          <div>
+            <Lbl>Assunto</Lbl>
+            <input className="form-input" style={{ fontSize: 12 }} value={cfg.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="Ex: Seu negócio foi atualizado" />
+          </div>
+          <div>
+            <Lbl>Corpo do e-mail</Lbl>
+            <textarea className="form-textarea" style={{ fontSize: 12, minHeight: 100 }} value={cfg.body || ''} onChange={e => set('body', e.target.value)} placeholder="Olá,&#10;Seu negócio &quot;{{deal.title}}&quot; foi atualizado." />
+          </div>
+        </>}
       </div>
     </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function FlowBuilderModal({ rule, stageId, pipelineId, stageName, users, onSave, onClose }) {
-  const [ruleName, setRuleName] = useState(rule?.name || 'Nova automação');
-  const [steps, setSteps]     = useState(() => parseFlow(rule?.config));
-  const [picker, setPicker]   = useState(null);   // { onSelect }
-  const [active, setActiveRaw] = useState(null);  // step object being edited
-  const [saving, setSaving]   = useState(false);
+// mode='automation': triggered by stage entry (AutomationsView)
+// mode='workflow':   manual execution (WorkflowsView)
+export default function FlowBuilderModal({
+  // automation mode
+  rule, stageId, pipelineId, stageName,
+  // workflow mode
+  workflow,
+  // shared
+  mode = 'automation', users, onSave, onClose,
+}) {
+  const isWorkflow = mode === 'workflow';
+
+  const parseInitialSteps = () => {
+    if (isWorkflow) {
+      // workflow: single step with action_type='flow' containing the flow JSON
+      const flowStep = workflow?.steps?.find(s => s.action_type === 'flow');
+      if (flowStep) return parseFlow(flowStep.action_config);
+      return [];
+    }
+    return parseFlow(rule?.config);
+  };
+
+  const [ruleName, setRuleName]     = useState(isWorkflow ? (workflow?.name || 'Novo fluxo') : (rule?.name || 'Nova automação'));
+  const [entityType, setEntityType] = useState(isWorkflow ? (workflow?.entity_type || 'deal') : (rule?.entity_type || 'deal'));
+  const [wfPipelineId, setWfPipelineId] = useState(isWorkflow ? (workflow?.pipeline_id || '') : null);
+  const [isActive, setIsActive]     = useState(isWorkflow ? (workflow?.is_active !== false) : true);
+  const [steps, setSteps]           = useState(parseInitialSteps);
+  const [picker, setPicker]         = useState(null);
+  const [active, setActiveRaw]      = useState(null);
+  const [saving, setSaving]         = useState(false);
+  const [pipelines, setPipelines]   = useState([]);
+
+  useEffect(() => {
+    if (isWorkflow) {
+      fetch(`${API}/pipelines`).then(r => r.json()).then(d => setPipelines(Array.isArray(d) ? d : [])).catch(() => {});
+    }
+  }, [isWorkflow]);
 
   const setActive = (step) => setActiveRaw(step);
 
-  // When active step changes, sync it back into the tree
   const handleEditChange = (updated) => {
     setActiveRaw(updated);
     setSteps(prev => updateById(prev, updated.id, () => updated));
@@ -874,15 +1054,30 @@ export default function FlowBuilderModal({ rule, stageId, pipelineId, stageName,
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onSave({
-        name: ruleName,
-        action_type: 'flow',
-        config: JSON.stringify({ version: 1, steps }),
-        stage_id: stageId,
-        pipeline_id: pipelineId,
-        order: rule?.order ?? 0,
-        enabled: rule?.enabled ?? true,
-      });
+      if (isWorkflow) {
+        await onSave({
+          name: ruleName,
+          entity_type: entityType,
+          pipeline_id: wfPipelineId ? +wfPipelineId : null,
+          is_active: isActive,
+          steps: [{
+            action_type: 'flow',
+            step_order: 0,
+            action_config: JSON.stringify({ version: 1, steps }),
+          }],
+        });
+      } else {
+        await onSave({
+          name: ruleName,
+          action_type: 'flow',
+          config: JSON.stringify({ version: 1, steps }),
+          stage_id: stageId,
+          pipeline_id: pipelineId,
+          order: rule?.order ?? 0,
+          enabled: rule?.enabled ?? true,
+          entity_type: entityType,
+        });
+      }
       onClose();
     } finally { setSaving(false); }
   };
@@ -897,19 +1092,41 @@ export default function FlowBuilderModal({ rule, stageId, pipelineId, stageName,
             ← Voltar
           </button>
           <div style={{ width: 1, height: 20, background: '#e2e8f0' }} />
-          <span style={{ fontSize: 12, color: '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>⚡ Automação</span>
+          <span style={{ fontSize: 12, color: isWorkflow ? '#6366f1' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            {isWorkflow ? '⚡ Fluxo de Trabalho' : '⚡ Automação'}
+          </span>
           <div style={{ width: 1, height: 20, background: '#e2e8f0' }} />
           <input
             value={ruleName}
             onChange={e => setRuleName(e.target.value)}
             style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 700, color: '#0f172a', background: 'transparent', fontFamily: 'inherit', minWidth: 0 }}
-            placeholder="Nome da regra..."
+            placeholder={isWorkflow ? 'Nome do fluxo...' : 'Nome da regra...'}
           />
-          <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>
-            Gatilho: <strong style={{ color: '#0f172a' }}>{stageName}</strong>
-          </span>
+          <select value={entityType} onChange={e => setEntityType(e.target.value)} style={{ fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', color: '#475569', background: '#f8fafc', cursor: 'pointer' }}>
+            <option value="deal">Negócios</option>
+            <option value="lead">Leads</option>
+            <option value="any">Qualquer</option>
+          </select>
+          {isWorkflow ? (
+            <>
+              <select value={wfPipelineId} onChange={e => setWfPipelineId(e.target.value)} style={{ fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', color: '#475569', background: '#f8fafc', cursor: 'pointer' }}>
+                <option value="">Todos os pipelines</option>
+                {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <button type="button" onClick={() => setIsActive(v => !v)} title={isActive ? 'Ativo' : 'Inativo'} style={{
+                width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: isActive ? '#10b981' : '#e2e8f0', position: 'relative', padding: 0, flexShrink: 0,
+              }}>
+                <span style={{ position: 'absolute', top: 2, left: isActive ? 17 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+              </button>
+            </>
+          ) : (
+            <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>
+              Gatilho: <strong style={{ color: '#0f172a' }}>{stageName}</strong>
+            </span>
+          )}
           <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13, minWidth: 110, whiteSpace: 'nowrap' }}>
-            {saving ? 'Salvando...' : 'Salvar regra'}
+            {saving ? 'Salvando...' : isWorkflow ? 'Salvar fluxo' : 'Salvar regra'}
           </button>
         </div>
 
@@ -923,13 +1140,16 @@ export default function FlowBuilderModal({ rule, stageId, pipelineId, stageName,
               {/* Trigger node */}
               <div style={{
                 width: 310, borderRadius: 12, padding: '11px 14px',
-                background: '#ecfdf5', border: '2px solid #10b981',
+                background: isWorkflow ? '#eef2ff' : '#ecfdf5',
+                border: `2px solid ${isWorkflow ? '#6366f1' : '#10b981'}`,
                 display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
               }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#10b98120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>⚡</div>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: isWorkflow ? '#6366f120' : '#10b98120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>⚡</div>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gatilho</div>
-                  <div style={{ fontSize: 12, color: '#0f172a', fontWeight: 600, marginTop: 1 }}>Quando entrar em: {stageName}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: isWorkflow ? '#6366f1' : '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gatilho</div>
+                  <div style={{ fontSize: 12, color: '#0f172a', fontWeight: 600, marginTop: 1 }}>
+                    {isWorkflow ? 'Execução Manual' : `Quando entrar em: ${stageName}`}
+                  </div>
                 </div>
               </div>
 
