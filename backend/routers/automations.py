@@ -226,7 +226,7 @@ def execute_workflow(
 
     for step in steps:
         try:
-            cfg = json.loads(step.action_config or '{}')
+            cfg = step.action_config or {}
             if step.action_type == 'flow' and cfg.get('version') == 1:
                 vars_map = _build_vars(card, db)
                 _execute_flow_steps(cfg.get('steps', []), vars_map, card, db)
@@ -259,7 +259,7 @@ def execute_workflow(
         executed_by_id=exec_id,
         executed_by_name=exec_name,
         status=status,
-        result_log=json.dumps(result_log, ensure_ascii=False),
+        result_log=result_log,
     )
     db.add(exe)
     log_audit(db, "workflow_executed", "card", card_id, card.title, exec_name, details={"workflow": tpl.name, "status": status})

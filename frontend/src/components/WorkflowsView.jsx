@@ -11,10 +11,8 @@ function getFlowNodeCount(wf) {
   if (!wf.steps || wf.steps.length === 0) return 0;
   const flowStep = wf.steps.find(s => s.action_type === 'flow');
   if (flowStep) {
-    try {
-      const cfg = JSON.parse(flowStep.action_config || '{}');
-      return cfg.steps?.length || 0;
-    } catch { return 0; }
+    const cfg = flowStep.action_config || {};
+    return cfg.steps?.length || 0;
   }
   return wf.steps.length;
 }

@@ -168,7 +168,7 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
   const handleSave = async () => {
     if (!name.trim()) return;
     setSaving(true);
-    await onSave({ name: name.trim(), description, color, permissions: JSON.stringify(perms) });
+    await onSave({ name: name.trim(), description, color, permissions: perms });
     setSaving(false);
   };
 

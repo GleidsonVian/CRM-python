@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Table, Boolean
+from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -68,9 +69,9 @@ class Webhook(Base):
     type = Column(String, default='outbound')        # 'inbound' | 'outbound'
     token = Column(String, unique=True, index=True)  # secret token (inbound auth / outbound signing)
     url = Column(String, nullable=True)              # outbound: URL to POST to
-    events = Column(String, default='[]')            # JSON: ['card.created', 'lead.moved', …]
-    allowed_entities = Column(String, default='[]')  # JSON: ['cards','leads','contacts','companies']
-    allowed_methods = Column(String, default='["POST"]')  # JSON: ['GET','POST','PUT','DELETE']
+    events = Column(JSON, default=list)
+    allowed_entities = Column(JSON, default=list)
+    allowed_methods = Column(JSON, default=lambda: ["POST"])
     active = Column(Boolean, default=True)
     description = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -127,7 +128,7 @@ class Role(Base):
     name        = Column(String, nullable=False)
     description = Column(String, default='')
     color       = Column(String, default='#6366f1')
-    permissions = Column(String, default='{}')  # JSON
+    permissions = Column(JSON, default=dict)
     created_at  = Column(DateTime(timezone=True), server_default=func.now())
     members     = relationship("User", back_populates="crm_role", foreign_keys="User.role_id")
 
@@ -162,7 +163,7 @@ class AutomationRule(Base):
     entity_type = Column(String, default='deal')  # 'deal' | 'lead' | 'any'
     name = Column(String, default="Regra")
     action_type = Column(String)  # webhook | assign_user | add_note | set_price
-    config = Column(String, default="{}")  # JSON
+    config = Column(JSON, default=dict)
     order = Column(Integer, default=0)
     enabled = Column(Boolean, default=True)
     entity_type = Column(String, default='deal')  # 'deal' | 'lead' | 'any'
@@ -175,7 +176,7 @@ class CustomField(Base):
     name = Column(String)
     key = Column(String)                   # snake_case machine key
     field_type = Column(String, default='text')  # text, number, select, date, checkbox, textarea, url, phone, email, currency, attachment
-    options = Column(String, default='[]')        # JSON: [{id, label}] for select type
+    options = Column(JSON, default=list)
     required = Column(Boolean, default=False)
     show_on_card = Column(Boolean, default=False) # show value on kanban card
     order = Column(Integer, default=0)
@@ -218,7 +219,7 @@ class Team(Base):
     id          = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name        = Column(String, nullable=False)
     description = Column(String, default='')
-    permissions = Column(String, default='[]')   # JSON list of permission strings
+    permissions = Column(JSON, default=list)
     created_at  = Column(DateTime(timezone=True), server_default=func.now())
     members     = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
 
@@ -241,7 +242,7 @@ class Task(Base):
     priority       = Column(String, default='normal')   # low | normal | high | urgent
     due_date       = Column(String, default=None)       # YYYY-MM-DD
     assigned_to    = Column(String, default='')
-    participants   = Column(String, default='[]')       # JSON array of user names
+    participants   = Column(JSON, default=list)
     done           = Column(Boolean, default=False)
     card_id        = Column(Integer, ForeignKey("cards.id", ondelete="SET NULL"), nullable=True)
     lead_id        = Column(Integer, ForeignKey("leads.id", ondelete="SET NULL"), nullable=True)
@@ -357,7 +358,7 @@ class AuditLog(Base):
     entity_name = Column(String, nullable=True)      # e.g. card title at time of action
     actor = Column(String, nullable=False, default="Sistema")  # user name or "Sistema"
     actor_email = Column(String, nullable=True)
-    details = Column(String, nullable=True)          # JSON string with extra context
+    details = Column(JSON, nullable=True)
     ip_address = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -399,7 +400,7 @@ class WorkflowStep(Base):
     template_id   = Column(Integer, ForeignKey("workflow_templates.id", ondelete="CASCADE"))
     step_order    = Column(Integer, default=0)
     action_type   = Column(String)   # 'change_stage'|'assign_user'|'add_note'|'send_webhook'|'move_to_pipeline'|'set_price'
-    action_config = Column(String, default='{}')  # JSON
+    action_config = Column(JSON, default=dict)
     template      = relationship("WorkflowTemplate", back_populates="steps")
 
 class WorkflowExecution(Base):
@@ -412,5 +413,5 @@ class WorkflowExecution(Base):
     executed_by_name = Column(String, default='')
     executed_at      = Column(DateTime(timezone=True), server_default=func.now())
     status           = Column(String, default='completed')   # 'completed' | 'failed'
-    result_log       = Column(String, default='[]')          # JSON array of step results
+    result_log       = Column(JSON, default=list)
 

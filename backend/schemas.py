@@ -1,6 +1,17 @@
-from pydantic import BaseModel
+import json as _json
+from pydantic import BaseModel, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+
+
+def _coerce_json_str(v, expected_type):
+    """Accept either a native list/dict or a JSON-encoded string."""
+    if isinstance(v, str):
+        try:
+            return _json.loads(v)
+        except Exception:
+            return expected_type()
+    return v if v is not None else expected_type()
 
 class ContactBase(BaseModel):
     first_name: str
@@ -40,11 +51,15 @@ class WebhookBase(BaseModel):
     name: str
     type: str = 'outbound'
     url: Optional[str] = None
-    events: str = '[]'
-    allowed_entities: str = '[]'
-    allowed_methods: str = '["POST"]'
+    events: List[str] = []
+    allowed_entities: List[str] = []
+    allowed_methods: List[str] = ["POST"]
     active: bool = True
     description: Optional[str] = None
+
+    @field_validator('events', 'allowed_entities', 'allowed_methods', mode='before')
+    @classmethod
+    def _coerce_list(cls, v): return _coerce_json_str(v, list)
 
 class WebhookCreate(WebhookBase):
     pass
@@ -108,7 +123,11 @@ class RoleBase(BaseModel):
     name: str
     description: str = ''
     color: str = '#6366f1'
-    permissions: str = '{}'
+    permissions: Dict[str, Any] = {}
+
+    @field_validator('permissions', mode='before')
+    @classmethod
+    def _coerce_permissions(cls, v): return _coerce_json_str(v, dict)
 
 class RoleCreate(RoleBase):
     pass
@@ -140,10 +159,14 @@ class CustomFieldBase(BaseModel):
     key: str = ''
     uid: str = ''
     field_type: str = 'text'
-    options: str = '[]'
+    options: List[Any] = []
     required: bool = False
     show_on_card: bool = False
     order: int = 0
+
+    @field_validator('options', mode='before')
+    @classmethod
+    def _coerce_options(cls, v): return _coerce_json_str(v, list)
 
 class CustomFieldCreate(CustomFieldBase):
     pass
@@ -202,7 +225,11 @@ class TeamMemberOut(BaseModel):
 class TeamBase(BaseModel):
     name: str
     description: str = ''
-    permissions: str = '[]'
+    permissions: List[Any] = []
+
+    @field_validator('permissions', mode='before')
+    @classmethod
+    def _coerce_team_permissions(cls, v): return _coerce_json_str(v, list)
 
 class TeamCreate(TeamBase):
     member_ids: List[int] = []
@@ -231,7 +258,11 @@ class TaskBase(BaseModel):
     priority: str = 'normal'
     due_date: Optional[str] = None
     assigned_to: str = ''
-    participants: str = '[]'
+    participants: List[str] = []
+
+    @field_validator('participants', mode='before')
+    @classmethod
+    def _coerce_participants(cls, v): return _coerce_json_str(v, list)
     done: bool = False
     card_id: Optional[int] = None
     lead_id: Optional[int] = None
@@ -455,7 +486,11 @@ class LeadConvertResult(BaseModel):
 class WorkflowStepBase(BaseModel):
     step_order: int = 0
     action_type: str
-    action_config: str = "{}"
+    action_config: Dict[str, Any] = {}
+
+    @field_validator('action_config', mode='before')
+    @classmethod
+    def _coerce_action_config(cls, v): return _coerce_json_str(v, dict)
 
 class WorkflowStepCreate(WorkflowStepBase):
     pass
@@ -491,7 +526,11 @@ class WorkflowExecutionOut(BaseModel):
     executed_by_name: str
     executed_at: datetime
     status: str
-    result_log: str
+    result_log: List[Any] = []
+
+    @field_validator('result_log', mode='before')
+    @classmethod
+    def _coerce_result_log(cls, v): return _coerce_json_str(v, list)
     class Config:
         from_attributes = True
 

@@ -532,9 +532,9 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
     url: webhook?.url || '',
     description: webhook?.description || '',
     active: webhook?.active !== false,
-    events: webhook ? JSON.parse(webhook.events || '[]') : [],
-    allowed_entities: webhook ? JSON.parse(webhook.allowed_entities || '[]') : [],
-    allowed_methods: webhook ? JSON.parse(webhook.allowed_methods || '["POST"]') : ['POST'],
+    events: webhook ? (webhook.events || []) : [],
+    allowed_entities: webhook ? (webhook.allowed_entities || []) : [],
+    allowed_methods: webhook ? (webhook.allowed_methods || ['POST']) : ['POST'],
   });
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -561,9 +561,9 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
       const payload = {
         name: form.name, type: form.type, url: form.url || null,
         description: form.description, active: form.active,
-        events: JSON.stringify(form.events),
-        allowed_entities: JSON.stringify(form.allowed_entities),
-        allowed_methods: JSON.stringify(form.allowed_methods),
+        events: form.events,
+        allowed_entities: form.allowed_entities,
+        allowed_methods: form.allowed_methods,
       };
       const url = isNew ? `${API}/webhooks` : `${API}/webhooks/${webhook.id}`;
       const res = await fetch(url, {
@@ -816,8 +816,8 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
       setTesting(false);
     }
   };
-  const entities = JSON.parse(wh.allowed_entities || '[]');
-  const events = JSON.parse(wh.events || '[]');
+  const entities = wh.allowed_entities || [];
+  const events = wh.events || [];
   const endpoints = [];
   entities.forEach(ent => {
     (ENTITY_ENDPOINTS[ent] || []).forEach(ep => endpoints.push({ ent, ep }));

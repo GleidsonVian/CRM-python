@@ -51,7 +51,7 @@ def log_audit(db, action: str, entity_type: str, entity_id=None, entity_name=Non
             entity_name=entity_name,
             actor=actor,
             actor_email=actor_email,
-            details=json.dumps(details) if details else None,
+            details=details,
         )
         db.add(entry)
         db.commit()

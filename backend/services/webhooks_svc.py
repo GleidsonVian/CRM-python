@@ -4,6 +4,7 @@ import models
 from database import SessionLocal
 
 
+
 def _fire_outbound_webhooks(event: str, entity: str, payload: dict):
     """Fire outbound webhooks in background thread — non-blocking."""
     def _worker():
@@ -15,8 +16,8 @@ def _fire_outbound_webhooks(event: str, entity: str, payload: dict):
             ).all()
             for h in hooks:
                 try:
-                    allowed_entities = json.loads(h.allowed_entities or '[]')
-                    events = json.loads(h.events or '[]')
+                    allowed_entities = h.allowed_entities or []
+                    events = h.events or []
                     if allowed_entities and entity not in allowed_entities:
                         continue
                     if events and event not in events:

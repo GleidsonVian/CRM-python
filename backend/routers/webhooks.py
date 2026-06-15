@@ -170,11 +170,11 @@ async def _inbound_handler(token: str, entity: str, request: FastAPIRequest, db:
     if not db_wh:
         raise HTTPException(status_code=403, detail="Token inválido ou webhook inativo")
 
-    allowed_entities = json.loads(db_wh.allowed_entities or '[]')
+    allowed_entities = db_wh.allowed_entities or []
     if allowed_entities and entity not in allowed_entities:
         raise HTTPException(status_code=403, detail=f"Acesso à entidade '{entity}' não permitido para este webhook")
 
-    allowed_methods = json.loads(db_wh.allowed_methods or '["POST"]')
+    allowed_methods = db_wh.allowed_methods or ["POST"]
     if request.method not in allowed_methods:
         raise HTTPException(status_code=405, detail=f"Método '{request.method}' não permitido para este webhook")
 

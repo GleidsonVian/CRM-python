@@ -289,7 +289,7 @@ def _execute_rule(rule_id: int, card_id: int):
         card = db.query(models.Card).filter(models.Card.id == card_id).first()
         if not rule or not card:
             return
-        cfg = json.loads(rule.config or '{}')
+        cfg = rule.config or {}
         vars_map = _build_vars(card, db)
         if cfg.get('version') == 1:
             _execute_flow_steps(cfg.get('steps', []), vars_map, card, db)

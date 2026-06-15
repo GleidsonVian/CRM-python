@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 import models
 from services.auth import jwt_decode
@@ -14,7 +13,7 @@ def _get_user_permissions(authorization: Optional[str], db) -> dict:
         if user and user.role_id:
             role = db.query(models.Role).filter(models.Role.id == user.role_id).first()
             if role:
-                raw = json.loads(role.permissions or '{}')
+                raw = role.permissions or {}
                 if "entities" in raw:
                     return {"user_id": user.id, "_format": "v2", **raw}
                 else:
