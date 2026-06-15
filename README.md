@@ -10,13 +10,24 @@ CRM completo estilo Bitrix24 — Kanban, Leads, Negócios, Tarefas, Projetos, Au
 
 > Pré-requisito: [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e **em execução** (ícone da baleia na barra de tarefas).
 
-**Passo 1 — Clone ou abra a pasta do projeto no terminal**
+**Passo 1 — Clone o repositório (ou abra a pasta do projeto no terminal)**
 
-```powershell
-cd C:\Users\Gleidson\pasta4\Python\CRM
+```bash
+git clone https://github.com/GleidsonVian/CRM-python.git
+cd CRM-python
 ```
 
-**Passo 2 — Suba tudo com um comando**
+**Passo 2 — Crie o arquivo de configuração**
+
+```powershell
+# Windows
+copy backend\.env.example backend\.env
+
+# Linux / macOS
+cp backend/.env.example backend/.env
+```
+
+**Passo 3 — Suba tudo com um comando**
 
 ```powershell
 docker-compose up --build
@@ -98,10 +109,13 @@ Acesse **http://localhost:5173**
 
 ### Backend — `backend/.env`
 
-Copie o arquivo de exemplo e ajuste os valores:
+Copie o arquivo de exemplo (se ainda não fez) e ajuste os valores:
 
 ```powershell
+# Windows
 copy backend\.env.example backend\.env
+# Linux / macOS
+cp backend/.env.example backend/.env
 ```
 
 | Variável | Padrão | Descrição |
