@@ -3,3 +3,9 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 python-multipart
+alembic
+httpx
+
+# dev / test
+pytest
+pytest-mock
