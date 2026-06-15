@@ -1,42 +1,86 @@
-# Python
+# ── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
 venv/
 env/
+.venv/
 .env
+.env.local
 *.egg-info/
+dist/
+build/
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Logs
+# ── Banco de dados ───────────────────────────────────────────────────────────
+backend/crm.db
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# ── Alembic ──────────────────────────────────────────────────────────────────
+# (mantém as migrations versionadas, ignora só artefatos locais)
+alembic/versions/*.pyc
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
+logs/
 backend.log
-backend_err.log
-backend_err2.log
+backend_err*.log
 backend_new.log
 frontend.log
 
-# Banco de dados
-# backend/crm.db  ← descomente para não versionar o banco
-
-# Scripts utilitários temporários
-fix_icon.py
-
-# Node.js
+# ── Node.js / Frontend ───────────────────────────────────────────────────────
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
-frontend/npm-debug.log
+frontend/.cache/
+frontend/npm-debug.log*
 frontend/yarn-error.log
+frontend/yarn-debug.log*
+frontend/.pnp
+frontend/.pnp.js
 frontend/.env
 frontend/.env.local
+frontend/.env.*.local
 
-# OS
+# ── Docker ───────────────────────────────────────────────────────────────────
+# (Dockerfiles ficam versionados; ignora só dados de volumes locais)
+docker-data/
+.docker/
+
+# ── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
+ehthumbs.db
+*.lnk
 
-# IDEs
+# ── IDEs / Editores ───────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.suo
 *.user
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# ── Testes / Coverage ────────────────────────────────────────────────────────
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# ── Scripts utilitários temporários ─────────────────────────────────────────
+fix_icon.py
+backend/migrate_*.py
