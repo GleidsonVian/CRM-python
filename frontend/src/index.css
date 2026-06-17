@@ -664,12 +664,12 @@ body {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  padding: 5px 14px;
+  padding: 6px 16px;
   border-radius: 20px;
   border: 1.5px solid #e2e8f0;
   background: #f8fafc;
   color: #64748b;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
@@ -697,6 +697,8 @@ body {
 
 .form-group { margin-bottom: 15px; }
 
+.field-row { margin-bottom: 18px; }
+
 .form-label {
   display: block;
   font-size: 13px;
@@ -717,8 +719,8 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
@@ -734,8 +736,8 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
@@ -751,13 +753,13 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.55;
   transition: border-color 0.15s;
 }
 .standard-textarea:focus, .form-textarea:focus {
@@ -780,7 +782,7 @@ body {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
-.price-symbol { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+.price-symbol { font-size: 16px; color: var(--text-muted); font-weight: 600; }
 
 .price-input {
   border: none;
