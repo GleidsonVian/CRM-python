@@ -6,6 +6,47 @@ from database import SessionLocal
 _log = logging.getLogger("nexus.webhooks")
 
 
+def build_card_payload(card, db) -> dict:
+    """Build a complete card payload for outbound webhooks."""
+    stage = card.stage
+    pipeline = stage.pipeline if stage else None
+    custom_fields = {}
+    cf_values = db.query(models.CustomFieldValue).filter(
+        models.CustomFieldValue.entity_id == card.id,
+        models.CustomFieldValue.field.has(models.CustomField.entity == 'deal')
+    ).all()
+    for cfv in cf_values:
+        if cfv.field:
+            custom_fields[cfv.field.key] = cfv.value
+
+    return {
+        "id":           card.id,
+        "title":        card.title,
+        "description":  card.description,
+        "price":        card.price,
+        "source":       card.source,
+        "source_info":  card.source_info,
+        "deal_type":    card.deal_type,
+        "start_date":   card.start_date,
+        "comment":      card.comment,
+        "utm_source":   card.utm_source,
+        "utm_medium":   card.utm_medium,
+        "utm_campaign": card.utm_campaign,
+        "available_to_all": card.available_to_all,
+        "stage_id":     card.stage_id,
+        "stage_name":   stage.name if stage else None,
+        "stage_color":  stage.color if stage else None,
+        "pipeline_id":  pipeline.id if pipeline else None,
+        "pipeline_name": pipeline.name if pipeline else None,
+        "responsible_user_id": card.responsible_user_id,
+        "contacts": [{"id": c.id, "name": c.name, "email": c.email, "phone": c.phone} for c in (card.contacts or [])],
+        "users":    [{"id": u.id, "name": u.name} for u in (card.users or [])],
+        "custom_fields": custom_fields,
+        "created_at":   card.created_at.isoformat() if card.created_at else None,
+        "updated_at":   card.updated_at.isoformat() if card.updated_at else None,
+    }
+
+
 def _fire_outbound_webhooks(event: str, entity: str, payload: dict):
     """Fire outbound webhooks in background thread — non-blocking."""
     def _worker():
