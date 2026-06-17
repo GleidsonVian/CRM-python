@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import FlowBuilderModal from './FlowBuilderModal';
 import { useConfirm } from '../App';
+import { useAuth } from '../AuthContext';
 
 import { API_URL as API } from '../config.js';
 
@@ -13,6 +14,11 @@ const ACTION_META = {
 
 export default function AutomationsView({ stages, pipelineId, pipelineName, onClose }) {
   const confirm = useConfirm();
+  const { token } = useAuth();
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
   const [rules, setRules] = useState([]);
   const [users, setUsers] = useState([]);
   const [editor, setEditor] = useState(null); // { rule: null|obj, stageId, stageName }
@@ -22,8 +28,8 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/automations?pipeline_id=${pipelineId}`).then(r => r.json()),
-      fetch(`${API}/users`).then(r => r.json()),
+      authFetch(`${API}/automations?pipeline_id=${pipelineId}`).then(r => r.json()),
+      authFetch(`${API}/users`).then(r => r.json()),
     ]).then(([rs, us]) => { setRules(rs); setUsers(us); }).catch(() => {});
   }, [pipelineId]);
 
@@ -33,20 +39,20 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
     const isNew = !editor.rule;
     const url = isNew ? `${API}/automations` : `${API}/automations/${editor.rule.id}`;
     const method = isNew ? 'POST' : 'PUT';
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const res = await authFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const saved = await res.json();
     setRules(prev => isNew ? [...prev, saved] : prev.map(r => r.id === saved.id ? saved : r));
   };
 
   const handleDelete = async (ruleId) => {
     if (!await confirm('Excluir esta automação?', 'Esta ação não pode ser desfeita.')) return;
-    await fetch(`${API}/automations/${ruleId}`, { method: 'DELETE' });
+    await authFetch(`${API}/automations/${ruleId}`, { method: 'DELETE' });
     setRules(prev => prev.filter(r => r.id !== ruleId));
   };
 
   const handleExport = async () => {
     try {
-      const data = await fetch(`${API}/automations/export?pipeline_id=${pipelineId}`).then(r => r.json());
+      const data = await authFetch(`${API}/automations/export?pipeline_id=${pipelineId}`).then(r => r.json());
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -69,7 +75,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      const res = await fetch(`${API}/automations/import?pipeline_id=${pipelineId}&mode=append`, {
+      const res = await authFetch(`${API}/automations/import?pipeline_id=${pipelineId}&mode=append`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -78,7 +84,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
       if (!res.ok) throw new Error(result.detail || 'Erro ao importar');
       setImportStatus(result);
       // Reload rules
-      const updated = await fetch(`${API}/automations?pipeline_id=${pipelineId}`).then(r => r.json());
+      const updated = await authFetch(`${API}/automations?pipeline_id=${pipelineId}`).then(r => r.json());
       setRules(updated);
       setTimeout(() => setImportStatus(null), 5000);
     } catch (err) {
@@ -91,7 +97,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
 
   const handleToggle = async (rule) => {
     const updated = { ...rule, enabled: !rule.enabled };
-    const res = await fetch(`${API}/automations/${rule.id}`, {
+    const res = await authFetch(`${API}/automations/${rule.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated)
     });
     const saved = await res.json();
