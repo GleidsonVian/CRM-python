@@ -141,6 +141,16 @@ if (-not (Test-Path "$ROOT\frontend\node_modules")) {
 Write-OK "Estrutura do projeto OK"
 Write-Host ""
 
+# --- Sincronizar dependencias Python ---
+Write-Step "Sincronizando dependencias Python (requirements.txt)..."
+& "$ROOT\backend\venv\Scripts\pip.exe" install -q -r "$ROOT\backend\requirements.txt"
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "Falha ao instalar dependencias Python."
+    Read-Host "Pressione Enter para sair"; exit 1
+}
+Write-OK "Dependencias Python OK"
+Write-Host ""
+
 # --- Liberar portas ---
 Write-Step "Verificando portas em uso..."
 Clear-Port -Port 8001 -Label "Backend"
@@ -212,6 +222,12 @@ Write-Host "  Acesse o sistema:   " -NoNewline -ForegroundColor White
 Write-Host "http://localhost:5173" -ForegroundColor Cyan
 Write-Host "  API (Swagger):      " -NoNewline -ForegroundColor White
 Write-Host "http://localhost:8001/docs" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  Login padrao:" -ForegroundColor DarkGray
+Write-Host "    Email:   " -NoNewline -ForegroundColor DarkGray
+Write-Host "admin@nexus.com" -ForegroundColor Yellow
+Write-Host "    Senha:   " -NoNewline -ForegroundColor DarkGray
+Write-Host "admin123" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  Para encerrar: feche esta janela (os processos sao encerrados)." -ForegroundColor DarkGray
 Write-Host ""
