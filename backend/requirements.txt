@@ -8,6 +8,7 @@ alembic
 httpx
 slowapi
 python-dotenv
+openpyxl
 
 # dev / test
 pytest

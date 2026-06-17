@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 
 import { API_URL as API } from '../config.js';
+import { useAuth } from '../AuthContext';
 
 const fmt = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n || 0);
 const fmtN = (n) => new Intl.NumberFormat('pt-BR').format(n || 0);
@@ -185,8 +186,150 @@ function DonutChart({ rate, label, color = '#10b981' }) {
   );
 }
 
+// ── Export section ────────────────────────────────────────────────────────────
+const EXPORT_ENTITIES = [
+  { value: 'cards',     label: 'Negócios',  icon: '💼' },
+  { value: 'leads',     label: 'Leads',     icon: '🎯' },
+  { value: 'contacts',  label: 'Contatos',  icon: '👤' },
+  { value: 'companies', label: 'Empresas',  icon: '🏢' },
+];
+
+function ExportSection({ pipelines, token }) {
+  const [entity,     setEntity]     = useState('cards');
+  const [fmt,        setFmt]        = useState('xlsx');
+  const [pipelineId, setPipelineId] = useState(0);
+  const [loading,    setLoading]    = useState(false);
+  const [msg,        setMsg]        = useState(null); // { type: 'ok'|'err', text }
+
+  const handleExport = async () => {
+    setLoading(true);
+    setMsg(null);
+    try {
+      const params = new URLSearchParams({ entity, fmt, pipeline_id: pipelineId });
+      const res = await fetch(`${API}/reports/export?${params}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const disp = res.headers.get('Content-Disposition') || '';
+      const match = disp.match(/filename="([^"]+)"/);
+      a.href     = url;
+      a.download = match ? match[1] : `export.${fmt}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setMsg({ type: 'ok', text: 'Download iniciado!' });
+    } catch (e) {
+      setMsg({ type: 'err', text: e.message || 'Erro ao exportar' });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMsg(null), 4000);
+    }
+  };
+
+  const showPipelineFilter = entity === 'cards' || entity === 'leads';
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 24px' }}>
+      <div style={{ marginBottom: 18 }}>
+        <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1e293b' }}>Exportar dados</h3>
+        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94a3b8' }}>Baixe os dados em CSV (qualquer planilha) ou Excel (.xlsx)</p>
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end' }}>
+        {/* Entity */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>O que exportar</label>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {EXPORT_ENTITIES.map(e => (
+              <button key={e.value} onClick={() => setEntity(e.value)} style={{
+                padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                fontWeight: entity === e.value ? 700 : 400,
+                border: `1.5px solid ${entity === e.value ? '#6366f1' : '#e2e8f0'}`,
+                background: entity === e.value ? '#eef2ff' : '#fafafa',
+                color: entity === e.value ? '#4338ca' : '#64748b',
+                transition: 'all .15s',
+              }}>
+                {e.icon} {e.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Format */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Formato</label>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[{ v: 'xlsx', l: '📊 Excel (.xlsx)' }, { v: 'csv', l: '📄 CSV' }].map(f => (
+              <button key={f.v} onClick={() => setFmt(f.v)} style={{
+                padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                fontWeight: fmt === f.v ? 700 : 400,
+                border: `1.5px solid ${fmt === f.v ? '#10b981' : '#e2e8f0'}`,
+                background: fmt === f.v ? '#f0fdf4' : '#fafafa',
+                color: fmt === f.v ? '#059669' : '#64748b',
+                transition: 'all .15s',
+              }}>
+                {f.l}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Pipeline filter (only for cards/leads) */}
+        {showPipelineFilter && pipelines.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Funil (opcional)</label>
+            <select value={pipelineId} onChange={e => setPipelineId(Number(e.target.value))} style={{
+              padding: '7px 10px', borderRadius: 8, border: '1.5px solid #e2e8f0',
+              fontSize: 12, color: '#1e293b', background: '#fafafa', fontFamily: 'inherit', cursor: 'pointer',
+            }}>
+              <option value={0}>Todos os funis</option>
+              {pipelines.map(p => <option key={p.pipeline_id} value={p.pipeline_id}>{p.pipeline_name}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* Download button */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label style={{ fontSize: 11, color: 'transparent' }}>.</label>
+          <button
+            onClick={handleExport}
+            disabled={loading}
+            style={{
+              padding: '7px 18px', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+              background: loading ? '#94a3b8' : '#6366f1', color: '#fff',
+              border: 'none', transition: 'background .15s',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            {loading ? '⏳ Exportando...' : '⬇ Baixar'}
+          </button>
+        </div>
+      </div>
+
+      {msg && (
+        <div style={{
+          marginTop: 12, padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+          background: msg.type === 'ok' ? '#f0fdf4' : '#fef2f2',
+          color: msg.type === 'ok' ? '#059669' : '#dc2626',
+          border: `1px solid ${msg.type === 'ok' ? '#bbf7d0' : '#fecaca'}`,
+          display: 'inline-block',
+        }}>
+          {msg.type === 'ok' ? '✓ ' : '✕ '}{msg.text}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function ReportsView() {
+  const { token } = useAuth();
   const [summary,     setSummary]     = useState(null);
   const [funnel,      setFunnel]      = useState([]);
   const [bySource,    setBySource]    = useState([]);
@@ -195,14 +338,18 @@ export default function ReportsView() {
   const [loading,     setLoading]     = useState(true);
   const [activePipeline, setActivePipeline] = useState(null);
 
+  const authFetch = useCallback((url) => {
+    return fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  }, [token]);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/reports/summary`).then(r => r.json()),
-      fetch(`${API}/reports/funnel`).then(r => r.json()),
-      fetch(`${API}/reports/by-source`).then(r => r.json()),
-      fetch(`${API}/reports/timeline`).then(r => r.json()),
-      fetch(`${API}/reports/by-responsible`).then(r => r.json()),
+      authFetch(`${API}/reports/summary`).then(r => r.json()),
+      authFetch(`${API}/reports/funnel`).then(r => r.json()),
+      authFetch(`${API}/reports/by-source`).then(r => r.json()),
+      authFetch(`${API}/reports/timeline`).then(r => r.json()),
+      authFetch(`${API}/reports/by-responsible`).then(r => r.json()),
     ]).then(([s, f, src, tl, resp]) => {
       setSummary(s);
       setFunnel(f);
@@ -350,6 +497,11 @@ export default function ReportsView() {
           </Section>
         </div>
       )}
+
+      {/* Export */}
+      <div style={{ marginBottom: 16 }}>
+        <ExportSection pipelines={funnel} token={token} />
+      </div>
     </div>
   );
 }

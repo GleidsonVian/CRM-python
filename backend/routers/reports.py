@@ -1,5 +1,8 @@
+import csv
+import io
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -254,6 +257,149 @@ def get_audit_log(
             for i in items
         ]
     }
+
+
+@router.get("/reports/export")
+def export_data(
+    entity: str = Query("cards", pattern="^(cards|leads|contacts|companies)$"),
+    fmt:    str = Query("csv",   pattern="^(csv|xlsx)$"),
+    pipeline_id: int = 0,
+    stage_id:    int = 0,
+    db: Session = Depends(get_db),
+):
+    def fmt_dt(val):
+        if not val:
+            return ""
+        if isinstance(val, datetime):
+            return val.strftime("%d/%m/%Y %H:%M")
+        return str(val)
+
+    def fmt_money(val):
+        return f"{val:.2f}".replace(".", ",") if val else "0,00"
+
+    # ── Build rows ──────────────────────────────────────────────────────────────
+    if entity == "cards":
+        q = db.query(models.Card)
+        if pipeline_id:
+            q = q.join(models.Stage).filter(models.Stage.pipeline_id == pipeline_id)
+        if stage_id:
+            q = q.filter(models.Card.stage_id == stage_id)
+        rows_db = q.all()
+        stage_map = {s.id: s for s in db.query(models.Stage).all()}
+        pipeline_map = {p.id: p for p in db.query(models.Pipeline).all()}
+        headers = ["ID", "Título", "Valor (R$)", "Etapa", "Funil", "Fonte", "Responsáveis", "Contatos", "Criado em"]
+        rows = []
+        for c in rows_db:
+            stage = stage_map.get(c.stage_id)
+            pipeline = pipeline_map.get(stage.pipeline_id) if stage else None
+            resp = ", ".join(u.name for u in (c.users or []))
+            conts = ", ".join(f"{ct.first_name} {ct.last_name or ''}".strip() for ct in (c.contacts or []))
+            rows.append([
+                c.id, c.title or "", fmt_money(c.price),
+                stage.name if stage else "", pipeline.name if pipeline else "",
+                c.source or "", resp, conts, fmt_dt(c.created_at),
+            ])
+
+    elif entity == "leads":
+        q = db.query(models.Lead)
+        if stage_id:
+            q = q.filter(models.Lead.stage_id == stage_id)
+        rows_db = q.all()
+        stage_map = {s.id: s for s in db.query(models.Stage).all()}
+        headers = ["ID", "Título", "Nome", "Sobrenome", "Email", "Telefone", "Empresa", "Fonte", "Etapa", "Convertido", "Criado em"]
+        rows = []
+        for l in rows_db:
+            stage = stage_map.get(l.stage_id)
+            rows.append([
+                l.id, l.title or "", l.first_name or "", l.last_name or "",
+                l.email or "", l.phone or "", l.company_name or "",
+                l.source or "", stage.name if stage else "",
+                "Sim" if l.converted else "Não", fmt_dt(l.created_at),
+            ])
+
+    elif entity == "contacts":
+        rows_db = db.query(models.Contact).all()
+        headers = ["ID", "Nome", "Sobrenome", "Email", "Telefone", "Empresa", "Cargo", "Fonte", "Criado em"]
+        rows = []
+        for c in rows_db:
+            rows.append([
+                c.id, c.first_name or "", c.last_name or "",
+                c.email or "", c.phone or "", c.company_name or "",
+                c.position or "", c.source or "", fmt_dt(c.created_at),
+            ])
+
+    else:  # companies
+        rows_db = db.query(models.Company).all()
+        headers = ["ID", "Nome", "Telefone", "Email", "Site", "Setor", "Funcionários", "Criado em"]
+        rows = []
+        for c in rows_db:
+            rows.append([
+                c.id, c.name or "", c.phone or "", c.email or "",
+                c.website or "", c.industry or "", c.employees or "",
+                fmt_dt(c.created_at),
+            ])
+
+    entity_labels = {"cards": "negocios", "leads": "leads", "contacts": "contatos", "companies": "empresas"}
+    filename = f"export_{entity_labels[entity]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    # ── CSV ─────────────────────────────────────────────────────────────────────
+    if fmt == "csv":
+        buf = io.StringIO()
+        writer = csv.writer(buf, delimiter=";", quoting=csv.QUOTE_ALL)
+        writer.writerow(headers)
+        writer.writerows(rows)
+        buf.seek(0)
+        content = "﻿" + buf.getvalue()  # BOM for Excel UTF-8 detection
+        return Response(
+            content=content.encode("utf-8"),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}.csv"'},
+        )
+
+    # ── XLSX ────────────────────────────────────────────────────────────────────
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = entity_labels[entity].capitalize()
+
+    header_fill = PatternFill("solid", fgColor="6366F1")
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    thin = Side(style="thin", color="E2E8F0")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for col_idx, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = border
+
+    for row_idx, row in enumerate(rows, 2):
+        for col_idx, val in enumerate(row, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.border = border
+            cell.alignment = Alignment(vertical="center")
+            if row_idx % 2 == 0:
+                cell.fill = PatternFill("solid", fgColor="F8FAFC")
+
+    # Auto column width
+    for col in ws.columns:
+        max_len = max((len(str(c.value or "")) for c in col), default=8)
+        ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 45)
+
+    ws.row_dimensions[1].height = 22
+    ws.freeze_panes = "A2"
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}.xlsx"'},
+    )
 
 
 @router.get("/search")
