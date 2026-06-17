@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { API_URL as API } from '../config.js';
 import { useAuth } from '../AuthContext';
 
@@ -29,7 +29,11 @@ const defaultField = () => ({
 });
 
 export default function FormBuilderModal({ form, onSave, onClose }) {
-  const { authFetch } = useAuth();
+  const { token } = useAuth();
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
 
   const [name, setName] = useState(form?.name || 'Novo formulário');
   const [title, setTitle] = useState(form?.title || '');

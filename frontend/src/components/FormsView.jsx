@@ -4,7 +4,11 @@ import { useAuth } from '../AuthContext';
 import FormBuilderModal from './FormBuilderModal';
 
 export default function FormsView() {
-  const { authFetch } = useAuth();
+  const { token } = useAuth();
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [builderOpen, setBuilderOpen] = useState(false);
