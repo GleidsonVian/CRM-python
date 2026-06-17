@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
 import CustomFieldValues from './CustomFieldValues';
 import TaskModal from './TaskModal';
 import { useConfirm } from '../App';
+import { useAuth } from '../AuthContext';
 
 import { API_URL as API } from '../config.js';
 
@@ -176,6 +177,11 @@ const NATIVE_FIELDS = [
 
 export default function CardModal({ card, stages, onClose, onSave, onDelete, isLead = false, onConvert, onDuplicate }) {
   const entityBase = isLead ? 'leads' : 'cards';
+  const { token, user } = useAuth();
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
   const [title, setTitle] = useState(card.title || '');
   const [price, setPrice] = useState(card.price || 0);
   const [description, setDescription] = useState(card.description || '');
@@ -217,7 +223,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
       const pipelineId = stages?.[0]?.pipeline_id;
       let url = `${API}/workflows?entity_type=${entityParam}`;
       if (pipelineId) url += `&pipeline_id=${pipelineId}`;
-      const res = await fetch(url);
+      const res = await authFetch(url);
       const data = await res.json();
       setWorkflows(Array.isArray(data) ? data : []);
     } catch {}
@@ -226,12 +232,9 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const executeWorkflow = async (wfId) => {
     setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'loading', text: 'Executando…' } }));
     try {
-      const token = localStorage.getItem('nexus_token');
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${API}/workflows/${wfId}/execute`, {
+      const res = await authFetch(`${API}/workflows/${wfId}/execute`, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ card_id: card.id }),
       });
       const data = await res.json();
@@ -262,33 +265,33 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
 
   const fetchActivities = async () => {
     try {
-      const res = await fetch(`${API}/${entityBase}/${card.id}/activities`);
+      const res = await authFetch(`${API}/${entityBase}/${card.id}/activities`);
       setActivities(await res.json());
     } catch {}
   };
 
   const fetchComments = async () => {
     if (isLead) return;
-    try { setComments(await fetch(`${API}/cards/${card.id}/comments`).then(r => r.json())); } catch {}
+    try { setComments(await authFetch(`${API}/cards/${card.id}/comments`).then(r => r.json())); } catch {}
   };
 
   const fetchTasks = async () => {
     if (isLead) return;
-    try { setTasks(await fetch(`${API}/cards/${card.id}/tasks`).then(r => r.json())); } catch {}
+    try { setTasks(await authFetch(`${API}/cards/${card.id}/tasks`).then(r => r.json())); } catch {}
   };
 
   const fetchHistory = async () => {
     if (isLead) return;
     try {
-      const data = await fetch(`${API}/audit-log?entity_type=card&entity_id=${card.id}&limit=50`).then(r => r.json());
+      const data = await authFetch(`${API}/audit-log?entity_type=card&entity_id=${card.id}&limit=50`).then(r => r.json());
       setHistoryItems(data.items || []);
     } catch {}
   };
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/contacts`).then(r => r.json()),
-      fetch(`${API}/users`).then(r => r.json())
+      authFetch(`${API}/contacts`).then(r => r.json()),
+      authFetch(`${API}/users`).then(r => r.json())
     ]).then(([ctxs, usrs]) => {
       setAllContacts(ctxs);
       setAllUsers(usrs);
@@ -296,7 +299,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     fetchActivities();
     fetchComments();
     fetchTasks();
-    fetch(`${API}/custom-fields?entity=deal`)
+    authFetch(`${API}/custom-fields?entity=deal`)
       .then(r => r.json()).then(setCustomFields).catch(() => {});
   }, [card.id]);
 
@@ -373,10 +376,10 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     }
     if (e.key !== 'Enter' || !newNote.trim()) return;
     try {
-      await fetch(`${API}/${entityBase}/${card.id}/activities`, {
+      await authFetch(`${API}/${entityBase}/${card.id}/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'note', content: newNote.trim(), actor: 'Usuário' })
+        body: JSON.stringify({ type: 'note', content: newNote.trim(), actor: user?.user_name || 'Usuário' })
       });
       setNewNote('');
       setMentionOpen(false);
@@ -387,10 +390,10 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const handlePostComment = async () => {
     if (!newComment.trim()) return;
     try {
-      await fetch(`${API}/comments`, {
+      await authFetch(`${API}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_id: card.id, author: commentAuthor || 'Usuário', content: newComment.trim() })
+        body: JSON.stringify({ card_id: card.id, author: user?.user_name || commentAuthor || 'Usuário', content: newComment.trim() })
       });
       setNewComment('');
       await fetchComments();
@@ -398,23 +401,23 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   };
 
   const handleDeleteComment = async (id) => {
-    await fetch(`${API}/comments/${id}`, { method: 'DELETE' });
+    await authFetch(`${API}/comments/${id}`, { method: 'DELETE' });
     await fetchComments();
   };
 
   const handleToggleTask = async (id) => {
-    await fetch(`${API}/tasks/${id}/toggle`, { method: 'PATCH' });
+    await authFetch(`${API}/tasks/${id}/toggle`, { method: 'PATCH' });
     await fetchTasks();
   };
 
   const handleDeleteTask = async (id) => {
-    await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+    await authFetch(`${API}/tasks/${id}`, { method: 'DELETE' });
     await fetchTasks();
   };
 
   const handleCreateTask = async () => {
     if (!newTask.title.trim()) return;
-    await fetch(`${API}/tasks`, {
+    await authFetch(`${API}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ card_id: card.id, ...newTask })
@@ -431,7 +434,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     setDuplicating(true);
     setDupError('');
     try {
-      const res = await fetch(`${API}/cards/${card.id}/duplicate`, { method: 'POST' });
+      const res = await authFetch(`${API}/cards/${card.id}/duplicate`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || `HTTP ${res.status}`);
