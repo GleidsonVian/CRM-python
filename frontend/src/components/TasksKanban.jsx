@@ -359,9 +359,9 @@ export default function TasksKanban({ projectId = null }) {
 
   const byCol = (id) => filtered.filter(t => getColumnId(t) === id);
 
-  const total = tasks.length;
-  const done = tasks.filter(t => t.status === 'done' || t.done).length;
-  const overdue = tasks.filter(t => getColumnId(t) === 'overdue').length;
+  const total = filtered.length;
+  const done = filtered.filter(t => t.status === 'done' || t.done).length;
+  const overdue = filtered.filter(t => getColumnId(t) === 'overdue').length;
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   return (
