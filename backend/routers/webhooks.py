@@ -84,7 +84,7 @@ def regenerate_token(wh_id: int, db: Session = Depends(get_db)):
     return db_wh
 
 
-@router.post("/webhooks/{wh_id}/test", response_model=schemas.OkResponse)
+@router.post("/webhooks/{wh_id}/test")
 def test_webhook(wh_id: int, db: Session = Depends(get_db)):
     wh = db.query(models.Webhook).filter(models.Webhook.id == wh_id).first()
     if not wh:
@@ -117,13 +117,22 @@ def test_webhook(wh_id: int, db: Session = Depends(get_db)):
     try:
         with _urllib_req2.urlopen(req, timeout=10) as resp:
             status_code = resp.status
-            response_body = resp.read(500).decode(errors='replace')
+            try:
+                response_body = resp.read(500).decode(errors='replace')
+            except Exception:
+                response_body = ''
             success = 200 <= status_code < 300
     except _urllib_err2.HTTPError as e:
         status_code = e.code
+        success = 200 <= e.code < 300
         error_message = str(e)
     except Exception as e:
-        error_message = str(e)[:300]
+        err = str(e)
+        # Connection reset after sending = n8n received but closed abruptly — treat as success
+        if status_code and 200 <= status_code < 300:
+            success = True
+        else:
+            error_message = err[:300]
 
     latency_ms = int((_time.monotonic() - start) * 1000)
     log = models.WebhookLog(
