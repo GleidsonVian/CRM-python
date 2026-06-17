@@ -211,6 +211,15 @@ VITE_API_URL=https://api.seudominio.com docker-compose up --build -d
 - Condições SE/ENTÃO com operadores (igual, contém, maior que, etc.)
 - **Campos personalizados** de negócio e contato disponíveis nas condições
 
+### Webhooks
+- **Saída (outbound):** CRM dispara POST para URL externa nos eventos `card.created`, `card.updated`, `card.moved`, `card.deleted`
+- Payload completo: todos os campos do negócio, etapa, pipeline, contatos vinculados, responsáveis, campos personalizados e UTMs
+- Filtro por entidade (Negócios, Leads, Contatos, Empresas) e por evento
+- **Entrada (inbound):** receba dados externos e crie/atualize registros no CRM via URL única com token
+- Botão "Disparar teste agora" com feedback de status HTTP e latência
+- Histórico de disparos por webhook
+- Compatível com n8n, Zapier, Make e qualquer ferramenta de automação
+
 ### Formulários Públicos
 - Crie formulários com campos customizáveis
 - Geram leads ou negócios automaticamente ao serem submetidos
