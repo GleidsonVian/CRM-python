@@ -194,35 +194,91 @@ const EXPORT_ENTITIES = [
   { value: 'companies', label: 'Empresas',  icon: '🏢' },
 ];
 
+function FieldCheckbox({ field, checked, onChange }) {
+  const isCustom = field.key.startsWith('cf:');
+  return (
+    <label style={{
+      display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer',
+      padding: '5px 8px', borderRadius: 6, transition: 'background .1s',
+      background: checked ? (isCustom ? '#fef3c7' : '#eef2ff') : 'transparent',
+      border: `1px solid ${checked ? (isCustom ? '#fde68a' : '#c7d2fe') : '#e2e8f0'}`,
+    }}>
+      <input type="checkbox" checked={checked} onChange={onChange}
+        style={{ accentColor: isCustom ? '#f59e0b' : '#6366f1', cursor: 'pointer', width: 13, height: 13 }} />
+      <span style={{ fontSize: 12, color: '#334155', userSelect: 'none' }}>{field.label}</span>
+      {isCustom && (
+        <span style={{ fontSize: 10, color: '#92400e', background: '#fef3c7',
+          padding: '1px 4px', borderRadius: 3, fontWeight: 600 }}>custom</span>
+      )}
+    </label>
+  );
+}
+
 function ExportSection({ pipelines, token }) {
-  const [entity,     setEntity]     = useState('cards');
-  const [fmt,        setFmt]        = useState('xlsx');
-  const [pipelineId, setPipelineId] = useState(0);
-  const [loading,    setLoading]    = useState(false);
-  const [msg,        setMsg]        = useState(null); // { type: 'ok'|'err', text }
+  const [entity,       setEntity]       = useState('cards');
+  const [fmt,          setFmt]          = useState('xlsx');
+  const [pipelineId,   setPipelineId]   = useState(0);
+  const [loading,      setLoading]      = useState(false);
+  const [msg,          setMsg]          = useState(null);
+  const [fields,       setFields]       = useState({ native: [], custom: [], defaults: [] });
+  const [selected,     setSelected]     = useState(new Set());
+  const [showCols,     setShowCols]     = useState(false);
+  const [loadingCols,  setLoadingCols]  = useState(false);
+
+  // Load available fields whenever entity changes
+  useEffect(() => {
+    setLoadingCols(true);
+    fetch(`${API}/reports/export-fields?entity=${entity}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.json())
+      .then(data => {
+        setFields(data);
+        setSelected(new Set(data.defaults || []));
+      })
+      .catch(() => {})
+      .finally(() => setLoadingCols(false));
+  }, [entity, token]);
+
+  const toggleField = (key) => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
+
+  const selectAll   = () => setSelected(new Set([...fields.native, ...fields.custom].map(f => f.key)));
+  const selectNone  = () => setSelected(new Set());
+  const selectDefault = () => setSelected(new Set(fields.defaults || []));
 
   const handleExport = async () => {
+    if (selected.size === 0) {
+      setMsg({ type: 'err', text: 'Selecione pelo menos uma coluna.' });
+      setTimeout(() => setMsg(null), 3000);
+      return;
+    }
     setLoading(true);
     setMsg(null);
     try {
-      const params = new URLSearchParams({ entity, fmt, pipeline_id: pipelineId });
+      // Preserve the order: native fields first (in their defined order), then custom fields
+      const allKeys = [...fields.native.map(f => f.key), ...fields.custom.map(f => f.key)];
+      const orderedCols = allKeys.filter(k => selected.has(k)).join(',');
+      const params = new URLSearchParams({ entity, fmt, pipeline_id: pipelineId, columns: orderedCols });
       const res = await fetch(`${API}/reports/export?${params}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(`Erro ${res.status}`);
-
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       const disp = res.headers.get('Content-Disposition') || '';
       const match = disp.match(/filename="([^"]+)"/);
-      a.href     = url;
+      a.href = url;
       a.download = match ? match[1] : `export.${fmt}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setMsg({ type: 'ok', text: 'Download iniciado!' });
+      setMsg({ type: 'ok', text: `${selected.size} colunas exportadas!` });
     } catch (e) {
       setMsg({ type: 'err', text: e.message || 'Erro ao exportar' });
     } finally {
@@ -232,16 +288,17 @@ function ExportSection({ pipelines, token }) {
   };
 
   const showPipelineFilter = entity === 'cards' || entity === 'leads';
+  const totalFields = fields.native.length + fields.custom.length;
 
   return (
     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 24px' }}>
       <div style={{ marginBottom: 18 }}>
         <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1e293b' }}>Exportar dados</h3>
-        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94a3b8' }}>Baixe os dados em CSV (qualquer planilha) ou Excel (.xlsx)</p>
+        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94a3b8' }}>Escolha as colunas, formato e baixe em CSV ou Excel</p>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end' }}>
-        {/* Entity */}
+      {/* Row 1: entity / format / pipeline / download */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', marginBottom: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>O que exportar</label>
           <div style={{ display: 'flex', gap: 4 }}>
@@ -253,18 +310,15 @@ function ExportSection({ pipelines, token }) {
                 background: entity === e.value ? '#eef2ff' : '#fafafa',
                 color: entity === e.value ? '#4338ca' : '#64748b',
                 transition: 'all .15s',
-              }}>
-                {e.icon} {e.label}
-              </button>
+              }}>{e.icon} {e.label}</button>
             ))}
           </div>
         </div>
 
-        {/* Format */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Formato</label>
           <div style={{ display: 'flex', gap: 4 }}>
-            {[{ v: 'xlsx', l: '📊 Excel (.xlsx)' }, { v: 'csv', l: '📄 CSV' }].map(f => (
+            {[{ v: 'xlsx', l: '📊 Excel' }, { v: 'csv', l: '📄 CSV' }].map(f => (
               <button key={f.v} onClick={() => setFmt(f.v)} style={{
                 padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
                 fontWeight: fmt === f.v ? 700 : 400,
@@ -272,44 +326,103 @@ function ExportSection({ pipelines, token }) {
                 background: fmt === f.v ? '#f0fdf4' : '#fafafa',
                 color: fmt === f.v ? '#059669' : '#64748b',
                 transition: 'all .15s',
-              }}>
-                {f.l}
-              </button>
+              }}>{f.l}</button>
             ))}
           </div>
         </div>
 
-        {/* Pipeline filter (only for cards/leads) */}
         {showPipelineFilter && pipelines.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Funil (opcional)</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Funil</label>
             <select value={pipelineId} onChange={e => setPipelineId(Number(e.target.value))} style={{
               padding: '7px 10px', borderRadius: 8, border: '1.5px solid #e2e8f0',
               fontSize: 12, color: '#1e293b', background: '#fafafa', fontFamily: 'inherit', cursor: 'pointer',
             }}>
-              <option value={0}>Todos os funis</option>
+              <option value={0}>Todos</option>
               {pipelines.map(p => <option key={p.pipeline_id} value={p.pipeline_id}>{p.pipeline_name}</option>)}
             </select>
           </div>
         )}
 
-        {/* Download button */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label style={{ fontSize: 11, color: 'transparent' }}>.</label>
-          <button
-            onClick={handleExport}
-            disabled={loading}
-            style={{
-              padding: '7px 18px', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-              background: loading ? '#94a3b8' : '#6366f1', color: '#fff',
-              border: 'none', transition: 'background .15s',
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}
-          >
-            {loading ? '⏳ Exportando...' : '⬇ Baixar'}
+          <button onClick={handleExport} disabled={loading || selected.size === 0} style={{
+            padding: '7px 18px', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+            background: loading || selected.size === 0 ? '#94a3b8' : '#6366f1', color: '#fff',
+            border: 'none', cursor: loading || selected.size === 0 ? 'not-allowed' : 'pointer',
+            transition: 'background .15s', display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            {loading ? '⏳ Exportando...' : `⬇ Baixar (${selected.size} col.)`}
           </button>
         </div>
+      </div>
+
+      {/* Row 2: column selector toggle */}
+      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
+        <button onClick={() => setShowCols(v => !v)} style={{
+          background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+          fontSize: 12, color: '#6366f1', fontWeight: 600, padding: 0,
+          display: 'flex', alignItems: 'center', gap: 5,
+        }}>
+          {showCols ? '▲' : '▼'} Configurar colunas
+          <span style={{ fontWeight: 400, color: '#94a3b8', marginLeft: 4 }}>
+            {loadingCols ? 'carregando...' : `${selected.size} de ${totalFields} selecionadas`}
+          </span>
+        </button>
+
+        {showCols && !loadingCols && (
+          <div style={{ marginTop: 12 }}>
+            {/* Quick actions */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {[
+                { label: 'Selecionar tudo', fn: selectAll },
+                { label: 'Limpar', fn: selectNone },
+                { label: 'Padrão', fn: selectDefault },
+              ].map(({ label, fn }) => (
+                <button key={label} onClick={fn} style={{
+                  fontSize: 11, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
+                  background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569',
+                  fontFamily: 'inherit',
+                }}>{label}</button>
+              ))}
+            </div>
+
+            {/* Native fields */}
+            {fields.native.length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
+                  letterSpacing: '0.06em', marginBottom: 8 }}>Campos nativos</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {fields.native.map(f => (
+                    <FieldCheckbox key={f.key} field={f} checked={selected.has(f.key)}
+                      onChange={() => toggleField(f.key)} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Custom fields */}
+            {fields.custom.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
+                  letterSpacing: '0.06em', marginBottom: 8 }}>Campos customizados</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {fields.custom.map(f => (
+                    <FieldCheckbox key={f.key} field={f} checked={selected.has(f.key)}
+                      onChange={() => toggleField(f.key)} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {fields.custom.length === 0 && (
+              <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+                Nenhum campo customizado criado para esta entidade.
+                Crie em <b>Configurações → Campos personalizados</b>.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {msg && (

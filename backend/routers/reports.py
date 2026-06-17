@@ -259,12 +259,92 @@ def get_audit_log(
     }
 
 
+# ── Available native fields per entity ─────────────────────────────────────
+_NATIVE_FIELDS = {
+    "cards": [
+        {"key": "id",            "label": "ID"},
+        {"key": "title",         "label": "Título"},
+        {"key": "price",         "label": "Valor (R$)"},
+        {"key": "stage_name",    "label": "Etapa"},
+        {"key": "pipeline_name", "label": "Funil"},
+        {"key": "source",        "label": "Fonte"},
+        {"key": "responsible",   "label": "Responsáveis"},
+        {"key": "contacts",      "label": "Contatos"},
+        {"key": "deal_type",     "label": "Tipo de negócio"},
+        {"key": "description",   "label": "Descrição"},
+        {"key": "start_date",    "label": "Data início"},
+        {"key": "utm_source",    "label": "UTM Source"},
+        {"key": "utm_medium",    "label": "UTM Medium"},
+        {"key": "utm_campaign",  "label": "UTM Campaign"},
+        {"key": "created_at",    "label": "Criado em"},
+    ],
+    "leads": [
+        {"key": "id",           "label": "ID"},
+        {"key": "title",        "label": "Título"},
+        {"key": "first_name",   "label": "Nome"},
+        {"key": "last_name",    "label": "Sobrenome"},
+        {"key": "email",        "label": "Email"},
+        {"key": "phone",        "label": "Telefone"},
+        {"key": "company_name", "label": "Empresa"},
+        {"key": "source",       "label": "Fonte"},
+        {"key": "stage_name",   "label": "Etapa"},
+        {"key": "converted",    "label": "Convertido"},
+        {"key": "created_at",   "label": "Criado em"},
+    ],
+    "contacts": [
+        {"key": "id",           "label": "ID"},
+        {"key": "first_name",   "label": "Nome"},
+        {"key": "last_name",    "label": "Sobrenome"},
+        {"key": "email",        "label": "Email"},
+        {"key": "phone",        "label": "Telefone"},
+        {"key": "company_name", "label": "Empresa"},
+        {"key": "position",     "label": "Cargo"},
+        {"key": "source",       "label": "Fonte"},
+        {"key": "created_at",   "label": "Criado em"},
+    ],
+    "companies": [
+        {"key": "id",        "label": "ID"},
+        {"key": "name",      "label": "Nome"},
+        {"key": "phone",     "label": "Telefone"},
+        {"key": "email",     "label": "Email"},
+        {"key": "website",   "label": "Site"},
+        {"key": "industry",  "label": "Setor"},
+        {"key": "employees", "label": "Funcionários"},
+        {"key": "created_at","label": "Criado em"},
+    ],
+}
+
+_ENTITY_CF_MAP = {"cards": "deal", "leads": "lead", "contacts": "contact", "companies": "company"}
+
+# Default native columns selected when user hasn't customised
+_DEFAULT_COLS = {
+    "cards":     ["id", "title", "price", "stage_name", "pipeline_name", "source", "responsible", "contacts", "created_at"],
+    "leads":     ["id", "title", "first_name", "last_name", "email", "phone", "company_name", "source", "stage_name", "converted", "created_at"],
+    "contacts":  ["id", "first_name", "last_name", "email", "phone", "company_name", "position", "source", "created_at"],
+    "companies": ["id", "name", "phone", "email", "website", "industry", "employees", "created_at"],
+}
+
+
+@router.get("/reports/export-fields")
+def export_fields(entity: str = "cards", db: Session = Depends(get_db)):
+    native = _NATIVE_FIELDS.get(entity, [])
+    cf_entity = _ENTITY_CF_MAP.get(entity, entity)
+    cfs = (db.query(models.CustomField)
+           .filter(models.CustomField.entity == cf_entity)
+           .order_by(models.CustomField.order, models.CustomField.id)
+           .all())
+    custom = [{"key": f"cf:{cf.id}", "label": cf.name, "field_type": cf.field_type} for cf in cfs]
+    defaults = _DEFAULT_COLS.get(entity, [f["key"] for f in native])
+    return {"native": native, "custom": custom, "defaults": defaults}
+
+
 @router.get("/reports/export")
 def export_data(
     entity: str = Query("cards", pattern="^(cards|leads|contacts|companies)$"),
     fmt:    str = Query("csv",   pattern="^(csv|xlsx)$"),
     pipeline_id: int = 0,
     stage_id:    int = 0,
+    columns: str = "",   # comma-separated: native keys + "cf:{id}" for custom fields
     db: Session = Depends(get_db),
 ):
     def fmt_dt(val):
@@ -277,7 +357,25 @@ def export_data(
     def fmt_money(val):
         return f"{val:.2f}".replace(".", ",") if val else "0,00"
 
-    # ── Build rows ──────────────────────────────────────────────────────────────
+    # ── Parse requested columns ────────────────────────────────────────────────
+    if columns:
+        col_list = [c.strip() for c in columns.split(",") if c.strip()]
+    else:
+        col_list = list(_DEFAULT_COLS.get(entity, [f["key"] for f in _NATIVE_FIELDS.get(entity, [])]))
+
+    native_keys = [c for c in col_list if not c.startswith("cf:")]
+    cf_ids      = [int(c[3:]) for c in col_list if c.startswith("cf:")]
+
+    # ── Build label map for native fields ──────────────────────────────────────
+    native_label = {f["key"]: f["label"] for f in _NATIVE_FIELDS.get(entity, [])}
+
+    # ── Fetch custom field definitions ─────────────────────────────────────────
+    cf_defs = {}
+    if cf_ids:
+        for cf in db.query(models.CustomField).filter(models.CustomField.id.in_(cf_ids)).all():
+            cf_defs[cf.id] = cf
+
+    # ── Load raw records ───────────────────────────────────────────────────────
     if entity == "cards":
         q = db.query(models.Card)
         if pipeline_id:
@@ -285,59 +383,82 @@ def export_data(
         if stage_id:
             q = q.filter(models.Card.stage_id == stage_id)
         rows_db = q.all()
-        stage_map = {s.id: s for s in db.query(models.Stage).all()}
+        stage_map    = {s.id: s for s in db.query(models.Stage).all()}
         pipeline_map = {p.id: p for p in db.query(models.Pipeline).all()}
-        headers = ["ID", "Título", "Valor (R$)", "Etapa", "Funil", "Fonte", "Responsáveis", "Contatos", "Criado em"]
-        rows = []
-        for c in rows_db:
-            stage = stage_map.get(c.stage_id)
-            pipeline = pipeline_map.get(stage.pipeline_id) if stage else None
-            resp = ", ".join(u.name for u in (c.users or []))
-            conts = ", ".join(f"{ct.first_name} {ct.last_name or ''}".strip() for ct in (c.contacts or []))
-            rows.append([
-                c.id, c.title or "", fmt_money(c.price),
-                stage.name if stage else "", pipeline.name if pipeline else "",
-                c.source or "", resp, conts, fmt_dt(c.created_at),
-            ])
 
     elif entity == "leads":
         q = db.query(models.Lead)
         if stage_id:
             q = q.filter(models.Lead.stage_id == stage_id)
-        rows_db = q.all()
+        rows_db   = q.all()
         stage_map = {s.id: s for s in db.query(models.Stage).all()}
-        headers = ["ID", "Título", "Nome", "Sobrenome", "Email", "Telefone", "Empresa", "Fonte", "Etapa", "Convertido", "Criado em"]
-        rows = []
-        for l in rows_db:
-            stage = stage_map.get(l.stage_id)
-            rows.append([
-                l.id, l.title or "", l.first_name or "", l.last_name or "",
-                l.email or "", l.phone or "", l.company_name or "",
-                l.source or "", stage.name if stage else "",
-                "Sim" if l.converted else "Não", fmt_dt(l.created_at),
-            ])
+        pipeline_map = {}
 
     elif entity == "contacts":
-        rows_db = db.query(models.Contact).all()
-        headers = ["ID", "Nome", "Sobrenome", "Email", "Telefone", "Empresa", "Cargo", "Fonte", "Criado em"]
-        rows = []
-        for c in rows_db:
-            rows.append([
-                c.id, c.first_name or "", c.last_name or "",
-                c.email or "", c.phone or "", c.company_name or "",
-                c.position or "", c.source or "", fmt_dt(c.created_at),
-            ])
+        rows_db      = db.query(models.Contact).all()
+        stage_map    = {}
+        pipeline_map = {}
 
     else:  # companies
-        rows_db = db.query(models.Company).all()
-        headers = ["ID", "Nome", "Telefone", "Email", "Site", "Setor", "Funcionários", "Criado em"]
-        rows = []
-        for c in rows_db:
-            rows.append([
-                c.id, c.name or "", c.phone or "", c.email or "",
-                c.website or "", c.industry or "", c.employees or "",
-                fmt_dt(c.created_at),
-            ])
+        rows_db      = db.query(models.Company).all()
+        stage_map    = {}
+        pipeline_map = {}
+
+    # ── Batch-load custom field values (one query for all rows) ────────────────
+    cf_value_map: dict = {}  # {(entity_id, field_id): value}
+    if cf_ids and rows_db:
+        entity_ids = [obj.id for obj in rows_db]
+        cfvs = (db.query(models.CustomFieldValue)
+                .filter(models.CustomFieldValue.field_id.in_(cf_ids),
+                        models.CustomFieldValue.entity_id.in_(entity_ids))
+                .all())
+        for cfv in cfvs:
+            cf_value_map[(cfv.entity_id, cfv.field_id)] = cfv.value or ""
+
+    # ── Helper: get a native field value from an ORM object ───────────────────
+    def get_native(key, obj):
+        if key == "id":            return obj.id
+        if key == "title":         return getattr(obj, "title", "") or ""
+        if key == "price":         return fmt_money(getattr(obj, "price", None))
+        if key == "stage_name":
+            s = stage_map.get(getattr(obj, "stage_id", None))
+            return s.name if s else ""
+        if key == "pipeline_name":
+            s = stage_map.get(getattr(obj, "stage_id", None))
+            p = pipeline_map.get(s.pipeline_id) if s else None
+            return p.name if p else ""
+        if key == "source":        return getattr(obj, "source", "") or ""
+        if key == "responsible":   return ", ".join(u.name for u in getattr(obj, "users", []) or [])
+        if key == "contacts":      return ", ".join(f"{c.first_name} {c.last_name or ''}".strip() for c in getattr(obj, "contacts", []) or [])
+        if key == "deal_type":     return getattr(obj, "deal_type", "") or ""
+        if key == "description":   return getattr(obj, "description", "") or ""
+        if key == "start_date":    return getattr(obj, "start_date", "") or ""
+        if key == "utm_source":    return getattr(obj, "utm_source", "") or ""
+        if key == "utm_medium":    return getattr(obj, "utm_medium", "") or ""
+        if key == "utm_campaign":  return getattr(obj, "utm_campaign", "") or ""
+        if key == "first_name":    return getattr(obj, "first_name", "") or ""
+        if key == "last_name":     return getattr(obj, "last_name", "") or ""
+        if key == "email":         return getattr(obj, "email", "") or ""
+        if key == "phone":         return getattr(obj, "phone", "") or ""
+        if key == "company_name":  return getattr(obj, "company_name", "") or ""
+        if key == "position":      return getattr(obj, "position", "") or ""
+        if key == "converted":     return "Sim" if getattr(obj, "converted", False) else "Não"
+        if key == "name":          return getattr(obj, "name", "") or ""
+        if key == "website":       return getattr(obj, "website", "") or ""
+        if key == "industry":      return getattr(obj, "industry", "") or ""
+        if key == "employees":     return getattr(obj, "employees", "") or ""
+        if key == "created_at":    return fmt_dt(getattr(obj, "created_at", None))
+        return ""
+
+    # ── Build headers + rows ───────────────────────────────────────────────────
+    headers = [native_label.get(k, k) for k in native_keys]
+    headers += [cf_defs[cf_id].name for cf_id in cf_ids if cf_id in cf_defs]
+
+    rows = []
+    for obj in rows_db:
+        row = [get_native(k, obj) for k in native_keys]
+        row += [cf_value_map.get((obj.id, cf_id), "") for cf_id in cf_ids]
+        rows.append(row)
 
     entity_labels = {"cards": "negocios", "leads": "leads", "contacts": "contatos", "companies": "empresas"}
     filename = f"export_{entity_labels[entity]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -366,7 +487,7 @@ def export_data(
 
     header_fill = PatternFill("solid", fgColor="6366F1")
     header_font = Font(bold=True, color="FFFFFF", size=11)
-    thin = Side(style="thin", color="E2E8F0")
+    thin   = Side(style="thin", color="E2E8F0")
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
     for col_idx, h in enumerate(headers, 1):
@@ -384,7 +505,6 @@ def export_data(
             if row_idx % 2 == 0:
                 cell.fill = PatternFill("solid", fgColor="F8FAFC")
 
-    # Auto column width
     for col in ws.columns:
         max_len = max((len(str(c.value or "")) for c in col), default=8)
         ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 45)
