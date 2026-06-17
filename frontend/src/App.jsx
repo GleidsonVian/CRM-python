@@ -20,6 +20,8 @@ import AuditLogView from './components/AuditLogView';
 import ImportLeadsModal from './components/ImportLeadsModal';
 import TasksKanban from './components/TasksKanban';
 import ProjectsView from './components/ProjectsView';
+import FormsView from './components/FormsView';
+import PublicForm from './components/PublicForm';
 import NotificationBell from './components/NotificationBell';
 import SearchModal, { useSearchShortcut } from './components/SearchModal';
 import StageRequiredModal from './components/StageRequiredModal';
@@ -1303,6 +1305,9 @@ function AppInner() {
           <div className={`nav-item ${currentView === 'webhooks' ? 'active' : ''}`} onClick={() => navigate('webhooks', 'webhooks')}>
             <IconWebhook /> Webhooks
           </div>
+          <div className={`nav-item ${currentView === 'forms' ? 'active' : ''}`} onClick={() => navigate('forms', 'forms')}>
+            📋 Formulários
+          </div>
         </div>
 
         <div className="sidebar-section" style={{ marginTop: 'auto' }}>
@@ -1338,6 +1343,7 @@ function AppInner() {
         {currentView === 'users' && <UsersView />}
         {currentView === 'roles' && <RolesView />}
         {currentView === 'webhooks' && <WebhooksView />}
+        {currentView === 'forms' && <FormsView />}
         {currentView === 'settings' && <CustomFieldsManager />}
         {currentView === 'reports' && <ReportsView />}
         {currentView === 'audit' && <AuditLogView />}
@@ -1777,6 +1783,14 @@ function AppInner() {
 
 function AppGated() {
   const { user, loading } = useAuth();
+
+  // Public form route — no auth required
+  const hash = window.location.hash;
+  if (hash.startsWith('#form/')) {
+    const uid = hash.slice(6);
+    return <PublicForm uid={uid} />;
+  }
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#94a3b8', fontSize: 14 }}>
       Carregando...

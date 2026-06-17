@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Table, Boolean
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
@@ -420,3 +421,31 @@ class WorkflowExecution(Base):
     status           = Column(String, default='completed')   # 'completed' | 'failed'
     result_log       = Column(JSON, default=list)
 
+
+class CRMForm(Base):
+    __tablename__ = "crm_forms"
+    id              = Column(Integer, primary_key=True, index=True)
+    name            = Column(String, default="Novo formulário")
+    uid             = Column(String, unique=True, index=True)
+    entity_type     = Column(String, default="lead")     # "lead" or "card"
+    pipeline_id     = Column(Integer, ForeignKey("pipelines.id", ondelete="SET NULL"), nullable=True)
+    stage_id        = Column(Integer, ForeignKey("stages.id", ondelete="SET NULL"), nullable=True)
+    is_active       = Column(Boolean, default=True)
+    title           = Column(String, default="")
+    subtitle        = Column(String, default="")
+    button_text     = Column(String, default="Enviar")
+    success_message = Column(String, default="Obrigado! Sua resposta foi registrada.")
+    fields_config   = Column(JSON, default=list)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+
+
+class CRMFormSubmission(Base):
+    __tablename__ = "crm_form_submissions"
+    id           = Column(Integer, primary_key=True, index=True)
+    form_id      = Column(Integer, ForeignKey("crm_forms.id", ondelete="SET NULL"), nullable=True)
+    form_uid     = Column(String)
+    form_name    = Column(String, default="")
+    entity_type  = Column(String)
+    entity_id    = Column(Integer, nullable=True)
+    data         = Column(JSON, default=dict)
+    submitted_at = Column(DateTime, default=datetime.utcnow)

@@ -138,6 +138,31 @@ _MIGRATIONS = [
         status VARCHAR DEFAULT 'completed',
         result_log VARCHAR DEFAULT '[]'
     )""",
+    """CREATE TABLE IF NOT EXISTS crm_forms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR DEFAULT 'Novo formulário',
+        uid VARCHAR UNIQUE,
+        entity_type VARCHAR DEFAULT 'lead',
+        pipeline_id INTEGER REFERENCES pipelines(id) ON DELETE SET NULL,
+        stage_id INTEGER REFERENCES stages(id) ON DELETE SET NULL,
+        is_active BOOLEAN DEFAULT 1,
+        title VARCHAR DEFAULT '',
+        subtitle VARCHAR DEFAULT '',
+        button_text VARCHAR DEFAULT 'Enviar',
+        success_message VARCHAR DEFAULT 'Obrigado! Sua resposta foi registrada.',
+        fields_config VARCHAR DEFAULT '[]',
+        created_at DATETIME DEFAULT (datetime('now'))
+    )""",
+    """CREATE TABLE IF NOT EXISTS crm_form_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        form_id INTEGER REFERENCES crm_forms(id) ON DELETE SET NULL,
+        form_uid VARCHAR,
+        form_name VARCHAR DEFAULT '',
+        entity_type VARCHAR,
+        entity_id INTEGER,
+        data VARCHAR DEFAULT '{}',
+        submitted_at DATETIME DEFAULT (datetime('now'))
+    )""",
 ]
 
 with engine.connect() as _conn:
@@ -204,7 +229,7 @@ app.add_middleware(
 # ── Routers ───────────────────────────────────────────────────────────────────
 
 from routers import auth, pipelines, cards, leads, contacts, companies
-from routers import webhooks, automations, tasks, roles, reports, misc, workflows
+from routers import webhooks, automations, tasks, roles, reports, misc, workflows, crm_forms
 
 app.include_router(auth.router)
 app.include_router(pipelines.router)
@@ -219,6 +244,7 @@ app.include_router(roles.router)
 app.include_router(reports.router)
 app.include_router(misc.router)
 app.include_router(workflows.router)
+app.include_router(crm_forms.router)
 
 # ── Startup seed ──────────────────────────────────────────────────────────────
 
