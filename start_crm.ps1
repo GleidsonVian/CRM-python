@@ -75,13 +75,8 @@ function Wait-ForPort {
 
     $elapsed = 0
     while ($elapsed -lt $TimeoutSec) {
-        try {
-            $tcp = New-Object System.Net.Sockets.TcpClient
-            $ar  = $tcp.BeginConnect('127.0.0.1', $Port, $null, $null)
-            $ok  = $ar.AsyncWaitHandle.WaitOne(500)
-            if ($ok) { $tcp.EndConnect($ar); $tcp.Close(); return $true }
-            $tcp.Close()
-        } catch {}
+        $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+        if ($conn) { return $true }
         Start-Sleep -Milliseconds 500
         $elapsed += 0.5
         Write-Host '.' -NoNewline -ForegroundColor DarkGray
