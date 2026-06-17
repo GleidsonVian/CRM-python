@@ -1036,6 +1036,7 @@ export default function FlowBuilderModal({
   const [picker, setPicker]         = useState(null);
   const [active, setActiveRaw]      = useState(null);
   const [saving, setSaving]         = useState(false);
+  const [saveError, setSaveError]   = useState('');
   const [pipelines, setPipelines]   = useState([]);
 
   useEffect(() => {
@@ -1053,6 +1054,7 @@ export default function FlowBuilderModal({
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError('');
     try {
       if (isWorkflow) {
         await onSave({
@@ -1063,7 +1065,7 @@ export default function FlowBuilderModal({
           steps: [{
             action_type: 'flow',
             step_order: 0,
-            action_config: JSON.stringify({ version: 1, steps }),
+            action_config: { version: 1, steps },
           }],
         });
       } else {
@@ -1079,6 +1081,9 @@ export default function FlowBuilderModal({
         });
       }
       onClose();
+    } catch (e) {
+      setSaveError(e.message || 'Erro ao salvar');
+      setTimeout(() => setSaveError(''), 5000);
     } finally { setSaving(false); }
   };
 
@@ -1123,6 +1128,11 @@ export default function FlowBuilderModal({
           ) : (
             <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>
               Gatilho: <strong style={{ color: '#0f172a' }}>{stageName}</strong>
+            </span>
+          )}
+          {saveError && (
+            <span style={{ fontSize: 12, color: '#ef4444', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '4px 10px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              ⚠ {saveError}
             </span>
           )}
           <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13, minWidth: 110, whiteSpace: 'nowrap' }}>

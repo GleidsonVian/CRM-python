@@ -48,7 +48,10 @@ export default function WorkflowsView() {
     const isNew = !builder?.workflow?.id;
     const url = isNew ? `${API}/workflows` : `${API}/workflows/${builder.workflow.id}`;
     const res = await fetch(url, { method: isNew ? 'POST' : 'PUT', headers, body: JSON.stringify(data) });
-    if (!res.ok) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     load();
   };
 
