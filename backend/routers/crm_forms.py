@@ -240,7 +240,7 @@ def public_submit_form(uid: str, body: Dict[str, Any], db: Session = Depends(get
         else:
             if form.entity_type == "lead" and key in LEAD_NATIVE:
                 native_data[key] = value
-            elif form.entity_type == "card" and key in CARD_NATIVE:
+            elif form.entity_type in ("deal", "card") and key in CARD_NATIVE:
                 native_data[key] = value
 
     new_entity_id = None
@@ -260,7 +260,7 @@ def public_submit_form(uid: str, body: Dict[str, Any], db: Session = Depends(get
         for cf_id, cf_val in custom_fields.items():
             db.add(models.CustomFieldValue(field_id=cf_id, entity_id=lead.id, value=cf_val))
 
-    elif form.entity_type == "card":
+    elif form.entity_type in ("deal", "card"):
         if not native_data.get("title"):
             native_data["title"] = "Negócio via formulário"
         card = models.Card(

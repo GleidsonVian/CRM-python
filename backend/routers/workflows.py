@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+import json as _json
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 
 import models
 from database import get_db
 from services.automation import _run_action, _build_vars
+from services.auth import log_audit
 
 router = APIRouter()
 
@@ -114,42 +116,58 @@ def execute_workflow(wf_id: int, body: dict, background_tasks: BackgroundTasks, 
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
-    card_id = body.get("card_id")
-    if not card_id:
-        raise HTTPException(status_code=400, detail="card_id required")
+    card_id  = body.get("card_id")
+    lead_id  = body.get("lead_id")
 
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
-    if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+    if not card_id and not lead_id:
+        raise HTTPException(status_code=400, detail="card_id or lead_id required")
+
+    entity = None
+    log_card_id = None
+
+    if lead_id:
+        entity = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+        if not entity:
+            raise HTTPException(status_code=404, detail="Lead not found")
+    else:
+        entity = db.query(models.Card).filter(models.Card.id == card_id).first()
+        if not entity:
+            raise HTTPException(status_code=404, detail="Card not found")
+        log_card_id = card_id
 
     step_results = []
-    vars_map = _build_vars(card, db)
+    vars_map = _build_vars(entity, db)
 
     for step in sorted(wf.steps, key=lambda s: s.step_order):
         cfg = step.action_config if isinstance(step.action_config, dict) else {}
-        # If this is a flow-version step, unwrap it
         if step.action_type == "flow" and cfg.get("version") == 1:
             from services.automation import _execute_flow_steps
-            _execute_flow_steps(cfg.get("steps", []), vars_map, card, db)
+            _execute_flow_steps(cfg.get("steps", []), vars_map, entity, db)
             step_results.append({"step": step.step_order, "status": "ok", "action": "flow"})
         else:
             try:
-                _run_action(step.action_type, cfg, vars_map, card, db)
+                _run_action(step.action_type, cfg, vars_map, entity, db)
                 step_results.append({"step": step.step_order, "status": "ok", "action": step.action_type})
             except Exception as e:
                 step_results.append({"step": step.step_order, "status": "error", "action": step.action_type, "msg": str(e)})
 
-    # Log execution
+    status = "completed" if all(r["status"] == "ok" for r in step_results) else "failed"
     db.add(models.WorkflowExecution(
         template_id=wf.id,
         template_name=wf.name,
-        card_id=card_id,
-        status="completed" if all(r["status"] == "ok" for r in step_results) else "failed",
+        card_id=log_card_id,
+        status=status,
         result_log=step_results,
     ))
+
+    # Audit log
+    entity_name = getattr(entity, 'title', None) or getattr(entity, 'name', f'#{entity.id}')
+    entity_type = "lead" if lead_id else "card"
+    log_audit(db, "workflow_executed", entity_type, entity.id, entity_name,
+              actor="Automação", details={"workflow_name": wf.name, "status": status})
     db.commit()
 
-    return {"status": "completed", "steps": step_results}
+    return {"status": status, "steps": step_results}
 
 
 def _sync_steps(wf, steps_data: list, db: Session):
