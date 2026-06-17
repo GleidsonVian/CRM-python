@@ -231,6 +231,10 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
   const [leadId, setLeadId]     = useState(initialTask.lead_id || '');
   const [projectId, setProjectId] = useState(initialTask.project_id || defaultProjectId || '');
   const [saving, setSaving]     = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const saveTimerRef = useRef(null);
+  const isDirtyRef = useRef(false);
+  const isInitialMountRef = useRef(true);
 
   const [allUsers, setAllUsers] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
@@ -282,6 +286,37 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
         .catch(() => {});
     }
   }, [initialTask.id]);
+
+  // Autosave for existing tasks (debounced 800ms)
+  useEffect(() => {
+    if (isNew) return;
+    if (isInitialMountRef.current) { isInitialMountRef.current = false; return; }
+    isDirtyRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    const payload = {
+      title: title.trim() || 'Sem título', description, status, priority,
+      due_date: dueDate || null, assigned_to: assignedTo,
+      card_id: cardId ? parseInt(cardId) : null,
+      lead_id: leadId ? parseInt(leadId) : null,
+      project_id: projectId ? parseInt(projectId) : null,
+      done: status === 'done', participants: '[]',
+    };
+    saveTimerRef.current = setTimeout(async () => {
+      setSaveStatus('saving');
+      isDirtyRef.current = false;
+      try {
+        const updated = await fetch(`${API}/tasks/${initialTask.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify(payload),
+        }).then(r => r.json());
+        onSave(updated);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+      } catch { setSaveStatus(null); }
+    }, 800);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [title, description, status, priority, dueDate, assignedTo, cardId, leadId, projectId]); // eslint-disable-line
 
   const handleSave = async () => {
     setSaving(true);
@@ -390,9 +425,16 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
               {isOverdue && <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>⚠ Atrasado</span>}
               {!isNew && <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 13 }}>Excluir</button>}
-              <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13 }}>
-                {saving ? 'Salvando...' : isNew ? 'Criar tarefa' : 'Salvar'}
-              </button>
+              {isNew ? (
+                <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13 }}>
+                  {saving ? 'Salvando...' : 'Criar tarefa'}
+                </button>
+              ) : (
+                <>
+                  {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                  {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                </>
+              )}
               <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>×</button>
             </div>
           </div>

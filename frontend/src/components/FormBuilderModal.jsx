@@ -48,6 +48,8 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
   const [fields, setFields] = useState(form?.fields_config || []);
   const [isActive, setIsActive] = useState(form?.is_active !== false);
 
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [pipelines, setPipelines] = useState([]);
   const [stages, setStages] = useState([]);
   const [customFields, setCustomFields] = useState([]);
@@ -99,19 +101,71 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
     updateField(idx, { key, label: option?.label || '' });
   };
 
-  const handleSave = () => {
-    onSave({
-      name,
-      title,
-      subtitle,
-      button_text: buttonText,
-      success_message: successMessage,
-      entity_type: entityType,
-      pipeline_id: pipelineId ? parseInt(pipelineId) : null,
-      stage_id: stageId ? parseInt(stageId) : null,
-      is_active: isActive,
-      fields_config: fields,
-    }, form?.id);
+  const TEMPLATES = {
+    contato: {
+      name: 'Formulário de Contato',
+      title: 'Entre em contato',
+      subtitle: 'Preencha o formulário e entraremos em contato em breve.',
+      button_text: 'Enviar mensagem',
+      success_message: 'Mensagem enviada! Em breve entraremos em contato.',
+      entity_type: 'lead',
+      fields: [
+        { key: 'first_name',   label: 'Nome',     required: true,  placeholder: 'Seu nome',       field_type: 'text' },
+        { key: 'last_name',    label: 'Sobrenome', required: false, placeholder: 'Seu sobrenome',  field_type: 'text' },
+        { key: 'email',        label: 'E-mail',    required: true,  placeholder: 'seu@email.com',  field_type: 'text' },
+        { key: 'phone',        label: 'Telefone',  required: false, placeholder: '(11) 99999-9999', field_type: 'text' },
+        { key: 'comment',      label: 'Mensagem',  required: false, placeholder: 'Como podemos ajudar?', field_type: 'textarea' },
+      ],
+    },
+    orcamento: {
+      name: 'Solicitação de Orçamento',
+      title: 'Solicite um orçamento',
+      subtitle: 'Preencha os dados abaixo para receber nossa proposta.',
+      button_text: 'Solicitar orçamento',
+      success_message: 'Solicitação recebida! Em breve enviaremos sua proposta.',
+      entity_type: 'deal',
+      fields: [
+        { key: 'first_name',   label: 'Nome',      required: true,  placeholder: 'Seu nome',       field_type: 'text' },
+        { key: 'email',        label: 'E-mail',     required: true,  placeholder: 'seu@email.com',  field_type: 'text' },
+        { key: 'phone',        label: 'Telefone',   required: true,  placeholder: '(11) 99999-9999', field_type: 'text' },
+        { key: 'company_name', label: 'Empresa',    required: false, placeholder: 'Nome da empresa', field_type: 'text' },
+        { key: 'comment',      label: 'Descrição',  required: false, placeholder: 'Descreva o que você precisa', field_type: 'textarea' },
+      ],
+    },
+  };
+
+  const applyTemplate = (tplKey) => {
+    const tpl = TEMPLATES[tplKey];
+    setName(tpl.name);
+    setTitle(tpl.title);
+    setSubtitle(tpl.subtitle);
+    setButtonText(tpl.button_text);
+    setSuccessMessage(tpl.success_message);
+    setEntityType(tpl.entity_type);
+    setFields(tpl.fields);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError('');
+    try {
+      await onSave({
+        name,
+        title,
+        subtitle,
+        button_text: buttonText,
+        success_message: successMessage,
+        entity_type: entityType,
+        pipeline_id: pipelineId ? parseInt(pipelineId) : null,
+        stage_id: stageId ? parseInt(stageId) : null,
+        is_active: isActive,
+        fields_config: fields,
+      }, form?.id);
+    } catch (e) {
+      setSaveError(e.message || 'Erro ao salvar formulário');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ── Live preview ──────────────────────────────────────────────────────────
@@ -221,9 +275,36 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
           <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
             {form ? 'Editar formulário' : 'Novo formulário'}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {!form && (
+              <>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 2 }}>Modelos:</span>
+                <button
+                  className="btn btn-ghost"
+                  style={{ fontSize: 12, padding: '4px 10px' }}
+                  onClick={() => applyTemplate('contato')}
+                >
+                  📋 Contato
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  style={{ fontSize: 12, padding: '4px 10px' }}
+                  onClick={() => applyTemplate('orcamento')}
+                >
+                  💼 Orçamento
+                </button>
+                <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
+              </>
+            )}
+            {saveError && (
+              <span style={{ fontSize: 12, color: '#ef4444', background: '#fef2f2', padding: '4px 10px', borderRadius: 6 }}>
+                ⚠ {saveError}
+              </span>
+            )}
             <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-            <button className="btn btn-primary" onClick={handleSave}>Salvar</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+              {saving ? 'Salvando...' : 'Salvar'}
+            </button>
           </div>
         </div>
 
@@ -274,7 +355,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
               <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                 <div style={{ flex: 1 }}>
                   <label style={labelStyle}>Tipo de entidade</label>
-                  <select style={inputStyle} value={entityType} onChange={e => { setEntityType(e.target.value); setFields([]); }}>
+                  <select style={inputStyle} value={entityType} onChange={e => { setEntityType(e.target.value); setFields([]); setPipelineId(''); setStageId(''); }}>
                     <option value="lead">Lead</option>
                     <option value="card">Negócio</option>
                   </select>
@@ -285,7 +366,9 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                   <label style={labelStyle}>Pipeline</label>
                   <select style={inputStyle} value={pipelineId} onChange={e => { setPipelineId(e.target.value); setStageId(''); }}>
                     <option value="">— Nenhum —</option>
-                    {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {pipelines
+                      .filter(p => entityType === 'lead' ? p.name === 'Leads' : p.name !== 'Leads')
+                      .map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>

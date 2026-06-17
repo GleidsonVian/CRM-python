@@ -449,3 +449,16 @@ class CRMFormSubmission(Base):
     entity_id    = Column(Integer, nullable=True)
     data         = Column(JSON, default=dict)
     submitted_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TaskRule(Base):
+    __tablename__ = "task_rules"
+    id           = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name         = Column(String, default="Regra")
+    trigger_type = Column(String, nullable=False)   # status_changed | priority_changed | entered_column
+    trigger_value= Column(String, nullable=True)    # e.g. "done", "high", column id
+    column_id    = Column(String, nullable=True)    # column scope: None=global, or column id for per-column rules
+    action_type  = Column(String, nullable=False)   # set_status | set_priority | set_assigned_to
+    action_config= Column(JSON, default=dict)       # {"value": "..."}
+    enabled      = Column(Boolean, default=True)
+    created_at   = Column(DateTime, default=datetime.utcnow)

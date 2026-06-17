@@ -52,7 +52,7 @@ export default function WorkflowsView() {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
-    load();
+    await load();
   };
 
   const handleDelete = async (wf) => {

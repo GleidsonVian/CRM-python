@@ -217,6 +217,11 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const [workflows, setWorkflows] = useState([]);
   const [workflowMsg, setWorkflowMsg] = useState({});  // { [wfId]: { status, text } }
 
+  const [saveStatus, setSaveStatus] = useState(null); // null | 'saving' | 'saved'
+  const saveTimerRef = useRef(null);
+  const isDirtyRef = useRef(false);
+  const isInitialMountRef = useRef(true);
+
   const fetchWorkflows = async () => {
     try {
       const entityParam = isLead ? 'lead' : 'deal';
@@ -240,7 +245,12 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
       const data = await res.json();
       if (res.ok && data.status === 'completed') {
         setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'ok', text: `Concluído (${data.steps?.length || 0} etapa(s))` } }));
+        // Reload card data so responsible/fields reflect changes without F5
+        authFetch(`${API}/${entityBase}/${card.id}`).then(r => r.json()).then(updated => {
+          onSave?.(card.id, updated);
+        }).catch(() => {});
         fetchActivities();
+        fetchHistory();
       } else {
         const failedStep = data.steps?.find(s => s.status === 'error');
         setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'error', text: failedStep?.msg || data.detail || 'Falha na execução' } }));
@@ -266,7 +276,8 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const fetchActivities = async () => {
     try {
       const res = await authFetch(`${API}/${entityBase}/${card.id}/activities`);
-      setActivities(await res.json());
+      const data = await res.json();
+      setActivities(Array.isArray(data) ? [...data].reverse() : []);
     } catch {}
   };
 
@@ -310,6 +321,33 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Autosave on any field change (debounced 800ms)
+  useEffect(() => {
+    if (isInitialMountRef.current) { isInitialMountRef.current = false; return; }
+    isDirtyRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    const payload = {
+      ...card,
+      title, price: parseFloat(price) || 0, description,
+      stage_id: stageId,
+      contact_ids: selectedContacts.map(c => c.id),
+      user_ids: selectedUsers.map(u => u.id),
+      source, source_info: sourceInfo, deal_type: dealType,
+      start_date: startDate, available_to_all: availableToAll,
+      observers, comment,
+    };
+    saveTimerRef.current = setTimeout(async () => {
+      setSaveStatus('saving');
+      isDirtyRef.current = false;
+      try {
+        await onSave(card.id, payload);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+      } catch { setSaveStatus(null); }
+    }, 800);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [title, price, description, source, sourceInfo, dealType, startDate, availableToAll, observers, comment, selectedContacts, selectedUsers]); // eslint-disable-line
+
   const buildPayload = (overrideStage) => ({
     ...card,
     title,
@@ -327,9 +365,21 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     comment,
   });
 
-  const handleSave = async () => {
-    await onSave(card.id, buildPayload());
-    await fetchActivities();
+  const handleSave = () => {
+    clearTimeout(saveTimerRef.current);
+    isDirtyRef.current = false;
+    setSaveStatus('saving');
+    onSave(card.id, buildPayload()).then(() => {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+    }).catch(() => setSaveStatus(null));
+  };
+
+  const handleClose = () => {
+    if (isDirtyRef.current) {
+      clearTimeout(saveTimerRef.current);
+      onSave(card.id, buildPayload()); // fire and forget
+    }
     onClose();
   };
 
@@ -533,10 +583,9 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                 >
                   Excluir
                 </button>
-                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSave}>
-                  Salvar
-                </button>
-                <button className="icon-btn" onClick={onClose}><IconX /></button>
+                {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                <button className="icon-btn" onClick={handleClose}><IconX /></button>
               </div>
             </div>
 
@@ -1048,18 +1097,23 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     const actionColors = {
                       created: '#10b981', updated: '#3b82f6', deleted: '#ef4444',
                       moved: '#f59e0b', converted: '#8b5cf6', login: '#94a3b8',
+                      workflow_executed: '#6366f1',
                     };
                     const actionLabels = {
                       created: 'Criou', updated: 'Editou', deleted: 'Excluiu',
                       moved: 'Moveu', converted: 'Converteu', login: 'Acessou',
+                      workflow_executed: 'Executou fluxo',
                     };
                     const color = actionColors[item.action] || '#94a3b8';
                     const label = actionLabels[item.action] || item.action;
                     let details = null;
+                    let workflowName = null;
                     if (item.details) {
                       try {
-                        const d = JSON.parse(item.details);
-                        if (d.new_stage_id) details = `→ etapa #${d.new_stage_id}`;
+                        const d = typeof item.details === 'string' ? JSON.parse(item.details) : item.details;
+                        if (item.action === 'workflow_executed') workflowName = d.workflow_name || d.workflow || null;
+                        else if (d.new_stage_name) details = d.new_stage_name;
+                        else if (d.new_stage_id) details = `etapa #${d.new_stage_id}`;
                         else if (d.duplicated_from) details = `(cópia do #${d.duplicated_from})`;
                       } catch {}
                     }
@@ -1069,9 +1123,17 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>
                             <span style={{ fontWeight: 600 }}>{item.actor}</span>
-                            {' '}<span style={{ color }}>{label}</span>
-                            {' '}este negócio
-                            {details && <span style={{ color: '#64748b' }}> {details}</span>}
+                            {item.action === 'workflow_executed' ? (
+                              <> <span style={{ color }}>executou o fluxo</span>{' '}
+                              <span style={{ fontWeight: 600, color: '#6366f1' }}>{workflowName || '—'}</span></>
+                            ) : item.action === 'moved' ? (
+                              <> <span style={{ color }}>moveu para</span>{' '}
+                              <span style={{ fontWeight: 600, color }}>{details || `etapa #${item.entity_id}`}</span></>
+                            ) : (
+                              <> <span style={{ color }}>{label}</span>
+                              {' '}este negócio
+                              {details && <span style={{ color: '#64748b' }}> {details}</span>}</>
+                            )}
                           </div>
                           <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>
                             {item.created_at ? relTime(item.created_at) : ''}

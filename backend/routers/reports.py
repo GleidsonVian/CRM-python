@@ -240,6 +240,25 @@ def get_audit_log(
             pass
     total = q.count()
     items = q.order_by(models.AuditLog.created_at.desc()).offset(offset).limit(limit).all()
+
+    # Pre-fetch stage names for 'moved' items that lack new_stage_name
+    stage_ids_needed = set()
+    for i in items:
+        if i.action == 'moved':
+            d = i.details if isinstance(i.details, dict) else {}
+            if not d.get('new_stage_name') and d.get('new_stage_id'):
+                stage_ids_needed.add(d['new_stage_id'])
+    stage_name_map = {}
+    if stage_ids_needed:
+        stages = db.query(models.Stage).filter(models.Stage.id.in_(stage_ids_needed)).all()
+        stage_name_map = {s.id: s.name for s in stages}
+
+    def enrich_details(i):
+        d = i.details if isinstance(i.details, dict) else (i.details or {})
+        if i.action == 'moved' and isinstance(d, dict) and not d.get('new_stage_name') and d.get('new_stage_id'):
+            d = dict(d, new_stage_name=stage_name_map.get(d['new_stage_id'], f"#{d['new_stage_id']}"))
+        return d
+
     return {
         "total": total,
         "items": [
@@ -251,7 +270,7 @@ def get_audit_log(
                 "entity_name": i.entity_name,
                 "actor": i.actor,
                 "actor_email": i.actor_email,
-                "details": i.details,
+                "details": enrich_details(i),
                 "created_at": i.created_at.isoformat() if i.created_at else None,
             }
             for i in items

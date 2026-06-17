@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { API_URL as API } from '../config.js';
 import { useAuth } from '../AuthContext';
 import FormBuilderModal from './FormBuilderModal';
+import { toast } from './Toast';
 
 export default function FormsView() {
   const { token } = useAuth();
@@ -57,23 +58,21 @@ export default function FormsView() {
   const handleCopyLink = (form) => {
     const link = `${window.location.origin}/#form/${form.uid}`;
     navigator.clipboard.writeText(link).then(() => {
-      alert('Link copiado!');
+      toast('Link copiado!', { type: 'success' });
     });
   };
 
   const handleSave = async (formData, formId) => {
-    if (formId) {
-      await authFetch(`${API}/crm-forms/${formId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-    } else {
-      await authFetch(`${API}/crm-forms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    const url = formId ? `${API}/crm-forms/${formId}` : `${API}/crm-forms`;
+    const method = formId ? 'PUT' : 'POST';
+    const res = await authFetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Erro HTTP ${res.status}`);
     }
     setBuilderOpen(false);
     loadForms();

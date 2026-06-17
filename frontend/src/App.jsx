@@ -23,6 +23,7 @@ import ProjectsView from './components/ProjectsView';
 import FormsView from './components/FormsView';
 import PublicForm from './components/PublicForm';
 import NotificationBell from './components/NotificationBell';
+import { ToastContainer as GlobalToastContainer } from './components/Toast';
 import SearchModal, { useSearchShortcut } from './components/SearchModal';
 import StageRequiredModal from './components/StageRequiredModal';
 import './index.css';
@@ -135,7 +136,7 @@ function ConfirmProvider({ children }) {
 const useConfirm = () => React.useContext(ConfirmContext);
 
 const IconBoard = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <rect x="1.5" y="1.5" width="5" height="12" rx="1" stroke="currentColor" strokeWidth="1.3"/>
     <rect x="8.5" y="1.5" width="5" height="7" rx="1" stroke="currentColor" strokeWidth="1.3"/>
     <rect x="8.5" y="10.5" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.3"/>
@@ -143,14 +144,14 @@ const IconBoard = () => (
 );
 
 const IconContacts = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <circle cx="7.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M2 13a5.5 5.5 0 0 1 11 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
   </svg>
 );
 
 const IconWebhook = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <path d="M2 7.5a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0Z" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M7.5 4v3.5l2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
     <path d="M1 7.5h2M12 7.5h2M7.5 1v2M7.5 12v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -158,7 +159,7 @@ const IconWebhook = () => (
 );
 
 const IconCompany = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <rect x="1.5" y="5" width="12" height="8.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M5 13.5V10h5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
     <path d="M4 5V3a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2" stroke="currentColor" strokeWidth="1.3"/>
@@ -168,7 +169,7 @@ const IconCompany = () => (
 );
 
 const IconUsers = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <circle cx="5" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
     <circle cx="10" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M1 12.5a4 4 0 0 1 8 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -177,14 +178,14 @@ const IconUsers = () => (
 );
 
 const IconTasks = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <rect x="1.5" y="1.5" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M4.5 7.5l2 2 4-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
 const IconCalendar = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+  <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
     <rect x="1.5" y="2.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
     <path d="M5 1v3M10 1v3M1.5 6.5h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
   </svg>
@@ -573,6 +574,7 @@ function AppInner() {
       if (hash === 'audit') { setCurrentView('audit'); setSelectedCard(null); return; }
       if (hash === 'settings') { setCurrentView('settings'); setSelectedCard(null); return; }
       if (hash === 'roles') { setCurrentView('roles'); setSelectedCard(null); return; }
+      if (hash === 'forms') { setCurrentView('forms'); setSelectedCard(null); return; }
 
       const dealMatch = hash.match(/^pipeline\/(\d+)\/stage\/(\d+)\/deal\/(\d+)$/);
       if (dealMatch) {
@@ -1198,6 +1200,7 @@ function AppInner() {
           <span className="logo-text">Nexus CRM</span>
         </div>
 
+        <div className="sidebar-nav">
         <div className="sidebar-section">
           <div className="sidebar-section-label">CRM</div>
           <div
@@ -1208,7 +1211,7 @@ function AppInner() {
               setActivePipelineId(leadsPipelineId);
             }}
           >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
               <circle cx="7.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
               <path d="M2 13a5.5 5.5 0 0 1 11 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
             </svg>
@@ -1220,7 +1223,7 @@ function AppInner() {
               className={`nav-item ${currentView === 'crm' && activePipelineId === p.id ? 'active' : ''}`}
               onClick={() => { setCurrentView('crm'); setActivePipelineId(p.id); }}
             >
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
                 <rect x="1.5" y="5.5" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/>
                 <path d="M4.5 5.5V4a3 3 0 0 1 6 0v1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
               </svg>
@@ -1231,7 +1234,7 @@ function AppInner() {
             className={`nav-item ${currentView === 'reports' ? 'active' : ''}`}
             onClick={() => navigate('reports', 'reports')}
           >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
               <rect x="1" y="8" width="3" height="6" rx="1" stroke="currentColor" strokeWidth="1.3"/>
               <rect x="6" y="5" width="3" height="9" rx="1" stroke="currentColor" strokeWidth="1.3"/>
               <rect x="11" y="2" width="3" height="12" rx="1" stroke="currentColor" strokeWidth="1.3"/>
@@ -1242,7 +1245,7 @@ function AppInner() {
             className={`nav-item ${currentView === 'workflows' ? 'active' : ''}`}
             onClick={() => navigate('workflows', 'workflows')}
           >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
               <path d="M1.5 4.5h4M1.5 7.5h7M1.5 10.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
               <circle cx="11.5" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
               <circle cx="11.5" cy="10.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
@@ -1255,7 +1258,7 @@ function AppInner() {
               className={`nav-item ${currentView === 'audit' ? 'active' : ''}`}
               onClick={() => navigate('audit', 'audit')}
             >
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
                 <path d="M2 3h11M2 6h8M2 9h5M2 12h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
               </svg>
               Auditoria
@@ -1275,7 +1278,7 @@ function AppInner() {
             <IconUsers /> Equipe
           </div>
           <div className={`nav-item ${currentView === 'roles' ? 'active' : ''}`} onClick={() => navigate('roles', 'roles')}>
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
               <rect x="1.5" y="3.5" width="12" height="2.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
               <rect x="1.5" y="9" width="8" height="2.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
               <circle cx="12.5" cy="10.25" r="2" stroke="currentColor" strokeWidth="1.3"/>
@@ -1290,7 +1293,7 @@ function AppInner() {
             <IconTasks /> Tarefas
           </div>
           <div className={`nav-item ${currentView === 'projects' ? 'active' : ''}`} onClick={() => navigate('projects', 'projects')}>
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
               <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
               <rect x="8" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
               <rect x="1.5" y="8" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
@@ -1309,25 +1312,23 @@ function AppInner() {
             📋 Formulários
           </div>
         </div>
+        </div>{/* end sidebar-nav */}
 
-        <div className="sidebar-section" style={{ marginTop: 'auto' }}>
-          <div style={{ padding: '4px 10px 8px' }}>
-            <NotificationBell onNavigateToCard={(cardId) => {
-              authFetch(`${API}/cards/${cardId}`).then(r => r.json()).then(card => {
-                setSelectedCard(card);
-                setCurrentView('crm');
-              }).catch(() => {});
-            }} />
-          </div>
+        <div className="sidebar-footer">
+          <NotificationBell onNavigateToCard={(cardId) => {
+            authFetch(`${API}/cards/${cardId}`).then(r => r.json()).then(card => {
+              setSelectedCard(card);
+              setCurrentView('crm');
+            }).catch(() => {});
+          }} />
 
-          {/* Logged-in user chip */}
           <UserChip />
 
           <div
             className={`nav-item ${currentView === 'settings' ? 'active' : ''}`}
             onClick={() => navigate('settings', 'settings')}
           >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none">
               <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3"/>
               <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.9 2.9l1.1 1.1M11 11l1.1 1.1M2.9 12.1L4 11M11 4l1.1-1.1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
             </svg>
@@ -1804,6 +1805,8 @@ export default function App() {
   return (
     <ConfirmProvider>
       <AppGated />
+      <GlobalToastContainer />
     </ConfirmProvider>
   );
 }
+

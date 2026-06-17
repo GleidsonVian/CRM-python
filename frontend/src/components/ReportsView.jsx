@@ -113,39 +113,75 @@ function TimelineChart({ data }) {
 // ── Funnel chart ──────────────────────────────────────────────────────────────
 function FunnelChart({ stages }) {
   if (!stages || stages.length === 0) return <div style={{ color: '#94a3b8', fontSize: 13 }}>Sem dados</div>;
+
   const maxCount = Math.max(...stages.map(s => s.count), 1);
+  const COLORS = ['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe'];
+  const isWon  = (name) => /ganho|sucesso|conver/i.test(name);
+  const isLost = (name) => /perdi|desqual/i.test(name);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {stages.map((s, i) => {
-        const pct = Math.max((s.count / maxCount) * 100, s.count > 0 ? 8 : 0);
-        const dropPct = i > 0 && stages[i - 1].count > 0
-          ? Math.round((1 - s.count / stages[i - 1].count) * 100)
-          : null;
+        const widthPct = Math.max((s.count / maxCount) * 100, s.count > 0 ? 12 : 4);
+        const prevCount = i > 0 ? stages[i - 1].count : null;
+        const convPct = prevCount != null && prevCount > 0
+          ? Math.round((s.count / prevCount) * 100) : null;
+        const dropPct = convPct != null ? 100 - convPct : null;
+
+        const color = isWon(s.stage_name) ? '#10b981'
+                    : isLost(s.stage_name) ? '#ef4444'
+                    : (s.color || COLORS[i % COLORS.length]);
+
         return (
           <div key={s.stage_id}>
+            {/* Drop indicator between stages */}
             {dropPct !== null && dropPct > 0 && (
-              <div style={{ textAlign: 'center', fontSize: 10, color: '#ef4444', marginBottom: 2 }}>
-                ▼ {dropPct}% de perda
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0', marginLeft: 140 }}>
+                <div style={{ flex: 1, maxWidth: 240, height: 1, background: '#f1f5f9' }} />
+                <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 600, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '1px 7px', whiteSpace: 'nowrap' }}>
+                  ↓ {dropPct}% saíram
+                </span>
+                <div style={{ flex: 1, maxWidth: 240, height: 1, background: '#f1f5f9' }} />
               </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 110, fontSize: 12, color: '#475569', textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {s.stage_name}
+            {/* Stage row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '3px 0' }}>
+              {/* Label */}
+              <div style={{ width: 128, flexShrink: 0, textAlign: 'right' }}>
+                <span style={{ fontSize: 12, color: '#475569', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
+                  title={s.stage_name}>{s.stage_name}</span>
               </div>
-              <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              {/* Bar */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', position: 'relative', minWidth: 0 }}>
                 <div style={{
-                  width: `${pct}%`, minWidth: s.count > 0 ? 48 : 0,
-                  background: s.color || '#6366f1',
-                  borderRadius: 4, padding: '5px 10px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  width: `${widthPct}%`, height: 36,
+                  background: `linear-gradient(135deg, ${color}dd, ${color})`,
+                  borderRadius: 6,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0 12px', gap: 8, boxShadow: `0 2px 6px ${color}33`,
                   transition: 'width 0.5s ease',
+                  minWidth: s.count > 0 ? 44 : 8,
+                  overflow: 'hidden',
                 }}>
-                  <span style={{ fontSize: 12, color: '#fff', fontWeight: 700, whiteSpace: 'nowrap' }}>{s.count}</span>
-                  {pct > 30 && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', whiteSpace: 'nowrap' }}>{fmt(s.value)}</span>}
+                  <span style={{ fontSize: 13, color: 'white', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {s.count}
+                  </span>
+                  {widthPct > 28 && (
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>
+                      {fmt(s.value)}
+                    </span>
+                  )}
                 </div>
               </div>
-              <div style={{ width: 80, fontSize: 11, color: '#64748b', flexShrink: 0 }}>{fmt(s.value)}</div>
+              {/* Right: value + conversion */}
+              <div style={{ width: 110, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                <span style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>{fmt(s.value)}</span>
+                {convPct !== null && (
+                  <span style={{ fontSize: 10, color: convPct >= 50 ? '#10b981' : convPct >= 25 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
+                    {convPct}% conv.
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         );

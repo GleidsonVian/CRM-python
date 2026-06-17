@@ -240,7 +240,7 @@ def move_card(card_id: int, move_data: schemas.CardMove, background_tasks: Backg
 
     db.commit()
     db.refresh(card)
-    log_audit(db, "moved", "card", card_id, card.title, details={"new_stage_id": move_data.new_stage_id})
+    log_audit(db, "moved", "card", card_id, card.title, details={"new_stage_id": move_data.new_stage_id, "new_stage_name": new_stage.name})
 
     rules = db.query(models.AutomationRule).filter(
         models.AutomationRule.stage_id == new_stage.id,

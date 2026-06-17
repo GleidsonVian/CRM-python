@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TaskModal from './TaskModal';
+import TaskAutomationsView from './TaskAutomationsView';
 
 import { API_URL as API } from '../config.js';
 
@@ -152,13 +153,26 @@ function TaskCard({ task, onDragStart, onClick }) {
 }
 
 // ── Column ────────────────────────────────────────────────────────────────────
-function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask, collapsed, onToggleCollapse }) {
+function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask, collapsed, onToggleCollapse,
+  isDragging, isDragOver, onColDragStart, onColDragOver, onColDrop, customLabel, onRenameCol, onOpenAutomations }) {
   const [dragOver, setDragOver] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [renaming, setRenaming] = useState(false);
+  const [renameVal, setRenameVal] = useState(customLabel || col.label);
+  const [headerHover, setHeaderHover] = useState(false);
   const inputRef = useRef(null);
+  const renameRef = useRef(null);
 
   useEffect(() => { if (adding) inputRef.current?.focus(); }, [adding]);
+  useEffect(() => { if (renaming) { renameRef.current?.focus(); renameRef.current?.select(); } }, [renaming]);
+
+  const commitRename = () => {
+    const val = renameVal.trim() || col.label;
+    onRenameCol(col.id, val);
+    setRenaming(false);
+    setHeaderHover(false);
+  };
 
   const handleCreate = async () => {
     if (!newTitle.trim()) return;
@@ -172,40 +186,95 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
         width: collapsed ? 48 : 280, flexShrink: 0, display: 'flex', flexDirection: 'column',
         background: dragOver ? col.bg : (col.id === 'done' ? '#f8fafc' : col.bg + '80'),
         borderRadius: 14,
-        border: `2px solid ${dragOver ? col.color : (col.id === 'done' ? '#e2e8f0' : col.color + '30')}`,
+        border: `2px solid ${isDragOver ? col.color : dragOver ? col.color : (col.id === 'done' ? '#e2e8f0' : col.color + '30')}`,
         transition: 'all 0.15s',
         minHeight: 200,
         overflow: 'hidden',
+        opacity: isDragging ? 0.4 : 1,
+        outline: isDragOver ? `2px dashed ${col.color}` : 'none',
+        outlineOffset: 2,
       }}
-      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+      onDragOver={e => {
+        onColDragOver(e, col.id);
+        if (!e.dataTransfer.types.includes('colid')) { e.preventDefault(); setDragOver(true); }
+      }}
       onDragEnter={e => e.preventDefault()}
       onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false); }}
-      onDrop={e => { e.preventDefault(); setDragOver(false); onDrop(e, col.id); }}
+      onDrop={e => {
+        e.preventDefault();
+        setDragOver(false);
+        if (e.dataTransfer.getData('colId')) { onColDrop(e, col.id); }
+        else { onDrop(e, col.id); }
+      }}
     >
       {/* Header */}
       <div
-        style={{ padding: collapsed ? '14px 8px' : '14px 14px 10px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, cursor: 'pointer', flexDirection: collapsed ? 'column' : 'row' }}
-        onClick={() => onToggleCollapse(col.id)}
+        style={{ padding: collapsed ? '14px 8px' : '14px 14px 10px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexDirection: collapsed ? 'column' : 'row' }}
       >
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: col.color, flexShrink: 0 }} />
+        {/* Drag handle */}
         {!collapsed && (
-          <>
-            <span style={{ fontWeight: 700, fontSize: 12, color: '#0f172a', flex: 1, whiteSpace: 'nowrap' }}>{col.label}</span>
+          <span
+            draggable
+            onDragStart={e => { e.stopPropagation(); onColDragStart(e, col.id); }}
+            style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 14, lineHeight: 1, flexShrink: 0, userSelect: 'none', padding: '0 2px' }}
+            title="Arrastar coluna"
+          >⠿</span>
+        )}
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, cursor: 'pointer', flexDirection: collapsed ? 'column' : 'row' }}
+          onMouseEnter={() => setHeaderHover(true)}
+          onMouseLeave={() => setHeaderHover(false)}
+          onClick={() => { if (!renaming) onToggleCollapse(col.id); }}
+        >
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: col.color, flexShrink: 0 }} />
+          {!collapsed && (
+            <>
+              {renaming ? (
+                <input
+                  ref={renameRef}
+                  value={renameVal}
+                  onChange={e => setRenameVal(e.target.value)}
+                  onBlur={commitRename}
+                  onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') { setRenaming(false); setRenameVal(customLabel || col.label); } }}
+                  onClick={e => e.stopPropagation()}
+                  style={{ fontWeight: 700, fontSize: 12, color: '#0f172a', flex: 1, border: 'none', borderBottom: `2px solid ${col.color}`, outline: 'none', background: 'transparent', fontFamily: 'inherit', minWidth: 0, padding: '1px 2px', width: 120 }}
+                />
+              ) : (
+                <span style={{ fontWeight: 700, fontSize: 12, color: '#0f172a', flex: 1, whiteSpace: 'nowrap' }}>
+                  {customLabel || col.label}
+                </span>
+              )}
+              {/* Hover actions: pencil + automations */}
+              {!renaming && (
+                <>
+                  <span
+                    onClick={e => { e.stopPropagation(); setRenameVal(customLabel || col.label); setRenaming(true); }}
+                    style={{ fontSize: 11, color: headerHover ? '#94a3b8' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'color 0.15s', userSelect: 'none', padding: '0 2px' }}
+                    title="Renomear coluna"
+                  >✏</span>
+                  <span
+                    onClick={e => { e.stopPropagation(); onOpenAutomations(col); }}
+                    style={{ fontSize: 11, color: headerHover ? '#6366f1' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'color 0.15s', userSelect: 'none', padding: '0 2px' }}
+                    title="Automações desta coluna"
+                  >⚡</span>
+                </>
+              )}
+              <span style={{
+                fontSize: 11, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
+                background: tasks.length ? col.color : '#e2e8f0', color: tasks.length ? 'white' : '#94a3b8',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', flexShrink: 0,
+              }}>{tasks.length}</span>
+              <span style={{ fontSize: 10, color: '#94a3b8' }}>‹</span>
+            </>
+          )}
+          {collapsed && (
             <span style={{
               fontSize: 11, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
               background: tasks.length ? col.color : '#e2e8f0', color: tasks.length ? 'white' : '#94a3b8',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>{tasks.length}</span>
-            <span style={{ fontSize: 10, color: '#94a3b8' }}>‹</span>
-          </>
-        )}
-        {collapsed && (
-          <span style={{
-            fontSize: 11, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
-            background: tasks.length ? col.color : '#e2e8f0', color: tasks.length ? 'white' : '#94a3b8',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>{tasks.length}</span>
-        )}
+          )}
+        </div>
       </div>
 
       {!collapsed && (
@@ -255,6 +324,8 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
   );
 }
 
+
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function TasksKanban({ projectId = null }) {
   const [tasks, setTasks] = useState([]);
@@ -264,6 +335,19 @@ export default function TasksKanban({ projectId = null }) {
   const [filterPriority, setFilterPriority] = useState('');
   const [collapsed, setCollapsed] = useState({ done: true });
   const [newTaskModal, setNewTaskModal] = useState(false);
+  const [colOrder, setColOrder] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('nexus_task_col_order') || 'null');
+      if (Array.isArray(saved) && saved.length === COLUMNS.length) return saved;
+    } catch {}
+    return COLUMNS.map(c => c.id);
+  });
+  const [draggingColId, setDraggingColId] = useState(null);
+  const [dragOverColId, setDragOverColId] = useState(null);
+  const [colLabels, setColLabels] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('nexus_task_col_labels') || '{}'); } catch { return {}; }
+  });
+  const [boardView, setBoardView] = useState('kanban'); // 'kanban' | 'automations'
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -291,7 +375,36 @@ export default function TasksKanban({ projectId = null }) {
     e.dataTransfer.effectAllowed = 'move';
   };
 
+  const handleColDragStart = (e, colId) => {
+    e.dataTransfer.setData('colId', colId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingColId(colId);
+  };
+
+  const handleColDragOver = (e, colId) => {
+    if (!draggingColId || draggingColId === colId) return;
+    e.preventDefault();
+    setDragOverColId(colId);
+  };
+
+  const handleColDrop = (e, targetColId) => {
+    const srcColId = e.dataTransfer.getData('colId');
+    if (!srcColId || srcColId === targetColId) { setDraggingColId(null); setDragOverColId(null); return; }
+    setColOrder(prev => {
+      const next = [...prev];
+      const from = next.indexOf(srcColId);
+      const to = next.indexOf(targetColId);
+      next.splice(from, 1);
+      next.splice(to, 0, srcColId);
+      localStorage.setItem('nexus_task_col_order', JSON.stringify(next));
+      return next;
+    });
+    setDraggingColId(null);
+    setDragOverColId(null);
+  };
+
   const handleDrop = async (e, colId) => {
+    if (e.dataTransfer.getData('colId')) return; // column reorder, not task drop
     const taskId = parseInt(e.dataTransfer.getData('taskId'));
     if (!taskId) return;
     const task = tasks.find(t => t.id === taskId);
@@ -351,6 +464,12 @@ export default function TasksKanban({ projectId = null }) {
 
   const toggleCollapse = (colId) => setCollapsed(prev => ({ ...prev, [colId]: !prev[colId] }));
 
+  const handleRenameCol = (colId, label) => {
+    const next = { ...colLabels, [colId]: label };
+    setColLabels(next);
+    localStorage.setItem('nexus_task_col_labels', JSON.stringify(next));
+  };
+
   // Filters
   const assignees = [...new Set(tasks.map(t => t.assigned_to).filter(Boolean))].sort();
   let filtered = tasks;
@@ -363,6 +482,10 @@ export default function TasksKanban({ projectId = null }) {
   const done = filtered.filter(t => t.status === 'done' || t.done).length;
   const overdue = filtered.filter(t => getColumnId(t) === 'overdue').length;
   const pct = total ? Math.round((done / total) * 100) : 0;
+
+  if (boardView === 'automations') {
+    return <TaskAutomationsView onClose={() => setBoardView('kanban')} colLabels={colLabels} />;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#f1f5f9' }}>
@@ -406,6 +529,10 @@ export default function TasksKanban({ projectId = null }) {
             style={{ padding: '5px 14px', borderRadius: 8, border: 'none', background: '#10b981', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             + Nova tarefa
           </button>
+          <button onClick={() => setBoardView('automations')}
+            style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: '#6366f1', display: 'flex', alignItems: 'center', gap: 5 }}>
+            ⚡ Automações
+          </button>
           <button onClick={fetchTasks}
             style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontSize: 12, color: '#64748b', fontFamily: 'inherit' }}>
             ↻
@@ -420,7 +547,7 @@ export default function TasksKanban({ projectId = null }) {
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', gap: 12, padding: '16px 20px', overflowX: 'auto', overflowY: 'hidden', alignItems: 'stretch' }}>
-          {COLUMNS.map(col => (
+          {colOrder.map(cid => COLUMNS.find(c => c.id === cid)).filter(Boolean).map(col => (
             <TaskColumn
               key={col.id}
               col={col}
@@ -431,6 +558,14 @@ export default function TasksKanban({ projectId = null }) {
               onCreateTask={handleCreate}
               collapsed={!!collapsed[col.id]}
               onToggleCollapse={toggleCollapse}
+              isDragging={draggingColId === col.id}
+              isDragOver={dragOverColId === col.id}
+              onColDragStart={handleColDragStart}
+              onColDragOver={handleColDragOver}
+              onColDrop={handleColDrop}
+              customLabel={colLabels[col.id]}
+              onRenameCol={handleRenameCol}
+              onOpenAutomations={() => setBoardView('automations')}
             />
           ))}
         </div>
@@ -446,6 +581,7 @@ export default function TasksKanban({ projectId = null }) {
           defaultProjectId={projectId}
         />
       )}
+
     </div>
   );
 }

@@ -262,6 +262,6 @@ def execute_workflow(
         result_log=result_log,
     )
     db.add(exe)
-    log_audit(db, "workflow_executed", "card", card_id, card.title, exec_name, details={"workflow": tpl.name, "status": status})
+    log_audit(db, "workflow_executed", "card", card_id, card.title, exec_name, details={"workflow_name": tpl.name, "status": status})
     db.commit()
     return {"status": status, "steps": result_log}

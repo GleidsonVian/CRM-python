@@ -61,6 +61,16 @@ const OPERATORS_BY_TYPE = {
     { value: '==', label: 'é'     },
     { value: '!=', label: 'não é' },
   ],
+  date: [
+    { value: '==', label: 'igual a'        },
+    { value: '!=', label: 'diferente de'   },
+    { value: '>',  label: 'depois de'      },
+    { value: '<',  label: 'antes de'       },
+  ],
+  boolean: [
+    { value: '==', label: 'é verdadeiro'  },
+    { value: '!=', label: 'é falso'       },
+  ],
 };
 
 const VARIABLES = [
@@ -96,11 +106,11 @@ function createStep(type) {
   }
 }
 
-function parseFlow(configStr) {
-  if (!configStr) return [];
+function parseFlow(configOrStr) {
+  if (!configOrStr) return [];
   try {
-    const p = JSON.parse(configStr);
-    if (p.version === 1) return p.steps || [];
+    const p = typeof configOrStr === 'string' ? JSON.parse(configOrStr) : configOrStr;
+    if (p && p.version === 1) return p.steps || [];
   } catch {}
   return [];
 }
@@ -554,10 +564,32 @@ function VarChip({ varKey, onInsert }) {
   );
 }
 
+// Maps backend field_type to the condition type system
+function cfTypeToCondType(field_type) {
+  if (field_type === 'number' || field_type === 'currency') return 'number';
+  if (field_type === 'date')    return 'date';
+  if (field_type === 'boolean') return 'boolean';
+  return 'text'; // text, textarea, select, multiselect → text operators
+}
+
 // ── Condition Editor (Se/Então visual builder) ────────────────────────────────
 function ConditionEditor({ step, onChange }) {
-  const [pipelines, setPipelines] = useState([]);
-  const [stages, setStages]       = useState([]);
+  const [pipelines, setPipelines]   = useState([]);
+  const [stages, setStages]         = useState([]);
+  const [customFields, setCustomFields] = useState([]);
+
+  useEffect(() => {
+    const auth = { Authorization: `Bearer ${localStorage.getItem('nexus_token')}` };
+    Promise.all([
+      fetch(`${API}/custom-fields?entity=deal`,    { headers: auth }).then(r => r.json()).catch(() => []),
+      fetch(`${API}/custom-fields?entity=contact`, { headers: auth }).then(r => r.json()).catch(() => []),
+    ]).then(([deals, contacts]) => {
+      setCustomFields([
+        ...deals.map(f => ({ group: 'Campos personalizados — Negócio', value: `custom.${f.key}`, label: f.name, type: cfTypeToCondType(f.field_type), options: f.options })),
+        ...contacts.map(f => ({ group: 'Campos personalizados — Contato', value: `custom_contact.${f.key}`, label: f.name, type: cfTypeToCondType(f.field_type), options: f.options })),
+      ]);
+    });
+  }, []);
 
   const cond = (() => {
     try { return JSON.parse(step.condition || '{}'); } catch { return {}; }
@@ -567,7 +599,8 @@ function ConditionEditor({ step, onChange }) {
     onChange({ ...step, condition: JSON.stringify({ ...cond, ...updates }) });
   };
 
-  const fieldDef  = CONDITION_FIELDS.find(f => f.value === cond.field);
+  const allConditionFields = [...CONDITION_FIELDS, ...customFields];
+  const fieldDef  = allConditionFields.find(f => f.value === cond.field);
   const operators = OPERATORS_BY_TYPE[fieldDef?.type || 'text'] || [];
 
   useEffect(() => {
@@ -593,13 +626,15 @@ function ConditionEditor({ step, onChange }) {
   );
 
   const typeColors = {
-    number: { bg: '#fef3c7', color: '#b45309', label: 'numérico' },
-    text:   { bg: '#f0fdf4', color: '#166534', label: 'texto'    },
-    stage:  { bg: '#e0f2fe', color: '#0369a1', label: 'lista'    },
+    number:  { bg: '#fef3c7', color: '#b45309', label: 'numérico' },
+    text:    { bg: '#f0fdf4', color: '#166534', label: 'texto'    },
+    stage:   { bg: '#e0f2fe', color: '#0369a1', label: 'lista'    },
+    date:    { bg: '#fdf2f8', color: '#9d174d', label: 'data'     },
+    boolean: { bg: '#f5f3ff', color: '#6d28d9', label: 'booleano' },
   };
   const tc = typeColors[fieldDef?.type] || {};
 
-  const groups = [...new Set(CONDITION_FIELDS.map(f => f.group))];
+  const groups = [...new Set(allConditionFields.map(f => f.group))];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -615,7 +650,7 @@ function ConditionEditor({ step, onChange }) {
           <option value="">Selecionar campo...</option>
           {groups.map(group => (
             <optgroup key={group} label={group}>
-              {CONDITION_FIELDS.filter(f => f.group === group).map(f => (
+              {allConditionFields.filter(f => f.group === group).map(f => (
                 <option key={f.value} value={f.value}>{f.label}</option>
               ))}
             </optgroup>
@@ -744,6 +779,35 @@ function ConditionEditor({ step, onChange }) {
           />
           <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
             Suporta variáveis: <code style={{ fontSize: 9 }}>{'{{deal.title}}'}</code>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3 — Value (date) */}
+      {cond.field && cond.operator && fieldDef?.type === 'date' && (
+        <div>
+          <Lbl>3. Valor</Lbl>
+          <input
+            type="date"
+            className="form-input"
+            style={{ fontSize: 12 }}
+            value={cond.value || ''}
+            onChange={e => setCond({ value: e.target.value })}
+          />
+        </div>
+      )}
+
+      {/* Step 3 — Value (boolean) */}
+      {cond.field && cond.operator && fieldDef?.type === 'boolean' && (
+        <div>
+          <Lbl>3. Valor</Lbl>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[{ v: 'true', label: 'Verdadeiro ✓' }, { v: 'false', label: 'Falso ✗' }].map(opt => (
+              <button key={opt.v} onClick={() => setCond({ value: opt.v })}
+                style={{ flex: 1, padding: '6px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: cond.value === opt.v ? 700 : 500, border: `2px solid ${cond.value === opt.v ? '#8b5cf6' : '#e2e8f0'}`, background: cond.value === opt.v ? '#f5f3ff' : 'white', color: cond.value === opt.v ? '#7c3aed' : '#475569' }}>
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
       )}
