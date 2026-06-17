@@ -89,6 +89,7 @@ class Stage(Base):
     order = Column(Integer, default=0)
     color = Column(String, default="#0f6e9f")
     pipeline_id = Column(Integer, ForeignKey("pipelines.id"))
+    is_terminal = Column(Boolean, default=False)
     pipeline = relationship("Pipeline", back_populates="stages")
     cards = relationship("Card", back_populates="stage", cascade="all, delete-orphan")
     leads = relationship("Lead", back_populates="stage", cascade="all, delete-orphan")

@@ -110,6 +110,7 @@ _MIGRATIONS = [
 )""",
     "CREATE TABLE IF NOT EXISTS stage_required_fields (id INTEGER PRIMARY KEY AUTOINCREMENT, stage_id INTEGER REFERENCES stages(id) ON DELETE CASCADE, field_type VARCHAR, field_key VARCHAR, custom_field_id INTEGER REFERENCES custom_fields(id) ON DELETE CASCADE)",
     "ALTER TABLE automation_rules ADD COLUMN entity_type VARCHAR DEFAULT 'deal'",
+    "ALTER TABLE stages ADD COLUMN is_terminal BOOLEAN DEFAULT 0",
     """CREATE TABLE IF NOT EXISTS workflow_templates (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR,
@@ -148,6 +149,15 @@ with engine.connect() as _conn:
             pass
 
 log.info("migrations applied")
+
+# Backfill is_terminal for existing terminal stages
+with engine.connect() as _conn:
+    try:
+        names = "('Negócios Fechados','Negócios Perdidos','Analisar falha')"
+        _conn.execute(text(f"UPDATE stages SET is_terminal=1 WHERE name IN {names} AND (is_terminal IS NULL OR is_terminal=0)"))
+        _conn.commit()
+    except Exception:
+        pass
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
@@ -194,7 +204,7 @@ app.add_middleware(
 # ── Routers ───────────────────────────────────────────────────────────────────
 
 from routers import auth, pipelines, cards, leads, contacts, companies
-from routers import webhooks, automations, tasks, roles, reports, misc
+from routers import webhooks, automations, tasks, roles, reports, misc, workflows
 
 app.include_router(auth.router)
 app.include_router(pipelines.router)
@@ -208,8 +218,11 @@ app.include_router(tasks.router)
 app.include_router(roles.router)
 app.include_router(reports.router)
 app.include_router(misc.router)
+app.include_router(workflows.router)
 
 # ── Startup seed ──────────────────────────────────────────────────────────────
+
+_TERMINAL_STAGE_NAMES = {"Negócios Fechados", "Negócios Perdidos", "Analisar falha"}
 
 def _create_default_negocios_stages(db: Session, pipeline_id: int):
     stages = [
@@ -223,7 +236,11 @@ def _create_default_negocios_stages(db: Session, pipeline_id: int):
         {"name": "Analisar falha",       "color": "#dc2626"},
     ]
     for i, stg in enumerate(stages):
-        db.add(models.Stage(name=stg["name"], color=stg["color"], order=i, pipeline_id=pipeline_id))
+        db.add(models.Stage(
+            name=stg["name"], color=stg["color"], order=i,
+            pipeline_id=pipeline_id,
+            is_terminal=stg["name"] in _TERMINAL_STAGE_NAMES,
+        ))
     db.commit()
 
 

@@ -81,6 +81,7 @@ class StageCreate(StageBase):
 
 class Stage(StageBase):
     id: int
+    is_terminal: bool = False
     cards: List[Card] = []
 
     class Config:
