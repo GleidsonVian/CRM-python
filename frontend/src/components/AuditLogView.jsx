@@ -84,7 +84,7 @@ function EntityBadge({ entityType, entityName }) {
 function DetailsCell({ details }) {
   if (!details) return <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>—</span>;
   try {
-    const obj = JSON.parse(details);
+    const obj = typeof details === 'string' ? JSON.parse(details) : details;
     const entries = Object.entries(obj);
     if (entries.length === 0) return <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>—</span>;
     return (
@@ -97,7 +97,8 @@ function DetailsCell({ details }) {
       </span>
     );
   } catch {
-    return <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{details}</span>;
+    const str = typeof details === 'string' ? details : JSON.stringify(details);
+    return <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{str}</span>;
   }
 }
 

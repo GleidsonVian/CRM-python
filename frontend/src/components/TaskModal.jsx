@@ -231,6 +231,10 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
   const [leadId, setLeadId]     = useState(initialTask.lead_id || '');
   const [projectId, setProjectId] = useState(initialTask.project_id || defaultProjectId || '');
   const [saving, setSaving]     = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const saveTimerRef = useRef(null);
+  const isDirtyRef = useRef(false);
+  const isInitialMountRef = useRef(true);
 
   const [allUsers, setAllUsers] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
@@ -282,6 +286,37 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
         .catch(() => {});
     }
   }, [initialTask.id]);
+
+  // Autosave for existing tasks (debounced 800ms)
+  useEffect(() => {
+    if (isNew) return;
+    if (isInitialMountRef.current) { isInitialMountRef.current = false; return; }
+    isDirtyRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    const payload = {
+      title: title.trim() || 'Sem título', description, status, priority,
+      due_date: dueDate || null, assigned_to: assignedTo,
+      card_id: cardId ? parseInt(cardId) : null,
+      lead_id: leadId ? parseInt(leadId) : null,
+      project_id: projectId ? parseInt(projectId) : null,
+      done: status === 'done', participants: '[]',
+    };
+    saveTimerRef.current = setTimeout(async () => {
+      setSaveStatus('saving');
+      isDirtyRef.current = false;
+      try {
+        const updated = await fetch(`${API}/tasks/${initialTask.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify(payload),
+        }).then(r => r.json());
+        onSave(updated);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+      } catch { setSaveStatus(null); }
+    }, 800);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [title, description, status, priority, dueDate, assignedTo, cardId, leadId, projectId]); // eslint-disable-line
 
   const handleSave = async () => {
     setSaving(true);
@@ -357,7 +392,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
   const isOverdue = dueDate && status !== 'done' && new Date(dueDate) < new Date();
 
   const Lbl = ({ children }) => (
-    <label style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 5 }}>
+    <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
       {children}
     </label>
   );
@@ -368,47 +403,54 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
       onClick={onClose}
     >
       <div
-        style={{ width: 860, maxHeight: '90vh', background: 'white', borderRadius: 16, display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.25)', overflow: 'hidden' }}
+        style={{ width: 'min(1100px, 96vw)', maxHeight: '94vh', background: 'white', borderRadius: 16, display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.25)', overflow: 'hidden' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        <div style={{ padding: '16px 22px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
             {!isNew && (
-              <code style={{ fontSize: 11, background: '#1e293b', color: '#f59e0b', padding: '2px 8px', borderRadius: 5, fontWeight: 700 }}>
+              <code style={{ fontSize: 12, background: '#1e293b', color: '#f59e0b', padding: '3px 10px', borderRadius: 5, fontWeight: 700 }}>
                 {initialTask.uid || `#${initialTask.id}`}
               </code>
             )}
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 5 }}>
               {PRIORITIES.map(p => (
                 <button key={p.id} onClick={() => setPriority(p.id)} title={p.label}
-                  style={{ padding: '2px 7px', borderRadius: 5, border: `1.5px solid ${priority === p.id ? p.color : '#e2e8f0'}`, background: priority === p.id ? p.color + '15' : 'white', color: priority === p.id ? p.color : '#94a3b8', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                  style={{ padding: '4px 10px', borderRadius: 6, border: `1.5px solid ${priority === p.id ? p.color : '#e2e8f0'}`, background: priority === p.id ? p.color + '15' : 'white', color: priority === p.id ? p.color : '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s' }}>
                   {p.icon} {p.label}
                 </button>
               ))}
             </div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
-              {isOverdue && <span style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '2px 8px', borderRadius: 5, border: '1px solid #fecaca' }}>⚠ Atrasado</span>}
-              {!isNew && <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 11 }}>Excluir</button>}
-              <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 11 }}>
-                {saving ? 'Salvando...' : isNew ? 'Criar tarefa' : 'Salvar'}
-              </button>
-              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, lineHeight: 1, padding: '0 2px' }}>×</button>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+              {isOverdue && <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>⚠ Atrasado</span>}
+              {!isNew && <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 13 }}>Excluir</button>}
+              {isNew ? (
+                <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13 }}>
+                  {saving ? 'Salvando...' : 'Criar tarefa'}
+                </button>
+              ) : (
+                <>
+                  {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                  {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                </>
+              )}
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>×</button>
             </div>
           </div>
 
           <input
-            style={{ width: '100%', fontSize: 19, fontWeight: 700, color: '#0f172a', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            style={{ width: '100%', fontSize: 22, fontWeight: 700, color: '#0f172a', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', boxSizing: 'border-box' }}
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="Título da tarefa..."
             autoFocus={isNew}
           />
 
-          <div style={{ display: 'flex', gap: 5, marginTop: 10 }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
             {STATUSES.map(s => (
               <button key={s.id} onClick={() => setStatus(s.id)}
-                style={{ padding: '4px 12px', borderRadius: 20, border: `1.5px solid ${status === s.id ? s.color : '#e2e8f0'}`, background: status === s.id ? s.color : 'white', color: status === s.id ? 'white' : '#64748b', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                style={{ padding: '5px 16px', borderRadius: 20, border: `1.5px solid ${status === s.id ? s.color : '#e2e8f0'}`, background: status === s.id ? s.color : 'white', color: status === s.id ? 'white' : '#64748b', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
                 {s.label}
               </button>
             ))}
@@ -418,12 +460,12 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
         {/* Body */}
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
           {/* Left: form */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', borderRight: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', borderRight: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             <div>
               <Lbl>Descrição</Lbl>
               <textarea
-                style={{ width: '100%', minHeight: 72, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' }}
+                style={{ width: '100%', minHeight: 90, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' }}
                 value={description}
                 onChange={e => setDesc(e.target.value)}
                 placeholder="Detalhes, contexto, critérios de conclusão..."
@@ -436,7 +478,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
               <div>
                 <Lbl>📅 Prazo</Lbl>
                 <input type="date"
-                  style={{ width: '100%', padding: '7px 10px', border: `1px solid ${isOverdue ? '#fecaca' : '#e2e8f0'}`, borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', color: isOverdue ? '#ef4444' : '#334155', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', border: `1px solid ${isOverdue ? '#fecaca' : '#e2e8f0'}`, borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: isOverdue ? '#ef4444' : '#334155', boxSizing: 'border-box' }}
                   value={dueDate} onChange={e => setDueDate(e.target.value)}
                 />
                 {isOverdue && <div style={{ fontSize: 10, color: '#ef4444', marginTop: 2 }}>Prazo vencido</div>}
@@ -444,13 +486,13 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
               <div>
                 <Lbl>👤 Responsável</Lbl>
                 {allUsers.length > 0 ? (
-                  <select style={{ width: '100%', padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
+                  <select style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
                     value={assignedTo} onChange={e => setAssigned(e.target.value)}>
                     <option value="">Sem responsável</option>
                     {allUsers.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                   </select>
                 ) : (
-                  <input style={{ width: '100%', padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#334155', boxSizing: 'border-box' }}
+                  <input style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#334155', boxSizing: 'border-box' }}
                     value={assignedTo} onChange={e => setAssigned(e.target.value)} placeholder="Nome do responsável..." />
                 )}
               </div>
@@ -459,7 +501,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
             {/* Project */}
             <div>
               <Lbl>📁 Projeto</Lbl>
-              <select style={{ width: '100%', padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
+              <select style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
                 value={projectId} onChange={e => setProjectId(e.target.value)}>
                 <option value="">Nenhum</option>
                 {allProjects.map(p => <option key={p.id} value={p.id}>{p.icon} {p.name}</option>)}
@@ -548,13 +590,13 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
           </div>
 
           {/* Right: notes */}
-          <div style={{ width: 260, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fafafa' }}>
-            <div style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
+          <div style={{ width: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fafafa' }}>
+            <div style={{ padding: '12px 14px', borderBottom: '1px solid #f1f5f9', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
               Notas
             </div>
-            <div style={{ padding: '8px 10px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+            <div style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
               <input
-                style={{ width: '100%', padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12, fontFamily: 'inherit', outline: 'none', background: 'white', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', boxSizing: 'border-box' }}
                 placeholder="Adicionar nota... (Enter)"
                 value={newNote}
                 onChange={e => setNewNote(e.target.value)}

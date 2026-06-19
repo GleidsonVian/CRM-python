@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
 import CustomFieldValues from './CustomFieldValues';
 import TaskModal from './TaskModal';
 import { useConfirm } from '../App';
+import { useAuth } from '../AuthContext';
 
 import { API_URL as API } from '../config.js';
 
@@ -176,6 +177,11 @@ const NATIVE_FIELDS = [
 
 export default function CardModal({ card, stages, onClose, onSave, onDelete, isLead = false, onConvert, onDuplicate }) {
   const entityBase = isLead ? 'leads' : 'cards';
+  const { token, user } = useAuth();
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
   const [title, setTitle] = useState(card.title || '');
   const [price, setPrice] = useState(card.price || 0);
   const [description, setDescription] = useState(card.description || '');
@@ -211,13 +217,18 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const [workflows, setWorkflows] = useState([]);
   const [workflowMsg, setWorkflowMsg] = useState({});  // { [wfId]: { status, text } }
 
+  const [saveStatus, setSaveStatus] = useState(null); // null | 'saving' | 'saved'
+  const saveTimerRef = useRef(null);
+  const isDirtyRef = useRef(false);
+  const isInitialMountRef = useRef(true);
+
   const fetchWorkflows = async () => {
     try {
       const entityParam = isLead ? 'lead' : 'deal';
       const pipelineId = stages?.[0]?.pipeline_id;
       let url = `${API}/workflows?entity_type=${entityParam}`;
       if (pipelineId) url += `&pipeline_id=${pipelineId}`;
-      const res = await fetch(url);
+      const res = await authFetch(url);
       const data = await res.json();
       setWorkflows(Array.isArray(data) ? data : []);
     } catch {}
@@ -226,18 +237,20 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const executeWorkflow = async (wfId) => {
     setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'loading', text: 'Executando…' } }));
     try {
-      const token = localStorage.getItem('nexus_token');
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${API}/workflows/${wfId}/execute`, {
+      const res = await authFetch(`${API}/workflows/${wfId}/execute`, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ card_id: card.id }),
       });
       const data = await res.json();
       if (res.ok && data.status === 'completed') {
         setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'ok', text: `Concluído (${data.steps?.length || 0} etapa(s))` } }));
+        // Reload card data so responsible/fields reflect changes without F5
+        authFetch(`${API}/${entityBase}/${card.id}`).then(r => r.json()).then(updated => {
+          onSave?.(card.id, updated);
+        }).catch(() => {});
         fetchActivities();
+        fetchHistory();
       } else {
         const failedStep = data.steps?.find(s => s.status === 'error');
         setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'error', text: failedStep?.msg || data.detail || 'Falha na execução' } }));
@@ -262,33 +275,34 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
 
   const fetchActivities = async () => {
     try {
-      const res = await fetch(`${API}/${entityBase}/${card.id}/activities`);
-      setActivities(await res.json());
+      const res = await authFetch(`${API}/${entityBase}/${card.id}/activities`);
+      const data = await res.json();
+      setActivities(Array.isArray(data) ? [...data].reverse() : []);
     } catch {}
   };
 
   const fetchComments = async () => {
     if (isLead) return;
-    try { setComments(await fetch(`${API}/cards/${card.id}/comments`).then(r => r.json())); } catch {}
+    try { setComments(await authFetch(`${API}/cards/${card.id}/comments`).then(r => r.json())); } catch {}
   };
 
   const fetchTasks = async () => {
     if (isLead) return;
-    try { setTasks(await fetch(`${API}/cards/${card.id}/tasks`).then(r => r.json())); } catch {}
+    try { setTasks(await authFetch(`${API}/cards/${card.id}/tasks`).then(r => r.json())); } catch {}
   };
 
   const fetchHistory = async () => {
     if (isLead) return;
     try {
-      const data = await fetch(`${API}/audit-log?entity_type=card&entity_id=${card.id}&limit=50`).then(r => r.json());
+      const data = await authFetch(`${API}/audit-log?entity_type=card&entity_id=${card.id}&limit=50`).then(r => r.json());
       setHistoryItems(data.items || []);
     } catch {}
   };
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/contacts`).then(r => r.json()),
-      fetch(`${API}/users`).then(r => r.json())
+      authFetch(`${API}/contacts`).then(r => r.json()),
+      authFetch(`${API}/users`).then(r => r.json())
     ]).then(([ctxs, usrs]) => {
       setAllContacts(ctxs);
       setAllUsers(usrs);
@@ -296,7 +310,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     fetchActivities();
     fetchComments();
     fetchTasks();
-    fetch(`${API}/custom-fields?entity=deal`)
+    authFetch(`${API}/custom-fields?entity=deal`)
       .then(r => r.json()).then(setCustomFields).catch(() => {});
   }, [card.id]);
 
@@ -306,6 +320,33 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Autosave on any field change (debounced 800ms)
+  useEffect(() => {
+    if (isInitialMountRef.current) { isInitialMountRef.current = false; return; }
+    isDirtyRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    const payload = {
+      ...card,
+      title, price: parseFloat(price) || 0, description,
+      stage_id: stageId,
+      contact_ids: selectedContacts.map(c => c.id),
+      user_ids: selectedUsers.map(u => u.id),
+      source, source_info: sourceInfo, deal_type: dealType,
+      start_date: startDate, available_to_all: availableToAll,
+      observers, comment,
+    };
+    saveTimerRef.current = setTimeout(async () => {
+      setSaveStatus('saving');
+      isDirtyRef.current = false;
+      try {
+        await onSave(card.id, payload);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+      } catch { setSaveStatus(null); }
+    }, 800);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [title, price, description, source, sourceInfo, dealType, startDate, availableToAll, observers, comment, selectedContacts, selectedUsers]); // eslint-disable-line
 
   const buildPayload = (overrideStage) => ({
     ...card,
@@ -324,9 +365,21 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     comment,
   });
 
-  const handleSave = async () => {
-    await onSave(card.id, buildPayload());
-    await fetchActivities();
+  const handleSave = () => {
+    clearTimeout(saveTimerRef.current);
+    isDirtyRef.current = false;
+    setSaveStatus('saving');
+    onSave(card.id, buildPayload()).then(() => {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+    }).catch(() => setSaveStatus(null));
+  };
+
+  const handleClose = () => {
+    if (isDirtyRef.current) {
+      clearTimeout(saveTimerRef.current);
+      onSave(card.id, buildPayload()); // fire and forget
+    }
     onClose();
   };
 
@@ -373,10 +426,10 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     }
     if (e.key !== 'Enter' || !newNote.trim()) return;
     try {
-      await fetch(`${API}/${entityBase}/${card.id}/activities`, {
+      await authFetch(`${API}/${entityBase}/${card.id}/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'note', content: newNote.trim(), actor: 'Usuário' })
+        body: JSON.stringify({ type: 'note', content: newNote.trim(), actor: user?.user_name || 'Usuário' })
       });
       setNewNote('');
       setMentionOpen(false);
@@ -387,10 +440,10 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const handlePostComment = async () => {
     if (!newComment.trim()) return;
     try {
-      await fetch(`${API}/comments`, {
+      await authFetch(`${API}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_id: card.id, author: commentAuthor || 'Usuário', content: newComment.trim() })
+        body: JSON.stringify({ card_id: card.id, author: user?.user_name || commentAuthor || 'Usuário', content: newComment.trim() })
       });
       setNewComment('');
       await fetchComments();
@@ -398,23 +451,23 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   };
 
   const handleDeleteComment = async (id) => {
-    await fetch(`${API}/comments/${id}`, { method: 'DELETE' });
+    await authFetch(`${API}/comments/${id}`, { method: 'DELETE' });
     await fetchComments();
   };
 
   const handleToggleTask = async (id) => {
-    await fetch(`${API}/tasks/${id}/toggle`, { method: 'PATCH' });
+    await authFetch(`${API}/tasks/${id}/toggle`, { method: 'PATCH' });
     await fetchTasks();
   };
 
   const handleDeleteTask = async (id) => {
-    await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+    await authFetch(`${API}/tasks/${id}`, { method: 'DELETE' });
     await fetchTasks();
   };
 
   const handleCreateTask = async () => {
     if (!newTask.title.trim()) return;
-    await fetch(`${API}/tasks`, {
+    await authFetch(`${API}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ card_id: card.id, ...newTask })
@@ -431,7 +484,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     setDuplicating(true);
     setDupError('');
     try {
-      const res = await fetch(`${API}/cards/${card.id}/duplicate`, { method: 'POST' });
+      const res = await authFetch(`${API}/cards/${card.id}/duplicate`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || `HTTP ${res.status}`);
@@ -530,10 +583,9 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                 >
                   Excluir
                 </button>
-                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSave}>
-                  Salvar
-                </button>
-                <button className="icon-btn" onClick={onClose}><IconX /></button>
+                {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                <button className="icon-btn" onClick={handleClose}><IconX /></button>
               </div>
             </div>
 
@@ -1045,18 +1097,23 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     const actionColors = {
                       created: '#10b981', updated: '#3b82f6', deleted: '#ef4444',
                       moved: '#f59e0b', converted: '#8b5cf6', login: '#94a3b8',
+                      workflow_executed: '#6366f1',
                     };
                     const actionLabels = {
                       created: 'Criou', updated: 'Editou', deleted: 'Excluiu',
                       moved: 'Moveu', converted: 'Converteu', login: 'Acessou',
+                      workflow_executed: 'Executou fluxo',
                     };
                     const color = actionColors[item.action] || '#94a3b8';
                     const label = actionLabels[item.action] || item.action;
                     let details = null;
+                    let workflowName = null;
                     if (item.details) {
                       try {
-                        const d = JSON.parse(item.details);
-                        if (d.new_stage_id) details = `→ etapa #${d.new_stage_id}`;
+                        const d = typeof item.details === 'string' ? JSON.parse(item.details) : item.details;
+                        if (item.action === 'workflow_executed') workflowName = d.workflow_name || d.workflow || null;
+                        else if (d.new_stage_name) details = d.new_stage_name;
+                        else if (d.new_stage_id) details = `etapa #${d.new_stage_id}`;
                         else if (d.duplicated_from) details = `(cópia do #${d.duplicated_from})`;
                       } catch {}
                     }
@@ -1066,9 +1123,17 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>
                             <span style={{ fontWeight: 600 }}>{item.actor}</span>
-                            {' '}<span style={{ color }}>{label}</span>
-                            {' '}este negócio
-                            {details && <span style={{ color: '#64748b' }}> {details}</span>}
+                            {item.action === 'workflow_executed' ? (
+                              <> <span style={{ color }}>executou o fluxo</span>{' '}
+                              <span style={{ fontWeight: 600, color: '#6366f1' }}>{workflowName || '—'}</span></>
+                            ) : item.action === 'moved' ? (
+                              <> <span style={{ color }}>moveu para</span>{' '}
+                              <span style={{ fontWeight: 600, color }}>{details || `etapa #${item.entity_id}`}</span></>
+                            ) : (
+                              <> <span style={{ color }}>{label}</span>
+                              {' '}este negócio
+                              {details && <span style={{ color: '#64748b' }}> {details}</span>}</>
+                            )}
                           </div>
                           <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>
                             {item.created_at ? relTime(item.created_at) : ''}

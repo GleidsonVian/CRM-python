@@ -202,7 +202,7 @@ export default function KanbanColumn({
           <div className="inline-actions">
             <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveStage}>OK</button>
             <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setIsEditingStage(false)}>Cancelar</button>
-            {!confirmDelete ? (
+            {!stage.is_terminal && (!confirmDelete ? (
               <button
                 className="btn btn-ghost"
                 style={{ fontSize: 12, color: '#ef4444' }}
@@ -214,7 +214,7 @@ export default function KanbanColumn({
                 <button className="btn btn-ghost" style={{ fontSize: 12, color: '#ef4444' }} onClick={() => onDeleteStage(stage.id)}>Sim</button>
                 <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setConfirmDelete(false)}>Não</button>
               </>
-            )}
+            ))}
           </div>
 
           {/* Required fields config */}

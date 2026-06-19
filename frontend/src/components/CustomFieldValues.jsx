@@ -701,14 +701,14 @@ export default function CustomFieldValues({
           {/* Drag handle */}
           <span style={{ color: '#d1d5db', fontSize: 11, flexShrink: 0, cursor: 'grab' }}>⋮⋮</span>
 
-          {/* Type chip */}
+          {/* Type chip — subtle */}
           <span style={{
-            fontSize: 9, fontWeight: 800, color: '#8b5cf6', background: '#f3e8ff',
-            padding: '1px 4px', borderRadius: 3, flexShrink: 0,
+            fontSize: 9, color: '#cbd5e1',
+            flexShrink: 0,
           }}>{tm?.icon}</span>
 
           {/* Name */}
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#475569', flex: 1 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', flex: 1 }}>
             {field.name}
             {field.required && <span style={{ color: '#ef4444', fontSize: 10, marginLeft: 2 }}>*</span>}
             <UidBadge field={field} showIds={showIds} />
@@ -801,17 +801,16 @@ export default function CustomFieldValues({
   const renderNativeField = (nf) => {
     const isDragging = dragFieldId === nf.id;
     return (
-      <div key={nf.id} style={{ opacity: isDragging ? 0.35 : 1 }}>
+      <div key={nf.id} style={{ opacity: isDragging ? 0.35 : 1, marginBottom: 16 }}>
         {/* Draggable label */}
         <div
           draggable
           onDragStart={e => onDragStart(e, nf.id, 'native')}
           onDragEnd={onDragEnd}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4, cursor: 'grab', userSelect: 'none' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, cursor: 'grab', userSelect: 'none' }}
         >
-          <span style={{ color: '#d1d5db', fontSize: 11, flexShrink: 0 }}>⋮⋮</span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: '#0ea5e9', background: '#e0f2fe', padding: '1px 5px', borderRadius: 3, flexShrink: 0 }}>◆</span>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#475569', flex: 1 }}>{nf.name}</label>
+          <span style={{ color: '#cbd5e1', fontSize: 10, flexShrink: 0 }}>⋮⋮</span>
+          <label style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', flex: 1 }}>{nf.name}</label>
         </div>
         {/* Content rendered by caller */}
         {nf.renderContent()}

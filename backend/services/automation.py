@@ -110,8 +110,10 @@ def _run_action(step_type: str, cfg: dict, vars: dict, card, db):
         uid = cfg.get('user_id')
         if uid:
             user = db.query(models.User).filter(models.User.id == int(uid)).first()
-            if user and user not in card.users:
-                card.users.append(user)
+            if user:
+                card.responsible_user_id = user.id
+                if user not in card.users:
+                    card.users.append(user)
                 db.commit()
                 _log_activity(db, card.id, 'user_assigned', f'Responsável {user.name} atribuído', actor='Automação')
 

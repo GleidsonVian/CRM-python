@@ -7,7 +7,7 @@ from typing import List, Optional
 import models, schemas
 from database import get_db
 from services.auth import log_audit
-from services.webhooks_svc import _fire_outbound_webhooks
+from services.webhooks_svc import _fire_outbound_webhooks, build_card_payload
 from services.permissions import _get_user_permissions, _resolve_read_scope
 from services.helpers import (
     _sync_relations, _with_cf, _list_with_cf, _check_stage_requirements
@@ -93,7 +93,7 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_card)
     log_audit(db, "created", "card", db_card.id, db_card.title)
-    _fire_outbound_webhooks("card.created", "cards", {"id": db_card.id, "title": db_card.title, "stage_id": db_card.stage_id})
+    _fire_outbound_webhooks("card.created", "cards", build_card_payload(db_card, db))
     return db_card
 
 
@@ -185,6 +185,7 @@ def update_card(card_id: int, card_data: schemas.CardBase, db: Session = Depends
     db.commit()
     db.refresh(card)
     log_audit(db, "updated", "card", card_id, card.title)
+    _fire_outbound_webhooks("card.updated", "cards", build_card_payload(card, db))
     return card
 
 
@@ -196,6 +197,7 @@ def delete_card(card_id: int, db: Session = Depends(get_db)):
     card.deleted_at = datetime.now(timezone.utc)
     db.commit()
     log_audit(db, "deleted", "card", card_id, card.title)
+    _fire_outbound_webhooks("card.deleted", "cards", {"id": card_id, "title": card.title})
     return {"message": "Card moved to trash"}
 
 
@@ -240,7 +242,7 @@ def move_card(card_id: int, move_data: schemas.CardMove, background_tasks: Backg
 
     db.commit()
     db.refresh(card)
-    log_audit(db, "moved", "card", card_id, card.title, details={"new_stage_id": move_data.new_stage_id})
+    log_audit(db, "moved", "card", card_id, card.title, details={"new_stage_id": move_data.new_stage_id, "new_stage_name": new_stage.name})
 
     rules = db.query(models.AutomationRule).filter(
         models.AutomationRule.stage_id == new_stage.id,
@@ -306,9 +308,8 @@ def move_card_in_pipeline(
             background_tasks.add_task(_execute_rule, rule.id, card.id)
 
     _fire_outbound_webhooks("card.moved", "cards", {
-        "id": card.id, "title": card.title,
-        "pipeline_id": pipeline_id,
-        "stage_id": new_stage.id, "stage_name": new_stage.name,
+        **build_card_payload(card, db),
+        "previous_stage_id": None,  # kept for compatibility
     })
     return card
 

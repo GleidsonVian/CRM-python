@@ -75,13 +75,8 @@ function Wait-ForPort {
 
     $elapsed = 0
     while ($elapsed -lt $TimeoutSec) {
-        try {
-            $tcp = New-Object System.Net.Sockets.TcpClient
-            $ar  = $tcp.BeginConnect('127.0.0.1', $Port, $null, $null)
-            $ok  = $ar.AsyncWaitHandle.WaitOne(500)
-            if ($ok) { $tcp.EndConnect($ar); $tcp.Close(); return $true }
-            $tcp.Close()
-        } catch {}
+        $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+        if ($conn) { return $true }
         Start-Sleep -Milliseconds 500
         $elapsed += 0.5
         Write-Host '.' -NoNewline -ForegroundColor DarkGray
@@ -139,6 +134,16 @@ if (-not (Test-Path "$ROOT\frontend\node_modules")) {
 }
 
 Write-OK "Estrutura do projeto OK"
+Write-Host ""
+
+# --- Sincronizar dependencias Python ---
+Write-Step "Sincronizando dependencias Python (requirements.txt)..."
+& "$ROOT\backend\venv\Scripts\pip.exe" install -q -r "$ROOT\backend\requirements.txt"
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "Falha ao instalar dependencias Python."
+    Read-Host "Pressione Enter para sair"; exit 1
+}
+Write-OK "Dependencias Python OK"
 Write-Host ""
 
 # --- Liberar portas ---
@@ -212,6 +217,12 @@ Write-Host "  Acesse o sistema:   " -NoNewline -ForegroundColor White
 Write-Host "http://localhost:5173" -ForegroundColor Cyan
 Write-Host "  API (Swagger):      " -NoNewline -ForegroundColor White
 Write-Host "http://localhost:8001/docs" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  Login padrao:" -ForegroundColor DarkGray
+Write-Host "    Email:   " -NoNewline -ForegroundColor DarkGray
+Write-Host "admin@nexus.com" -ForegroundColor Yellow
+Write-Host "    Senha:   " -NoNewline -ForegroundColor DarkGray
+Write-Host "admin123" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  Para encerrar: feche esta janela (os processos sao encerrados)." -ForegroundColor DarkGray
 Write-Host ""

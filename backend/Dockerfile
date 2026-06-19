@@ -11,4 +11,4 @@ RUN mkdir -p uploads
 
 EXPOSE 8001
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["sh", "-c", "python migrate_add_columns.py && uvicorn main:app --host 0.0.0.0 --port 8001"]

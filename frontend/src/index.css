@@ -34,8 +34,8 @@
   --blue-light:     #eff6ff;
 
   /* ── Layout ── */
-  --sidebar-width:  220px;
-  --header-h:       54px;
+  --sidebar-width:  248px;
+  --header-h:       58px;
   --r:              7px;
   --r-lg:           11px;
   --r-xl:           16px;
@@ -65,28 +65,47 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+
+.sidebar-footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 6px 10px 8px;
 }
 
 .sidebar-logo {
   height: var(--header-h);
-  padding: 0 16px;
+  padding: 0 18px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
 }
 
 .logo-mark {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background: var(--accent);
-  border-radius: 7px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: -0.5px;
   flex-shrink: 0;
@@ -94,32 +113,32 @@ body {
 }
 
 .logo-text {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: rgba(255,255,255,0.94);
   letter-spacing: -0.2px;
 }
 
-.sidebar-section { padding: 6px 8px; }
+.sidebar-section { padding: 6px 10px; }
 
 .sidebar-section-label {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.22);
   text-transform: uppercase;
   letter-spacing: 0.9px;
-  padding: 10px 10px 4px;
+  padding: 12px 10px 5px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
+  gap: 10px;
+  padding: 8px 12px;
   border-radius: var(--r);
   cursor: pointer;
-  color: rgba(255,255,255,0.45);
-  font-size: 13px;
+  color: rgba(255,255,255,0.48);
+  font-size: 14px;
   font-weight: 500;
   transition: background 0.12s, color 0.12s;
   user-select: none;
@@ -664,12 +683,12 @@ body {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  padding: 5px 14px;
+  padding: 6px 16px;
   border-radius: 20px;
   border: 1.5px solid #e2e8f0;
   background: #f8fafc;
   color: #64748b;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
@@ -697,6 +716,8 @@ body {
 
 .form-group { margin-bottom: 15px; }
 
+.field-row { margin-bottom: 18px; }
+
 .form-label {
   display: block;
   font-size: 13px;
@@ -717,8 +738,8 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
@@ -734,8 +755,8 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
@@ -751,13 +772,13 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 9px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.55;
   transition: border-color 0.15s;
 }
 .standard-textarea:focus, .form-textarea:focus {
@@ -780,7 +801,7 @@ body {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
-.price-symbol { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+.price-symbol { font-size: 16px; color: var(--text-muted); font-weight: 600; }
 
 .price-input {
   border: none;

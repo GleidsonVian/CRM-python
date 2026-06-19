@@ -93,21 +93,48 @@ function Toggle({ value, onChange }) {
   );
 }
 
-function MultiCheckbox({ options, value, onChange, renderLabel }) {
+function MultiCheckbox({ options, value, onChange, renderLabel, colors }) {
+  const allSelected = options.every(o => value.includes(o));
+  const someSelected = options.some(o => value.includes(o)) && !allSelected;
+
   const toggle = (key) => {
     const set = new Set(value);
     set.has(key) ? set.delete(key) : set.add(key);
     onChange([...set]);
   };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      onChange(value.filter(v => !options.includes(v)));
+    } else {
+      const set = new Set([...value, ...options]);
+      onChange([...set]);
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px' }}>
-      {options.map(opt => (
-        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12 }}>
-          <input type="checkbox" checked={value.includes(opt)} onChange={() => toggle(opt)}
-            style={{ accentColor: ACCENT, width: 13, height: 13 }} />
-          {renderLabel ? renderLabel(opt) : opt}
-        </label>
-      ))}
+    <div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', marginBottom: 8 }}>
+        <input
+          type="checkbox"
+          checked={allSelected}
+          ref={el => { if (el) el.indeterminate = someSelected; }}
+          onChange={toggleAll}
+          style={{ accentColor: ACCENT, width: 13, height: 13 }}
+        />
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+          {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+        </span>
+      </label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', paddingLeft: 4 }}>
+        {options.map(opt => (
+          <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12 }}>
+            <input type="checkbox" checked={value.includes(opt)} onChange={() => toggle(opt)}
+              style={{ accentColor: ACCENT, width: 13, height: 13 }} />
+            {renderLabel ? renderLabel(opt) : opt}
+          </label>
+        ))}
+      </div>
     </div>
   );
 }
@@ -200,7 +227,8 @@ function OutboundGuide({ form, webhookId }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setTestResult(data);
+      // normalize: old backend returns {ok, message}, new returns {success, status_code, ...}
+      setTestResult({ ...data, success: data.success ?? data.ok ?? false });
     } catch (e) {
       setTestResult({ success: false, error: String(e) });
     }
@@ -299,8 +327,17 @@ function OutboundGuide({ form, webhookId }) {
                       {testResult.latency_ms && <span style={{ fontSize: 11, color: '#94a3b8' }}>{testResult.latency_ms}ms</span>}
                       <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>×</button>
                     </div>
-                    {testResult.error && (
-                      <div style={{ padding: '6px 12px', fontSize: 11, color: '#991b1b', background: '#fef2f2' }}>{testResult.error}</div>
+                    {!testResult.success && (
+                      <div style={{ padding: '6px 12px', fontSize: 11, color: '#991b1b', background: '#fef2f2', lineHeight: 1.5 }}>
+                        {testResult.status_code === 404
+                          ? '⚠️ URL retornou 404 — se estiver usando n8n, clique em "Listen for test event" no nó Webhook ANTES de disparar o teste.'
+                          : testResult.error || 'Erro desconhecido ao disparar o webhook.'}
+                      </div>
+                    )}
+                    {testResult.success && testResult.status_code && (
+                      <div style={{ padding: '6px 12px', fontSize: 11, color: '#166534', background: '#f0fdf4' }}>
+                        Resposta: {testResult.status_code} — a URL recebeu o payload com sucesso.
+                      </div>
                     )}
                   </div>
                 )}
@@ -719,8 +756,23 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
             {/* Eventos (outbound) */}
             {form.type === 'outbound' && (
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
-                  Eventos que disparam este webhook
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                    Eventos que disparam este webhook
+                  </div>
+                  {filteredEvents.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allKeys = filteredEvents.map(e => e.key);
+                        const allSelected = allKeys.every(k => form.events.includes(k));
+                        set('events')(allSelected ? form.events.filter(e => !allKeys.includes(e)) : [...new Set([...form.events, ...allKeys])]);
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: ACCENT, fontWeight: 600, padding: 0 }}
+                    >
+                      {filteredEvents.every(e => form.events.includes(e.key)) ? 'Desmarcar todos' : 'Selecionar todos'}
+                    </button>
+                  )}
                 </div>
                 <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>
                   Se nenhum for selecionado, todos os eventos das entidades serão disparados.
@@ -728,25 +780,61 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
                 {filteredEvents.length === 0 ? (
                   <div style={{ fontSize: 12, color: '#cbd5e1', fontStyle: 'italic' }}>Selecione ao menos uma entidade.</div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {ALL_ENTITIES
                       .filter(e => form.allowed_entities.length === 0 || form.allowed_entities.includes(e))
-                      .map(entity => (
-                        <div key={entity}>
-                          <div style={{ fontSize: 11, color: ENTITY_LABELS[entity].color, fontWeight: 700, marginBottom: 4 }}>
-                            {ENTITY_LABELS[entity].label}
+                      .map(entity => {
+                        const entityEvents = ALL_EVENTS.filter(ev => ev.entity === entity);
+                        const entityKeys = entityEvents.map(e => e.key);
+                        const allEntitySelected = entityKeys.every(k => form.events.includes(k));
+                        const someEntitySelected = entityKeys.some(k => form.events.includes(k)) && !allEntitySelected;
+                        return (
+                          <div key={entity} style={{ background: '#fafafa', border: '1px solid #f1f5f9', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span style={{ width: 7, height: 7, borderRadius: '50%', background: ENTITY_LABELS[entity].color, display: 'inline-block' }} />
+                                <span style={{ fontSize: 11, color: ENTITY_LABELS[entity].color, fontWeight: 700 }}>
+                                  {ENTITY_LABELS[entity].label}
+                                </span>
+                              </div>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={allEntitySelected}
+                                  ref={el => { if (el) el.indeterminate = someEntitySelected; }}
+                                  onChange={() => {
+                                    if (allEntitySelected) {
+                                      set('events')(form.events.filter(e => !entityKeys.includes(e)));
+                                    } else {
+                                      set('events')([...new Set([...form.events, ...entityKeys])]);
+                                    }
+                                  }}
+                                  style={{ accentColor: ACCENT, width: 13, height: 13 }}
+                                />
+                                <span style={{ fontSize: 11, color: '#64748b' }}>Todos</span>
+                              </label>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px' }}>
+                              {entityEvents.map(ev => (
+                                <label key={ev.key} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12 }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={form.events.includes(ev.key)}
+                                    onChange={() => {
+                                      const set2 = new Set(form.events);
+                                      set2.has(ev.key) ? set2.delete(ev.key) : set2.add(ev.key);
+                                      set('events')([...set2]);
+                                    }}
+                                    style={{ accentColor: ACCENT, width: 13, height: 13 }}
+                                  />
+                                  <span>{ev.label}</span>
+                                  <code style={{ fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }}>{ev.key}</code>
+                                </label>
+                              ))}
+                            </div>
                           </div>
-                          <MultiCheckbox
-                            options={ALL_EVENTS.filter(ev => ev.entity === entity).map(e => e.key)}
-                            value={form.events}
-                            onChange={set('events')}
-                            renderLabel={key => {
-                              const ev = ALL_EVENTS.find(e => e.key === key);
-                              return <span style={{ fontSize: 12 }}>{ev?.label || key}</span>;
-                            }}
-                          />
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -809,7 +897,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
     try {
       const res = await fetch(`${API}/webhooks/${wh.id}/test`, { method: 'POST' });
       const data = await res.json();
-      setTestResult(data);
+      setTestResult({ ...data, success: data.success ?? data.ok ?? false });
     } catch (e) {
       setTestResult({ success: false, error: String(e) });
     } finally {
@@ -984,20 +1072,36 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
       {/* Test result banner */}
       {testResult && (
         <div style={{
-          marginTop: 10, padding: '8px 12px',
-          background: testResult.success ? '#f0fdf4' : '#fef2f2',
+          marginTop: 10,
           border: `1px solid ${testResult.success ? '#bbf7d0' : '#fecaca'}`,
           borderRadius: 6, fontSize: 12,
-          display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <span>{testResult.success ? '✅' : '❌'}</span>
-          <span style={{ color: testResult.success ? '#166534' : '#991b1b', fontWeight: 600 }}>
-            {testResult.success ? 'Sucesso' : 'Falhou'}
-          </span>
-          {testResult.status_code && <span style={{ color: '#475569' }}>HTTP {testResult.status_code}</span>}
-          {testResult.latency_ms && <span style={{ color: '#94a3b8' }}>{testResult.latency_ms}ms</span>}
-          {testResult.error && <span style={{ color: '#991b1b' }}>{testResult.error}</span>}
-          <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>×</button>
+          <div style={{
+            padding: '8px 12px',
+            background: testResult.success ? '#f0fdf4' : '#fef2f2',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span>{testResult.success ? '✅' : '❌'}</span>
+            <span style={{ color: testResult.success ? '#166534' : '#991b1b', fontWeight: 600 }}>
+              {testResult.success ? 'Sucesso' : 'Falhou'}
+            </span>
+            {testResult.status_code && <span style={{ color: '#475569' }}>HTTP {testResult.status_code}</span>}
+            {testResult.latency_ms && <span style={{ color: '#94a3b8' }}>{testResult.latency_ms}ms</span>}
+            <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>×</button>
+          </div>
+          {!testResult.success && (
+            <div style={{ padding: '5px 12px', fontSize: 11, color: '#991b1b', background: '#fef2f2' }}>
+              {testResult.status_code === 404
+                ? '⚠️ 404 — se usar n8n, clique "Listen for test event" no nó Webhook antes de testar.'
+                : testResult.error || 'Não foi possível entregar o payload.'}
+            </div>
+          )}
+          {testResult.response_body && (
+            <details style={{ marginTop: 6, fontSize: 11, padding: '0 12px 8px' }}>
+              <summary style={{ cursor: 'pointer', color: '#475569', fontWeight: 600 }}>Ver resposta recebida</summary>
+              <pre style={{ marginTop: 4, padding: '6px 8px', background: '#f8fafc', borderRadius: 4, fontSize: 10, fontFamily: 'monospace', overflowX: 'auto', whiteSpace: 'pre-wrap', color: '#334155' }}>{testResult.response_body}</pre>
+            </details>
+          )}
         </div>
       )}
 

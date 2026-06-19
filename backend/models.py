@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Table, Boolean
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
@@ -89,6 +90,7 @@ class Stage(Base):
     order = Column(Integer, default=0)
     color = Column(String, default="#0f6e9f")
     pipeline_id = Column(Integer, ForeignKey("pipelines.id"))
+    is_terminal = Column(Boolean, default=False)
     pipeline = relationship("Pipeline", back_populates="stages")
     cards = relationship("Card", back_populates="stage", cascade="all, delete-orphan")
     leads = relationship("Lead", back_populates="stage", cascade="all, delete-orphan")
@@ -419,3 +421,97 @@ class WorkflowExecution(Base):
     status           = Column(String, default='completed')   # 'completed' | 'failed'
     result_log       = Column(JSON, default=list)
 
+
+class CRMForm(Base):
+    __tablename__ = "crm_forms"
+    id              = Column(Integer, primary_key=True, index=True)
+    name            = Column(String, default="Novo formulário")
+    uid             = Column(String, unique=True, index=True)
+    entity_type     = Column(String, default="lead")     # "lead" or "card"
+    pipeline_id     = Column(Integer, ForeignKey("pipelines.id", ondelete="SET NULL"), nullable=True)
+    stage_id        = Column(Integer, ForeignKey("stages.id", ondelete="SET NULL"), nullable=True)
+    is_active       = Column(Boolean, default=True)
+    title           = Column(String, default="")
+    subtitle        = Column(String, default="")
+    button_text     = Column(String, default="Enviar")
+    success_message = Column(String, default="Obrigado! Sua resposta foi registrada.")
+    fields_config   = Column(JSON, default=list)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+
+
+class CRMFormSubmission(Base):
+    __tablename__ = "crm_form_submissions"
+    id           = Column(Integer, primary_key=True, index=True)
+    form_id      = Column(Integer, ForeignKey("crm_forms.id", ondelete="SET NULL"), nullable=True)
+    form_uid     = Column(String)
+    form_name    = Column(String, default="")
+    entity_type  = Column(String)
+    entity_id    = Column(Integer, nullable=True)
+    data         = Column(JSON, default=dict)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TaskRule(Base):
+    __tablename__ = "task_rules"
+    id           = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name         = Column(String, default="Regra")
+    trigger_type = Column(String, nullable=False)   # status_changed | priority_changed | entered_column
+    trigger_value= Column(String, nullable=True)    # e.g. "done", "high", column id
+    column_id    = Column(String, nullable=True)    # column scope: None=global, or column id for per-column rules
+    action_type  = Column(String, nullable=False)   # set_status | set_priority | set_assigned_to
+    action_config= Column(JSON, default=dict)       # {"value": "..."}
+    enabled      = Column(Boolean, default=True)
+    created_at   = Column(DateTime, default=datetime.utcnow)
+
+
+# ── Smart Process Automation ──────────────────────────────────────────────────
+
+class SmartProcess(Base):
+    __tablename__ = "smart_processes"
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    name          = Column(String, nullable=False)
+    icon          = Column(String, default="📋")
+    color         = Column(String, default="#6366f1")
+    description   = Column(String, default="")
+    # fields_config: [{key, label, type, options, required}]
+    fields_config = Column(JSON, default=list)
+    # stages: [{name, color}]
+    stages        = Column(JSON, default=list)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    records       = relationship("SpRecord", back_populates="process",
+                                 cascade="all, delete-orphan")
+
+
+class SpRecord(Base):
+    __tablename__ = "sp_records"
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    process_id  = Column(Integer, ForeignKey("smart_processes.id", ondelete="CASCADE"))
+    title       = Column(String, nullable=False)
+    stage_index = Column(Integer, default=0)
+    data        = Column(JSON, default=dict)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    updated_at  = Column(DateTime, default=datetime.utcnow)
+    process     = relationship("SmartProcess", back_populates="records")
+    links       = relationship("SpRecordLink", back_populates="record",
+                               cascade="all, delete-orphan")
+    notes       = relationship("SpNote", back_populates="record",
+                               cascade="all, delete-orphan", order_by="SpNote.created_at.desc()")
+
+
+class SpRecordLink(Base):
+    __tablename__ = "sp_record_links"
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    record_id   = Column(Integer, ForeignKey("sp_records.id", ondelete="CASCADE"))
+    entity_type = Column(String)   # "card" | "lead" | "contact" | "company"
+    entity_id   = Column(Integer)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    record      = relationship("SpRecord", back_populates="links")
+
+class SpNote(Base):
+    __tablename__ = "sp_notes"
+    id        = Column(Integer, primary_key=True, autoincrement=True)
+    record_id = Column(Integer, ForeignKey("sp_records.id", ondelete="CASCADE"), index=True)
+    content   = Column(String)
+    actor     = Column(String, default="Usuário")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    record    = relationship("SpRecord", back_populates="notes")

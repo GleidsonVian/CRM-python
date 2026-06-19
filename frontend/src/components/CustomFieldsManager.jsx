@@ -4,11 +4,12 @@ import { useConfirm } from '../App';
 import { API_URL as API } from '../config.js';
 
 const ENTITIES = [
-  { value: 'deal',    label: 'Negócios',  icon: '📋', desc: 'Campos que aparecem em cada card do pipeline' },
-  { value: 'lead',    label: 'Leads',     icon: '🎯', desc: 'Campos que aparecem no perfil de cada lead' },
-  { value: 'contact', label: 'Contatos',  icon: '👤', desc: 'Campos que aparecem no perfil de cada contato' },
-  { value: 'company', label: 'Empresas',  icon: '🏢', desc: 'Campos que aparecem no perfil de cada empresa' },
-  { value: 'user',    label: 'Equipe',    icon: '👥', desc: 'Campos que aparecem no perfil de cada membro' },
+  { value: 'deal',       label: 'Negócios',        icon: '📋', desc: 'Campos que aparecem em cada card do pipeline' },
+  { value: 'lead',       label: 'Leads',            icon: '🎯', desc: 'Campos que aparecem no perfil de cada lead' },
+  { value: 'contact',    label: 'Contatos',         icon: '👤', desc: 'Campos que aparecem no perfil de cada contato' },
+  { value: 'company',    label: 'Empresas',         icon: '🏢', desc: 'Campos que aparecem no perfil de cada empresa' },
+  { value: 'user',       label: 'Equipe',           icon: '👥', desc: 'Campos que aparecem no perfil de cada membro' },
+  { value: 'sp_record',  label: 'Smart Processes',  icon: '⚡', desc: 'Campos dos registros de cada Smart Process' },
 ];
 
 const FIELD_TYPES = [
@@ -303,7 +304,247 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
   );
 }
 
-// ── Main component ───────────────────────────────────────────────────────────
+// ── SmartProcessFieldsPanel ───────────────────────────────────────────────────
+
+const SP_FIELD_TYPES = ['text', 'number', 'select', 'date', 'textarea', 'url', 'phone'];
+
+function slugifySp(str) {
+  return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function SmartProcessFieldsPanel() {
+  const [processes, setProcesses] = React.useState([]);
+  const [selectedId, setSelectedId] = React.useState(null);
+  const [editingIdx, setEditingIdx] = React.useState(null); // index in fields_config
+  const [saving, setSaving] = React.useState(false);
+  const authHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem('nexus_token')}`,
+    'Content-Type': 'application/json',
+  });
+
+  React.useEffect(() => {
+    fetch(`${API}/smart-processes`, { headers: authHeader() })
+      .then(r => r.json()).then(data => {
+        const arr = Array.isArray(data) ? data : [];
+        setProcesses(arr);
+        if (arr.length > 0 && !selectedId) setSelectedId(arr[0].id);
+      }).catch(() => {});
+  }, []);
+
+  const proc = processes.find(p => p.id === selectedId);
+  const fields = proc?.fields_config || [];
+
+  const saveFields = async (newFields) => {
+    if (!proc) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/smart-processes/${proc.id}`, {
+        method: 'PUT', headers: authHeader(),
+        body: JSON.stringify({ ...proc, fields_config: newFields }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const saved = await res.json();
+      setProcesses(prev => prev.map(p => p.id === saved.id ? saved : p));
+      setEditingIdx(null);
+    } catch (e) { alert('Erro ao salvar: ' + e.message); }
+    finally { setSaving(false); }
+  };
+
+  const addField = () => {
+    const newField = { key: '', label: '', type: 'text', required: false, options: [] };
+    const newFields = [...fields, newField];
+    setProcesses(prev => prev.map(p => p.id === selectedId ? { ...p, fields_config: newFields } : p));
+    setEditingIdx(newFields.length - 1);
+  };
+
+  const updateField = (idx, patch) => {
+    const newFields = fields.map((f, i) => i === idx ? { ...f, ...patch } : f);
+    setProcesses(prev => prev.map(p => p.id === selectedId ? { ...p, fields_config: newFields } : p));
+  };
+
+  const removeField = async (idx) => {
+    const newFields = fields.filter((_, i) => i !== idx);
+    await saveFields(newFields);
+  };
+
+  const moveField = (idx, dir) => {
+    const arr = [...fields]; const j = idx + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    setProcesses(prev => prev.map(p => p.id === selectedId ? { ...p, fields_config: arr } : p));
+  };
+
+  const SP_TYPE_ICONS = { text: 'T', number: '#', select: '▾', date: '📅', textarea: '¶', url: '🔗', phone: '📞' };
+  const SP_TYPE_LABELS = { text: 'Texto', number: 'Número', select: 'Lista', date: 'Data', textarea: 'Texto longo', url: 'URL', phone: 'Telefone' };
+
+  return (
+    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      {/* Left: process selector + field list */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+
+        {/* Process selector */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+            Selecione o Smart Process
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {processes.length === 0 && (
+              <div style={{ fontSize: 13, color: '#94a3b8' }}>Nenhum processo criado ainda.</div>
+            )}
+            {processes.map(p => (
+              <button
+                key={p.id}
+                onClick={() => { setSelectedId(p.id); setEditingIdx(null); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 7, padding: '7px 14px',
+                  border: `2px solid ${selectedId === p.id ? (p.color || '#6366f1') : '#e2e8f0'}`,
+                  background: selectedId === p.id ? (p.color || '#6366f1') + '15' : 'white',
+                  borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13,
+                  fontWeight: selectedId === p.id ? 700 : 500,
+                  color: selectedId === p.id ? (p.color || '#6366f1') : '#475569',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{p.icon}</span> {p.name}
+                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400 }}>({p.fields_config?.length || 0} campos)</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {proc && (
+          <>
+            <div style={{
+              background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10,
+              padding: '10px 14px', marginBottom: 20, fontSize: 12, color: '#0369a1',
+              display: 'flex', gap: 8, alignItems: 'center',
+            }}>
+              <span style={{ fontSize: 16 }}>{proc.icon}</span>
+              <span>Campos do processo <strong>{proc.name}</strong> — aparecem no painel de detalhe de cada registro deste SPA</span>
+            </div>
+
+            {fields.length === 0 && editingIdx === null ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: 13 }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Nenhum campo neste processo</div>
+                <div style={{ fontSize: 12 }}>Crie campos personalizados para registrar informações específicas</div>
+                <button onClick={addField} className="btn btn-primary" style={{ marginTop: 16, fontSize: 13 }}>+ Criar primeiro campo</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {fields.map((field, idx) => {
+                  const isEdit = editingIdx === idx;
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        background: isEdit ? '#f0fdf4' : 'white',
+                        border: `1.5px solid ${isEdit ? '#10b981' : '#e2e8f0'}`,
+                        borderRadius: 10, overflow: 'hidden', transition: 'all 0.12s',
+                      }}
+                    >
+                      {/* Row */}
+                      <div
+                        onClick={() => setEditingIdx(isEdit ? null : idx)}
+                        style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                      >
+                        <div style={{ width: 34, height: 34, borderRadius: 8, background: '#6366f110', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#6366f1', flexShrink: 0 }}>
+                          {SP_TYPE_ICONS[field.type] || 'T'}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontWeight: 600, fontSize: 13, color: '#0f172a' }}>{field.label || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sem nome</span>}</span>
+                            {field.required && <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>obrigatório</span>}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>{SP_TYPE_LABELS[field.type] || field.type}</span>
+                            <code style={{ fontSize: 10, color: '#94a3b8' }}>{field.key}</code>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                          <button onClick={() => moveField(idx, -1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, padding: '2px 4px' }} title="Mover para cima">↑</button>
+                          <button onClick={() => moveField(idx, 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, padding: '2px 4px' }} title="Mover para baixo">↓</button>
+                          <button
+                            onClick={() => removeField(idx)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14, padding: 4, borderRadius: 4, transition: 'color 0.12s' }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+                            title="Excluir campo"
+                          >🗑️</button>
+                        </div>
+                      </div>
+
+                      {/* Inline editor */}
+                      {isEdit && (
+                        <div style={{ padding: '0 14px 14px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                            <div style={{ flex: 2 }}>
+                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Label *</label>
+                              <input
+                                className="form-input"
+                                value={field.label}
+                                onChange={e => { const label = e.target.value; updateField(idx, { label, key: slugifySp(label) }); }}
+                                placeholder="Ex: Placa, Cor, Chassis..."
+                              />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Tipo</label>
+                              <select className="form-input" value={field.type} onChange={e => updateField(idx, { type: e.target.value })}>
+                                {SP_FIELD_TYPES.map(t => <option key={t} value={t}>{SP_TYPE_LABELS[t] || t}</option>)}
+                              </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Key</label>
+                              <input
+                                className="form-input"
+                                style={{ fontFamily: 'monospace', fontSize: 11 }}
+                                value={field.key}
+                                onChange={e => updateField(idx, { key: e.target.value })}
+                                placeholder="auto"
+                              />
+                            </div>
+                          </div>
+                          {field.type === 'select' && (
+                            <div style={{ marginTop: 10 }}>
+                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Opções (separadas por vírgula)</label>
+                              <input
+                                className="form-input"
+                                value={Array.isArray(field.options) ? field.options.join(', ') : ''}
+                                onChange={e => updateField(idx, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                                placeholder="Opção 1, Opção 2, Opção 3"
+                              />
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', cursor: 'pointer' }}>
+                              <input type="checkbox" checked={!!field.required} onChange={e => updateField(idx, { required: e.target.checked })} />
+                              Obrigatório
+                            </label>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button onClick={() => setEditingIdx(null)} className="btn btn-ghost" style={{ fontSize: 12 }}>Cancelar</button>
+                              <button onClick={() => saveFields(fields)} disabled={saving} className="btn btn-primary" style={{ fontSize: 12 }}>
+                                {saving ? 'Salvando...' : 'Salvar campo'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <button onClick={addField} style={{ marginTop: 4, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1.5px dashed #e2e8f0', borderRadius: 8, background: 'transparent', color: '#64748b', fontFamily: 'inherit', transition: 'all 0.15s', textAlign: 'left' }}>
+                  + Adicionar campo
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function CustomFieldsManager() {
   const [entity, setEntity]   = useState('deal');
   const [fields, setFields]   = useState([]);
@@ -358,15 +599,17 @@ export default function CustomFieldsManager() {
             Crie campos extras para cada entidade do CRM
           </div>
         </div>
-        <div style={{ marginLeft: 'auto' }}>
-          <button
-            onClick={() => setEditor({ field: { ...EMPTY_FIELD, entity }, isNew: true })}
-            className="btn btn-primary"
-            style={{ fontSize: 13 }}
-          >
-            + Novo campo
-          </button>
-        </div>
+        {entity !== 'sp_record' && (
+          <div style={{ marginLeft: 'auto' }}>
+            <button
+              onClick={() => setEditor({ field: { ...EMPTY_FIELD, entity }, isNew: true })}
+              className="btn btn-primary"
+              style={{ fontSize: 13 }}
+            >
+              + Novo campo
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Entity tabs */}
@@ -391,8 +634,11 @@ export default function CustomFieldsManager() {
       {/* Body */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
 
-        {/* Field list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        {/* Smart Process Fields tab — special renderer */}
+        {entity === 'sp_record' && <SmartProcessFieldsPanel />}
+
+        {/* Field list — standard entities */}
+        {entity !== 'sp_record' && <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
 
           {/* Info banner */}
           <div style={{
@@ -500,10 +746,10 @@ export default function CustomFieldsManager() {
               })}
             </div>
           )}
-        </div>
+        </div>}
 
-        {/* Editor panel */}
-        {editor && (
+        {/* Editor panel — only for standard entities */}
+        {entity !== 'sp_record' && editor && (
           <FieldEditor
             key={editor.field?.id ?? 'new'}
             field={editor.field}

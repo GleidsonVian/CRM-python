@@ -6,6 +6,7 @@ from typing import Optional
 import models, schemas
 from database import get_db
 from services.helpers import _task_out
+from routers.task_rules import apply_rules
 
 router = APIRouter()
 
@@ -61,12 +62,16 @@ def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
 def update_task(task_id: int, task: schemas.TaskCreate, db: Session = Depends(get_db)):
     obj = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not obj: raise HTTPException(status_code=404, detail="Task not found")
+    prev_status = obj.status
+    prev_priority = obj.priority
+    prev_due = obj.due_date
     data = task.model_dump()
     if data.get('status') == 'done': data['done'] = True
     else: data['done'] = False
     data['updated_at'] = _dt.utcnow()
     for k, v in data.items():
         setattr(obj, k, v)
+    apply_rules(obj, prev_status, prev_priority, db, prev_due=prev_due)
     db.commit()
     db.refresh(obj)
     return _task_out(obj, db)

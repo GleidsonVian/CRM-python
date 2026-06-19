@@ -1,6 +1,6 @@
 # Nexus CRM
 
-CRM completo estilo Bitrix24 — Kanban, Leads, Negócios, Tarefas, Projetos, Automações visuais, RBAC e muito mais.
+CRM completo estilo Bitrix24 — Kanban, Leads, Negócios, Tarefas, Projetos, Automações visuais, Formulários públicos, RBAC e muito mais.
 
 ---
 
@@ -10,13 +10,24 @@ CRM completo estilo Bitrix24 — Kanban, Leads, Negócios, Tarefas, Projetos, Au
 
 > Pré-requisito: [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e **em execução** (ícone da baleia na barra de tarefas).
 
-**Passo 1 — Clone ou abra a pasta do projeto no terminal**
+**Passo 1 — Clone o repositório (ou abra a pasta do projeto no terminal)**
 
-```powershell
-cd C:\Users\Gleidson\pasta4\Python\CRM
+```bash
+git clone https://github.com/GleidsonVian/CRM-python.git
+cd CRM-python
 ```
 
-**Passo 2 — Suba tudo com um comando**
+**Passo 2 — Crie o arquivo de configuração**
+
+```powershell
+# Windows
+copy backend\.env.example backend\.env
+
+# Linux / macOS
+cp backend/.env.example backend/.env
+```
+
+**Passo 3 — Suba tudo com um comando**
 
 ```powershell
 docker-compose up --build
@@ -29,7 +40,7 @@ backend   | INFO:     Uvicorn running on http://0.0.0.0:8001
 frontend  | ...start worker process
 ```
 
-**Passo 3 — Acesse no navegador**
+**Passo 4 — Acesse no navegador**
 
 | O que | URL |
 |---|---|
@@ -98,10 +109,13 @@ Acesse **http://localhost:5173**
 
 ### Backend — `backend/.env`
 
-Copie o arquivo de exemplo e ajuste os valores:
+Copie o arquivo de exemplo (se ainda não fez) e ajuste os valores:
 
 ```powershell
+# Windows
 copy backend\.env.example backend\.env
+# Linux / macOS
+cp backend/.env.example backend/.env
 ```
 
 | Variável | Padrão | Descrição |
@@ -173,26 +187,53 @@ VITE_API_URL=https://api.seudominio.com docker-compose up --build -d
 - **Clique do meio** abre o card em nova aba
 
 ### Tarefas
-- Kanban por prazo: Vencido / Hoje / Esta semana / Próxima semana / Sem prazo / Concluídas
+- Kanban por prazo: Vencido / Hoje / Esta semana / Próxima semana / Em 2 semanas+ / Sem prazo / Concluídas
+- Drag para reordenar colunas (persiste no localStorage)
+- Renomear colunas inline (ícone de lápis no hover)
 - Vinculação a negócios ou leads
 - Prioridade, participantes, rastreamento de tempo
+- **Autosave** — salva automaticamente ao editar qualquer campo (800ms debounce)
+
+### Automações de Tarefas
+- View full-page por coluna (igual ao flow builder de negócios)
+- Regras por coluna (gatilho: entrou na coluna, status mudou, prioridade mudou)
+- Regras globais (aplicadas a todas as colunas)
+- Toggle ativar/desativar por regra, editar e excluir
 
 ### Projetos
 - Gestão de projetos com tarefas vinculadas
 - Membros e permissões por projeto
 
-### Automações
+### Automações de Negócios
 - Flow builder visual (execução esquerda→direita)
 - Gatilhos: mudança de etapa
-- Ações: Alterar etapa, Criar tarefa, Enviar e-mail, Pausa, Webhook
-- Condições: if/else com operadores (igual, contém, maior que, etc.)
+- Ações: Alterar etapa, Criar tarefa, Enviar e-mail, Pausa, Webhook, Alterar campo
+- Condições SE/ENTÃO com operadores (igual, contém, maior que, etc.)
+- **Campos personalizados** de negócio e contato disponíveis nas condições
+
+### Webhooks
+- **Saída (outbound):** CRM dispara POST para URL externa nos eventos `card.created`, `card.updated`, `card.moved`, `card.deleted`
+- Payload completo: todos os campos do negócio, etapa, pipeline, contatos vinculados, responsáveis, campos personalizados e UTMs
+- Filtro por entidade (Negócios, Leads, Contatos, Empresas) e por evento
+- **Entrada (inbound):** receba dados externos e crie/atualize registros no CRM via URL única com token
+- Botão "Disparar teste agora" com feedback de status HTTP e latência
+- Histórico de disparos por webhook
+- Compatível com n8n, Zapier, Make e qualquer ferramenta de automação
+
+### Formulários Públicos
+- Crie formulários com campos customizáveis
+- Geram leads ou negócios automaticamente ao serem submetidos
+- URL pública compartilhável (sem login)
+- Mapeamento de campos do formulário para campos do CRM
 
 ### Relatórios
 - Resumo de negócios por etapa e pipeline
+- Funil de conversão com taxas de queda entre etapas
 - Evolução temporal de criações
 
 ### Auditoria
 - Log completo de ações (criar, editar, mover, excluir, login)
+- Histórico mostra nomes das etapas (não apenas IDs)
 - Filtro por tipo de entidade, ação e ator
 
 ---
@@ -240,7 +281,7 @@ CRM/
 ├── backend/
 │   ├── main.py                # FastAPI app + startup seed
 │   ├── models.py              # SQLAlchemy — todos os modelos
-│   ├── schemas.py             # Pydantic — validação
+│   ├── schemas/               # Pydantic — validação por módulo
 │   ├── database.py            # Conexão com o banco
 │   ├── config.py              # Lê variáveis do .env
 │   ├── limiter.py             # Rate limiter (slowapi)
@@ -248,7 +289,7 @@ CRM/
 │   ├── Dockerfile
 │   ├── .env.example           # Copie para .env
 │   ├── alembic/               # Migrations de banco
-│   ├── routers/               # Um arquivo por recurso (cards, leads, auth…)
+│   ├── routers/               # Um arquivo por recurso (cards, leads, auth, task_rules…)
 │   ├── services/              # Lógica de negócio (auth, automações, permissões…)
 │   ├── tests/                 # pytest — 74 testes
 │   └── crm.db                 # Banco SQLite (gerado no primeiro run)
@@ -263,7 +304,7 @@ CRM/
         ├── config.js          # API_URL via variável de ambiente
         ├── hooks/
         │   └── useAPI.js      # Hook fetch com auth automático
-        └── components/        # ~30 componentes React
+        └── components/        # ~35 componentes React
 ```
 
 ---

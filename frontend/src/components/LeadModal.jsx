@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
 import CustomFieldValues from './CustomFieldValues';
 import { useConfirm } from '../App';
+import { useAuth } from '../AuthContext';
 
 import { API_URL as API } from '../config.js';
 
@@ -157,6 +158,12 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
   const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
 
   const [selectedUsers, setSelectedUsers] = useState(lead.users || []);
+  const { token } = useAuth();
+  const authFetch = useCallback((url, opts = {}) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+    return fetch(url, { ...opts, headers });
+  }, [token]);
+
   const [allUsers, setAllUsers] = useState([]);
   const [activities, setActivities] = useState([]);
   const [newNote, setNewNote] = useState('');
@@ -165,12 +172,50 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
   const [showIds, setShowIds] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [workflows, setWorkflows] = useState([]);
+  const [workflowMsg, setWorkflowMsg] = useState({});
   const confirm = useConfirm();
+  const [saveStatus, setSaveStatus] = useState(null);
+  const saveTimerRef = useRef(null);
+  const isDirtyRef = useRef(false);
+  const isInitialMountRef = useRef(true);
+
+  const fetchWorkflows = async () => {
+    try {
+      const res = await authFetch(`${API}/workflows?entity_type=lead`);
+      const data = await res.json();
+      setWorkflows(Array.isArray(data) ? data : []);
+    } catch {}
+  };
+
+  const executeWorkflow = async (wfId) => {
+    setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'loading', text: 'Executando…' } }));
+    try {
+      const res = await authFetch(`${API}/workflows/${wfId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: lead.id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'completed') {
+        setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'ok', text: `Concluído (${data.steps?.length || 0} etapa(s))` } }));
+        authFetch(`${API}/leads/${lead.id}`).then(r => r.json()).then(updated => {
+          onSave?.(updated);
+        }).catch(() => {});
+      } else {
+        const msg = data.steps?.find(s => s.status === 'error')?.msg || data.detail || 'Erro';
+        setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'error', text: msg } }));
+      }
+    } catch (e) {
+      setWorkflowMsg(prev => ({ ...prev, [wfId]: { status: 'error', text: e.message } }));
+    }
+  };
 
   const fetchActivities = async () => {
     try {
       const res = await fetch(`${API}/leads/${lead.id}/activities`);
-      setActivities(await res.json());
+      const data = await res.json();
+      setActivities(Array.isArray(data) ? [...data].reverse() : []);
     } catch {}
   };
 
@@ -178,6 +223,30 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
     fetch(`${API}/users`).then(r => r.json()).then(setAllUsers).catch(() => {});
     fetchActivities();
   }, [lead.id]);
+
+  // Autosave on any field change (debounced 800ms)
+  useEffect(() => {
+    if (isInitialMountRef.current) { isInitialMountRef.current = false; return; }
+    isDirtyRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    const payload = {
+      ...form,
+      stage_id: form.stage_id,
+      price: parseFloat(form.price) || 0,
+      contact_ids: [],
+      user_ids: selectedUsers.map(u => u.id),
+    };
+    saveTimerRef.current = setTimeout(async () => {
+      setSaveStatus('saving');
+      isDirtyRef.current = false;
+      try {
+        await onSave(lead.id, payload);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+      } catch { setSaveStatus(null); }
+    }, 800);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [form, selectedUsers]); // eslint-disable-line
 
   const buildPayload = (overrideStage) => ({
     ...form,
@@ -187,9 +256,21 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
     user_ids: selectedUsers.map(u => u.id),
   });
 
-  const handleSave = async () => {
-    await onSave(lead.id, buildPayload());
-    await fetchActivities();
+  const handleSave = () => {
+    clearTimeout(saveTimerRef.current);
+    isDirtyRef.current = false;
+    setSaveStatus('saving');
+    onSave(lead.id, buildPayload()).then(() => {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(s => s === 'saved' ? null : s), 2000);
+    }).catch(() => setSaveStatus(null));
+  };
+
+  const handleClose = () => {
+    if (isDirtyRef.current) {
+      clearTimeout(saveTimerRef.current);
+      onSave(lead.id, buildPayload()); // fire and forget
+    }
     onClose();
   };
 
@@ -264,8 +345,9 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                   onClick={async () => { if (await confirm('Excluir este lead?', 'Esta ação não pode ser desfeita.')) onDelete(lead.id); }}>
                   Excluir
                 </button>
-                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSave}>Salvar</button>
-                <button className="icon-btn" onClick={onClose}>
+                {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                <button className="icon-btn" onClick={handleClose}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
@@ -506,10 +588,11 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
               {/* Tab header */}
               <div style={{ display: 'flex', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
                 {[
-                  { key: 'activity', label: 'Atividades' },
-                  { key: 'history',  label: 'Histórico' },
+                  { key: 'activity',  label: 'Atividades' },
+                  { key: 'workflows', label: 'Fluxos' },
+                  { key: 'history',   label: 'Histórico' },
                 ].map(t => (
-                  <button key={t.key} onClick={() => setRightTab(t.key)} style={{
+                  <button key={t.key} onClick={() => { setRightTab(t.key); if (t.key === 'workflows') fetchWorkflows(); }} style={{
                     flex: 1, background: 'none', border: 'none',
                     borderBottom: `2px solid ${rightTab === t.key ? '#6366f1' : 'transparent'}`,
                     color: rightTab === t.key ? '#6366f1' : '#64748b',
@@ -566,6 +649,44 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                     })}
                   </div>
                 </>
+              )}
+
+              {/* Workflows tab */}
+              {rightTab === 'workflows' && (
+                <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {workflows.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '32px 16px', color: '#94a3b8', fontSize: 13 }}>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>⚡</div>
+                      Nenhum fluxo disponível para leads
+                    </div>
+                  ) : workflows.map(wf => {
+                    const msg = workflowMsg[wf.id];
+                    return (
+                      <div key={wf.id} style={{
+                        background: '#f8fafc', border: '1px solid #e2e8f0',
+                        borderRadius: 8, padding: '10px 12px',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                      }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{wf.name}</div>
+                          {msg && (
+                            <div style={{ fontSize: 11.5, marginTop: 3, color: msg.status === 'ok' ? '#16a34a' : msg.status === 'error' ? '#dc2626' : '#64748b' }}>
+                              {msg.status === 'ok' ? '✓ ' : msg.status === 'error' ? '✕ ' : '⏳ '}{msg.text}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => executeWorkflow(wf.id)}
+                          disabled={msg?.status === 'loading'}
+                          className="btn btn-primary"
+                          style={{ fontSize: 12, padding: '5px 12px', whiteSpace: 'nowrap' }}
+                        >
+                          {msg?.status === 'loading' ? '…' : '▶ Executar'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
 
               {/* History tab */}

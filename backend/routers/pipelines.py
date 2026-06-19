@@ -113,6 +113,8 @@ def delete_stage(stage_id: int, db: Session = Depends(get_db)):
     stg = db.query(models.Stage).filter(models.Stage.id == stage_id).first()
     if not stg:
         raise HTTPException(status_code=404, detail="Stage not found")
+    if stg.is_terminal:
+        raise HTTPException(status_code=400, detail="Etapas terminais obrigatórias não podem ser excluídas")
     db.delete(stg)
     db.commit()
     return {"ok": True}
