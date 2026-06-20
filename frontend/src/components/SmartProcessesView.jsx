@@ -520,30 +520,20 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-slider" onClick={e => e.stopPropagation()}>
 
-        {/* ── Header ── */}
+        {/* ── Header — idêntico ao CardModal ── */}
         <div className="modal-header">
           <div className="modal-header-top">
             <div className="modal-title-wrap">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                <span style={{
-                  fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-                  background: (process.color || '#6366f1') + '20',
-                  color: process.color || '#6366f1',
-                  padding: '2px 7px', borderRadius: 4, flexShrink: 0, whiteSpace: 'nowrap',
-                }}>
-                  {process.icon} {process.name}
-                </span>
-                <input
-                  className="modal-title-input"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  onBlur={() => !isNew && autoSave()}
-                  placeholder="Título do registro"
-                  autoFocus={isNew}
-                />
-              </div>
+              <input
+                className="modal-title-input"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                onBlur={() => !isNew && autoSave()}
+                placeholder="Título do registro"
+                autoFocus={isNew}
+              />
               {!isNew && (
-                <span className="modal-id">ID #{record.id} · Criado em {fmtTs(record.created_at)}</span>
+                <span className="modal-id">#{record.id} · {fmtTs(record.created_at)}</span>
               )}
             </div>
             <div className="modal-header-actions">
@@ -602,13 +592,47 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
 
           {/* Left — fields */}
           <div className="modal-left">
-            <div className="form-section-title">Campos do processo</div>
 
-            {(process.fields_config || []).length === 0 && (
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8 }}>
-                Nenhum campo configurado. Clique em "Configurar" para adicionar campos.
-              </p>
-            )}
+            {/* Detalhes nativos — sempre visível */}
+            <div className="form-section-title">Detalhes</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px', marginBottom: 20 }}>
+              <div>
+                <div className="form-label" style={{ marginBottom: 3 }}>Processo</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text-primary)' }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                    background: (process.color || '#6366f1') + '18',
+                    color: process.color || '#6366f1',
+                    padding: '2px 7px', borderRadius: 4, whiteSpace: 'nowrap',
+                  }}>
+                    {process.icon} {process.name}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className="form-label" style={{ marginBottom: 3 }}>Etapa atual</div>
+                {(() => {
+                  const s = (process.stages || [])[stageIndex];
+                  return s ? (
+                    <span style={{ display: 'inline-block', background: s.color, color: contrastColor(s.color), borderRadius: 12, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                      {s.name}
+                    </span>
+                  ) : <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>—</span>;
+                })()}
+              </div>
+              {!isNew && (
+                <>
+                  <div>
+                    <div className="form-label" style={{ marginBottom: 3 }}>Criado em</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{fmtTs(record.created_at)}</div>
+                  </div>
+                  <div>
+                    <div className="form-label" style={{ marginBottom: 3 }}>Atualizado</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{fmtTs(record.updated_at || record.created_at)}</div>
+                  </div>
+                </>
+              )}
+            </div>
 
             {(process.fields_config || []).map(field => (
               <div className="form-group" key={field.key}>
@@ -1263,7 +1287,7 @@ export default function SmartProcessesView() {
   const [showFilter, setShowFilter] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-primary)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--bg-primary)', overflow: 'hidden' }}>
 
       {/* ── Top header — mesma estrutura do Negócios ── */}
       <header className="top-header">
