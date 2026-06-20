@@ -1260,120 +1260,140 @@ export default function SmartProcessesView() {
     return mt && ms;
   });
 
+  const [showFilter, setShowFilter] = useState(false);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-primary)', overflow: 'hidden' }}>
 
-      {/* ── Top header — igual ao Leads ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '0 20px', height: 56, flexShrink: 0,
-        borderBottom: '1px solid var(--border)', background: 'var(--bg-primary)',
-      }}>
-        {/* Process dropdown (like pipeline selector) */}
-        <ProcessDropdown
-          processes={processes}
-          selectedId={selectedId}
-          onSelect={id => setSelectedId(id)}
-          onNewProcess={() => { setEditingProcess(null); setShowProcessModal(true); }}
-        />
+      {/* ── Top header — mesma estrutura do Negócios ── */}
+      <header className="top-header">
+        <div className="header-left">
+          {/* Process name as title + edit/delete icons */}
+          {selectedProcess ? (
+            <>
+              <span className="header-title" style={{ color: selectedProcess.color || 'var(--text-primary)' }}>
+                {selectedProcess.icon} {selectedProcess.name}
+              </span>
+              <button
+                className="icon-btn"
+                title="Configurar processo"
+                onClick={() => { setEditingProcess(selectedProcess); setShowProcessModal(true); }}
+              ><IconGear /></button>
+              <button
+                className="icon-btn"
+                title="Excluir processo"
+                style={{ color: '#ef4444' }}
+                onClick={() => handleDeleteProcess(selectedProcess)}
+              ><IconTrash /></button>
+            </>
+          ) : (
+            <span className="header-title">Smart Processes</span>
+          )}
 
-        {selectedProcess && (
-          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            {records.length} registro{records.length !== 1 ? 's' : ''}
-          </span>
-        )}
+          <div className="header-sep" />
 
-        <div style={{ flex: 1 }} />
-
-        {/* View toggle — Kanban / Tabela */}
-        <div style={{ display: 'flex', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 7, padding: 2, gap: 1 }}>
-          {[['kanban', <IconKanban />, 'Kanban'], ['table', <IconTable />, 'Tabela']].map(([mode, icon, label]) => (
-            <button key={mode} onClick={() => setViewMode(mode)} style={{
-              display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
-              border: 'none', borderRadius: 5, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
-              background: viewMode === mode ? 'var(--bg-primary)' : 'transparent',
-              color: viewMode === mode ? 'var(--text-primary)' : 'var(--text-secondary)',
-              boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              fontWeight: viewMode === mode ? 600 : 400,
-            }}>
-              {icon} {label}
+          <div className="header-controls">
+            <button
+              className="btn btn-primary"
+              style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}
+              onClick={() => {
+                if (!selectedProcess) { setEditingProcess(null); setShowProcessModal(true); }
+                else openNewRecord(0);
+              }}
+            >
+              <IconPlus /> {selectedProcess ? 'Novo registro' : 'Novo processo'}
             </button>
-          ))}
-        </div>
 
-        {selectedProcess && (
-          <button
-            onClick={() => { setEditingProcess(selectedProcess); setShowProcessModal(true); }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              border: '1px solid var(--border)', borderRadius: 6,
-              background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontFamily: 'inherit',
-            }}
-          >
-            <IconGear /> Configurar
-          </button>
-        )}
+            {/* View toggle — Kanban / Tabela */}
+            <div style={{ display: 'flex', background: '#f1f5f9', border: '1px solid var(--border)', borderRadius: 8, padding: 2 }}>
+              {[['kanban', <IconKanban />, 'Kanban'], ['table', <IconTable />, 'Tabela']].map(([mode, icon, label]) => (
+                <button key={mode} onClick={() => setViewMode(mode)} style={{
+                  display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
+                  border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                  background: viewMode === mode ? 'white' : 'transparent',
+                  color: viewMode === mode ? 'var(--text-primary)' : 'var(--text-muted)',
+                  boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  fontWeight: viewMode === mode ? 600 : 400,
+                  transition: 'all 0.15s',
+                }}>
+                  {icon} {label}
+                </button>
+              ))}
+            </div>
 
-        <button
-          className="btn btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}
-          onClick={() => {
-            if (!selectedProcess) { setEditingProcess(null); setShowProcessModal(true); }
-            else openNewRecord(0);
-          }}
-        >
-          <IconPlus /> {selectedProcess ? 'Novo registro' : 'Novo processo'}
-        </button>
-      </div>
-
-      {/* ── Filter bar ── */}
-      {selectedProcess && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '8px 20px', borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-secondary)', flexShrink: 0,
-        }}>
-          <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', display: 'flex', pointerEvents: 'none' }}><IconSearch /></span>
-            <input
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              placeholder="Buscar registros..."
-              style={{ ...S.input, width: 220, paddingLeft: 30, height: 32, padding: '0 10px 0 30px', fontSize: 12 }}
+            {/* Process selector dropdown — right side like pipeline dropdown */}
+            <ProcessDropdown
+              processes={processes}
+              selectedId={selectedId}
+              onSelect={id => setSelectedId(id)}
+              onNewProcess={() => { setEditingProcess(null); setShowProcessModal(true); }}
             />
           </div>
-          <select
-            value={filterStage}
-            onChange={e => setFilterStage(e.target.value)}
-            style={{ ...S.input, width: 170, height: 32, padding: '0 10px', fontSize: 12 }}
+        </div>
+      </header>
+
+      {/* ── Filter bar — igual ao Negócios (Filtro button + collapse) ── */}
+      {selectedProcess && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '6px 22px', borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-primary)', flexShrink: 0,
+        }}>
+          <button
+            onClick={() => setShowFilter(v => !v)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
+              border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer',
+              background: showFilter || searchText || filterStage !== '' ? 'var(--bg-secondary)' : 'transparent',
+              color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'inherit', fontWeight: 500,
+            }}
           >
-            <option value="">Todas as etapas</option>
-            {(selectedProcess.stages || []).map((s, i) => (
-              <option key={i} value={i}>{s.name}</option>
-            ))}
-          </select>
-          {(searchText || filterStage !== '') && (
-            <>
-              <button
-                onClick={() => { setSearchText(''); setFilterStage(''); }}
-                style={{ ...S.iconBtn, fontSize: 12, border: '1px solid var(--border)', borderRadius: 5, padding: '3px 8px', color: 'var(--text-secondary)', fontFamily: 'inherit' }}
-              >
-                Limpar
-              </button>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                {filteredRecords.length} resultado(s)
+            <IconSearch /> Filtro
+            {(searchText || filterStage !== '') && (
+              <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: '50%', width: 14, height: 14, fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                {[searchText, filterStage !== ''].filter(Boolean).length}
               </span>
+            )}
+          </button>
+
+          {/* Inline filter controls */}
+          {showFilter && (
+            <>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', display: 'flex', pointerEvents: 'none' }}><IconSearch /></span>
+                <input
+                  value={searchText}
+                  onChange={e => setSearchText(e.target.value)}
+                  placeholder="Buscar registros..."
+                  style={{ ...S.input, width: 200, height: 30, padding: '0 10px 0 28px', fontSize: 12 }}
+                  autoFocus
+                />
+              </div>
+              <select
+                value={filterStage}
+                onChange={e => setFilterStage(e.target.value)}
+                style={{ ...S.input, height: 30, padding: '0 8px', fontSize: 12 }}
+              >
+                <option value="">Todas as etapas</option>
+                {(selectedProcess.stages || []).map((s, i) => (
+                  <option key={i} value={i}>{s.name}</option>
+                ))}
+              </select>
+              {(searchText || filterStage !== '') && (
+                <>
+                  <button
+                    onClick={() => { setSearchText(''); setFilterStage(''); }}
+                    style={{ fontSize: 12, border: '1px solid var(--border)', borderRadius: 5, padding: '3px 8px', color: 'var(--text-secondary)', fontFamily: 'inherit', background: 'transparent', cursor: 'pointer' }}
+                  >
+                    Limpar
+                  </button>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    {filteredRecords.length} resultado{filteredRecords.length !== 1 ? 's' : ''}
+                  </span>
+                </>
+              )}
             </>
           )}
-          <div style={{ flex: 1 }} />
-          <button
-            onClick={() => handleDeleteProcess(selectedProcess)}
-            style={{ ...S.iconBtn, color: '#ef4444', border: '1px solid var(--border)', borderRadius: 5, padding: '4px 8px', gap: 4, fontSize: 12, fontFamily: 'inherit', display: 'flex', alignItems: 'center' }}
-            title="Excluir processo"
-          >
-            <IconTrash /> Excluir processo
-          </button>
         </div>
       )}
 
