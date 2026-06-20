@@ -1397,59 +1397,46 @@ export default function SmartProcessesView() {
         </div>
       )}
 
-      {/* ── Board / Table / Empty ── */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {!selectedProcess ? (
-          /* Empty state */
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-            <div style={{
-              width: 72, height: 72, borderRadius: 18,
-              background: `linear-gradient(135deg, ${ACCENT}, #f97316)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 36, marginBottom: 20, boxShadow: `0 8px 24px ${hexToRgba(ACCENT, 0.3)}`,
-            }}>⚡</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>Smart Processes</div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 28, textAlign: 'center', maxWidth: 400, lineHeight: 1.7 }}>
-              Crie processos personalizados com campos e etapas para organizar qualquer tipo de dado — contratos, veículos, imóveis e muito mais.
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 28 }}>
-              {[['📋', 'Contratos'], ['🚗', 'Veículos'], ['🏠', 'Imóveis'], ['📦', 'Pedidos'], ['🎯', 'Projetos']].map(([emoji, label]) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {emoji} {label}
-                </div>
-              ))}
-            </div>
-            <button
-              className="btn btn-primary"
-              style={{ fontSize: 13, padding: '9px 22px', display: 'flex', alignItems: 'center', gap: 5 }}
-              onClick={() => { setEditingProcess(null); setShowProcessModal(true); }}
-            >
-              <IconPlus /> Criar primeiro processo
-            </button>
+      {/* ── Empty state (no process selected) ── */}
+      {!selectedProcess && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: 18,
+            background: `linear-gradient(135deg, ${ACCENT}, #f97316)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 36, marginBottom: 20, boxShadow: `0 8px 24px ${hexToRgba(ACCENT, 0.3)}`,
+          }}>⚡</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>Smart Processes</div>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 28, textAlign: 'center', maxWidth: 400, lineHeight: 1.7 }}>
+            Crie processos personalizados com campos e etapas para organizar qualquer tipo de dado — contratos, veículos, imóveis e muito mais.
           </div>
-        ) : loading ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
-            Carregando registros...
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 28 }}>
+            {[['📋', 'Contratos'], ['🚗', 'Veículos'], ['🏠', 'Imóveis'], ['📦', 'Pedidos'], ['🎯', 'Projetos']].map(([emoji, label]) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+                {emoji} {label}
+              </div>
+            ))}
           </div>
-        ) : viewMode === 'kanban' ? (
-          <div className="board-container">
-            {(selectedProcess.stages || []).map((stage, si) => {
-              const colRecords = filteredRecords.filter(r => r.stage_index === si);
-              return (
-                <SPKanbanColumn
-                  key={si}
-                  stage={stage}
-                  stageIndex={si}
-                  records={colRecords}
-                  process={selectedProcess}
-                  onAddRecord={handleAddRecordInline}
-                  onOpenRecord={rec => openEditRecord(rec)}
-                  onDropRecord={handleDropRecord}
-                />
-              );
-            })}
-          </div>
-        ) : (
+          <button
+            className="btn btn-primary"
+            style={{ fontSize: 13, padding: '9px 22px', display: 'flex', alignItems: 'center', gap: 5 }}
+            onClick={() => { setEditingProcess(null); setShowProcessModal(true); }}
+          >
+            <IconPlus /> Criar primeiro processo
+          </button>
+        </div>
+      )}
+
+      {/* ── Loading ── */}
+      {selectedProcess && loading && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
+          Carregando registros...
+        </div>
+      )}
+
+      {/* ── Table view ── */}
+      {selectedProcess && !loading && viewMode === 'table' && (
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <TableView
             process={selectedProcess}
             records={records}
@@ -1458,8 +1445,29 @@ export default function SmartProcessesView() {
             searchText={searchText}
             filterStage={filterStage}
           />
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ── Kanban — board-container filho DIRETO do flex column, igual App.jsx ── */}
+      {selectedProcess && !loading && viewMode === 'kanban' && (
+        <main className="board-container">
+          {(selectedProcess.stages || []).map((stage, si) => {
+            const colRecords = filteredRecords.filter(r => r.stage_index === si);
+            return (
+              <SPKanbanColumn
+                key={si}
+                stage={stage}
+                stageIndex={si}
+                records={colRecords}
+                process={selectedProcess}
+                onAddRecord={handleAddRecordInline}
+                onOpenRecord={rec => openEditRecord(rec)}
+                onDropRecord={handleDropRecord}
+              />
+            );
+          })}
+        </main>
+      )}
 
       {/* Modals */}
       {showProcessModal && (
