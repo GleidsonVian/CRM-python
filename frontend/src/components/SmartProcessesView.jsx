@@ -251,24 +251,33 @@ function ProcessModal({ process, onClose, onSave }) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
       <div style={{ width: 680, maxHeight: '92vh', display: 'flex', flexDirection: 'column', background: '#ffffff', borderRadius: 12, boxShadow: '0 20px 60px rgba(0,0,0,0.22)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
 
-        <div style={{ background: color, padding: '20px 24px 0', display: 'flex', alignItems: 'flex-end', gap: 14 }}>
-          <div style={{ fontSize: 32, lineHeight: 1, paddingBottom: 14 }}>{icon}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ color: contrastColor(color), fontWeight: 700, fontSize: 16, marginBottom: 12 }}>
-              {name || (isNew ? 'Novo processo' : 'Editar processo')}
+        {/* ── Header limpo branco ── */}
+        <div style={{ padding: '20px 24px 0', borderBottom: '1px solid #e8e8e8', background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 9, background: color, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0,
+            }}>{icon}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 16, color: '#111', lineHeight: 1.2 }}>
+                {name || (isNew ? 'Novo processo' : 'Editar processo')}
+              </div>
+              {name && <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Smart Process</div>}
             </div>
-            <div style={{ display: 'flex', gap: 2 }}>
-              {TABS.map((t, i) => (
-                <button key={i} onClick={() => setTab(i)} style={{
-                  padding: '7px 20px', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
-                  background: tab === i ? 'var(--bg-primary)' : 'transparent',
-                  color: tab === i ? color : contrastColor(color) === '#fff' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.7)',
-                  borderRadius: '6px 6px 0 0', fontFamily: 'inherit',
-                }}>{t}</button>
-              ))}
-            </div>
+            <button onClick={onClose} style={{ ...S.iconBtn, color: '#888' }}><IconClose /></button>
           </div>
-          <button onClick={onClose} style={{ ...S.iconBtn, color: contrastColor(color), paddingBottom: 14 }}><IconClose /></button>
+          {/* Tab bar */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            {TABS.map((t, i) => (
+              <button key={i} onClick={() => setTab(i)} style={{
+                padding: '8px 18px', fontSize: 13, fontWeight: tab === i ? 600 : 400, cursor: 'pointer',
+                border: 'none', background: 'transparent', fontFamily: 'inherit',
+                color: tab === i ? color : '#666',
+                borderBottom: tab === i ? `2px solid ${color}` : '2px solid transparent',
+                marginBottom: -1, transition: 'all 0.15s',
+              }}>{t}</button>
+            ))}
+          </div>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
