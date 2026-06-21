@@ -254,7 +254,7 @@ function ProcessModal({ process, onClose, onSave }) {
         <div style={{ background: color, padding: '20px 24px 0', display: 'flex', alignItems: 'flex-end', gap: 14 }}>
           <div style={{ fontSize: 32, lineHeight: 1, paddingBottom: 14 }}>{icon}</div>
           <div style={{ flex: 1 }}>
-            <div style={{ color: contrastColor(color), fontWeight: 700, fontSize: 16, marginBottom: 12, opacity: name ? 1 : 0.5 }}>
+            <div style={{ color: contrastColor(color), fontWeight: 700, fontSize: 16, marginBottom: 12 }}>
               {name || (isNew ? 'Novo processo' : 'Editar processo')}
             </div>
             <div style={{ display: 'flex', gap: 2 }}>
@@ -262,13 +262,13 @@ function ProcessModal({ process, onClose, onSave }) {
                 <button key={i} onClick={() => setTab(i)} style={{
                   padding: '7px 20px', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
                   background: tab === i ? 'var(--bg-primary)' : 'transparent',
-                  color: tab === i ? color : contrastColor(color) === '#fff' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.55)',
+                  color: tab === i ? color : contrastColor(color) === '#fff' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.7)',
                   borderRadius: '6px 6px 0 0', fontFamily: 'inherit',
                 }}>{t}</button>
               ))}
             </div>
           </div>
-          <button onClick={onClose} style={{ ...S.iconBtn, color: contrastColor(color), opacity: 0.7, paddingBottom: 14 }}><IconClose /></button>
+          <button onClick={onClose} style={{ ...S.iconBtn, color: contrastColor(color), paddingBottom: 14 }}><IconClose /></button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
