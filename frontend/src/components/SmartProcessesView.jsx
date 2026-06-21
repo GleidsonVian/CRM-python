@@ -550,6 +550,16 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
   const [notes, setNotes] = useState([]);
   const [notesLoaded, setNotesLoaded] = useState(false);
   const [automationLog, setAutomationLog] = useState([]);
+  const [backlinks, setBacklinks] = useState([]);
+
+  // Load backlinks (quem referencia este registro)
+  useEffect(() => {
+    if (isNew || !record?.id) return;
+    fetch(`${API}/smart-processes/${process.id}/records/${record.id}/backlinks`, { headers: authHeader() })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setBacklinks(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, [record?.id]);
 
   // Load notes from API
   useEffect(() => {
@@ -863,6 +873,31 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                 )}
               </div>
             ))}
+
+            {/* Backlinks — quem referencia este registro */}
+            {backlinks.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                  Referenciado em
+                </div>
+                {backlinks.map((bl, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, marginBottom: 6, cursor: 'pointer' }}
+                    onClick={() => window.dispatchEvent(new CustomEvent('nexus:open-entity', { detail: { entity_type: 'spa', target_id: bl.process_id, record_id: bl.record_id, title: bl.record_title } }))}
+                    onMouseEnter={e => e.currentTarget.style.background = '#eef2ff'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
+                  >
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>{bl.process_icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bl.record_title}</div>
+                      <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>
+                        {bl.process_name} · <span style={{ color: bl.stage_color, fontWeight: 600 }}>{bl.stage_name}</span>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>via {bl.field_label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Links section */}
             {links.length > 0 && (

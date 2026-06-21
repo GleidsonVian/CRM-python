@@ -1,3 +1,4 @@
+import json as _json
 from datetime import datetime
 from typing import List, Optional, Any, Dict
 from fastapi import APIRouter, Depends, HTTPException
@@ -329,6 +330,62 @@ def delete_note(process_id: int, record_id: int, note_id: int, db: Session = Dep
     db.delete(note)
     db.commit()
     return {"ok": True}
+
+
+# ── Backlinks: quem referencia este registro via campo entity ─────────────────
+
+@router.get("/smart-processes/{process_id}/records/{record_id}/backlinks")
+def get_record_backlinks(process_id: int, record_id: int, db: Session = Depends(get_db)):
+    """Return all SPA records that have an entity-reference field pointing to this record."""
+    all_procs = db.query(models.SmartProcess).all()
+    results = []
+
+    for proc in all_procs:
+        if proc.id == process_id:
+            continue
+        fields_config = proc.fields_config or []
+        entity_fields = [
+            f for f in fields_config
+            if f.get("type") == "entity"
+            and f.get("entity_type") == "spa"
+            and f.get("target_id") == process_id
+        ]
+        if not entity_fields:
+            continue
+
+        recs = db.query(models.SpRecord).filter(models.SpRecord.process_id == proc.id).all()
+        for rec in recs:
+            data = rec.data or {}
+            for field in entity_fields:
+                raw = data.get(field.get("key", ""))
+                if not raw:
+                    continue
+                try:
+                    parsed = _json.loads(raw) if isinstance(raw, str) else raw
+                    if parsed.get("id") == record_id:
+                        stage_name = ""
+                        stages = proc.stages or []
+                        if isinstance(rec.stage_index, int) and rec.stage_index < len(stages):
+                            stage_name = stages[rec.stage_index].get("name", "")
+                            stage_color = stages[rec.stage_index].get("color", "#6366f1")
+                        else:
+                            stage_color = "#6366f1"
+                        results.append({
+                            "record_id":    rec.id,
+                            "record_title": rec.title,
+                            "process_id":   proc.id,
+                            "process_name": proc.name,
+                            "process_icon": proc.icon or "📋",
+                            "process_color": proc.color or "#6366f1",
+                            "field_label":  field.get("label", field.get("key", "")),
+                            "stage_name":   stage_name,
+                            "stage_color":  stage_color,
+                        })
+                        break
+                except Exception:
+                    pass
+
+    return results
 
 
 # ── Cross-entity: get all SP records linked to a card/lead/etc. ───────────────
