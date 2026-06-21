@@ -30,6 +30,7 @@ class ProcessCreate(BaseModel):
     description: str = ""
     fields_config: List[Dict[str, Any]] = []
     stages: List[Dict[str, Any]] = []
+    automation_rules: List[Dict[str, Any]] = []
 
 class ProcessOut(BaseModel):
     id: int
@@ -39,6 +40,7 @@ class ProcessOut(BaseModel):
     description: str
     fields_config: List[Dict[str, Any]]
     stages: List[Dict[str, Any]]
+    automation_rules: List[Dict[str, Any]] = []
     created_at: Optional[datetime]
     record_count: int = 0
 
@@ -48,6 +50,7 @@ class ProcessOut(BaseModel):
 class RecordCreate(BaseModel):
     title: str
     stage_index: int = 0
+    assignee_id: Optional[int] = None
     data: Dict[str, Any] = {}
 
 class RecordOut(BaseModel):
@@ -55,6 +58,8 @@ class RecordOut(BaseModel):
     process_id: int
     title: str
     stage_index: int
+    assignee_id: Optional[int] = None
+    assignee_name: Optional[str] = None
     data: Dict[str, Any]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
@@ -74,18 +79,19 @@ class NoteCreate(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _serialize_record(r: models.SpRecord) -> dict:
-    links = []
-    for lk in r.links:
-        entity_title = None
-        if lk.entity_type == "card":
-            obj = lk.__class__.__table__.metadata.bind  # unused, fetch directly
-        links.append({"id": lk.id, "entity_type": lk.entity_type, "entity_id": lk.entity_id})
+def _serialize_record(r: models.SpRecord, db: Session = None) -> dict:
+    assignee_name = None
+    if r.assignee_id and db:
+        u = db.query(models.User).filter(models.User.id == r.assignee_id).first()
+        if u:
+            assignee_name = u.name
     return {
         "id": r.id,
         "process_id": r.process_id,
         "title": r.title,
         "stage_index": r.stage_index or 0,
+        "assignee_id": r.assignee_id,
+        "assignee_name": assignee_name,
         "data": r.data or {},
         "created_at": r.created_at,
         "updated_at": r.updated_at,
@@ -104,6 +110,7 @@ def _serialize_process(p: models.SmartProcess, db: Session) -> dict:
         "description": p.description or "",
         "fields_config": p.fields_config or [],
         "stages": p.stages or [],
+        "automation_rules": p.automation_rules or [],
         "created_at": p.created_at,
         "record_count": count,
     }
@@ -124,6 +131,7 @@ def create_process(body: ProcessCreate, db: Session = Depends(get_db)):
         description=body.description,
         fields_config=body.fields_config,
         stages=body.stages,
+        automation_rules=body.automation_rules,
         created_at=datetime.utcnow(),
     )
     db.add(p)
@@ -151,6 +159,7 @@ def update_process(process_id: int, body: ProcessCreate, db: Session = Depends(g
     p.description = body.description
     p.fields_config = body.fields_config
     p.stages = body.stages
+    p.automation_rules = body.automation_rules
     db.commit()
     db.refresh(p)
     return _serialize_process(p, db)
@@ -174,7 +183,7 @@ def list_records(process_id: int, db: Session = Depends(get_db)):
                .filter(models.SpRecord.process_id == process_id)
                .order_by(models.SpRecord.stage_index, models.SpRecord.id)
                .all())
-    return [_serialize_record(r) for r in records]
+    return [_serialize_record(r, db) for r in records]
 
 
 @router.post("/smart-processes/{process_id}/records")
@@ -186,6 +195,7 @@ def create_record(process_id: int, body: RecordCreate, db: Session = Depends(get
         process_id=process_id,
         title=body.title,
         stage_index=body.stage_index,
+        assignee_id=body.assignee_id,
         data=body.data,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
@@ -193,7 +203,7 @@ def create_record(process_id: int, body: RecordCreate, db: Session = Depends(get
     db.add(r)
     db.commit()
     db.refresh(r)
-    return _serialize_record(r)
+    return _serialize_record(r, db)
 
 
 @router.get("/smart-processes/{process_id}/records/{record_id}")
@@ -204,7 +214,7 @@ def get_record(process_id: int, record_id: int, db: Session = Depends(get_db)):
     ).first()
     if not r:
         raise HTTPException(404, "Registro não encontrado")
-    return _serialize_record(r)
+    return _serialize_record(r, db)
 
 
 @router.put("/smart-processes/{process_id}/records/{record_id}")
@@ -217,11 +227,12 @@ def update_record(process_id: int, record_id: int, body: RecordCreate, db: Sessi
         raise HTTPException(404, "Registro não encontrado")
     r.title = body.title
     r.stage_index = body.stage_index
+    r.assignee_id = body.assignee_id
     r.data = body.data
     r.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(r)
-    return _serialize_record(r)
+    return _serialize_record(r, db)
 
 
 @router.delete("/smart-processes/{process_id}/records/{record_id}")

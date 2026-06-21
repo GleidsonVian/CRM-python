@@ -475,8 +475,10 @@ class SmartProcess(Base):
     description   = Column(String, default="")
     # fields_config: [{key, label, type, options, required}]
     fields_config = Column(JSON, default=list)
-    # stages: [{name, color}]
+    # stages: [{name, color, is_terminal, terminal_type, required_fields:[field_key,...]}]
     stages        = Column(JSON, default=list)
+    # automation_rules: [{id, name, trigger_stage_index, action_type, action_data}]
+    automation_rules = Column(JSON, default=list)
     created_at    = Column(DateTime, default=datetime.utcnow)
     records       = relationship("SpRecord", back_populates="process",
                                  cascade="all, delete-orphan")
@@ -488,6 +490,7 @@ class SpRecord(Base):
     process_id  = Column(Integer, ForeignKey("smart_processes.id", ondelete="CASCADE"))
     title       = Column(String, nullable=False)
     stage_index = Column(Integer, default=0)
+    assignee_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     data        = Column(JSON, default=dict)
     created_at  = Column(DateTime, default=datetime.utcnow)
     updated_at  = Column(DateTime, default=datetime.utcnow)

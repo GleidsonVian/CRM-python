@@ -168,7 +168,7 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
 
 // ── ProcessModal ──────────────────────────────────────────────────────────────
 
-function ProcessModal({ process, onClose, onSave }) {
+function ProcessModal({ process, onClose, onSave, users }) {
   const isNew = !process?.id;
   const [tab, setTab] = useState(0);
   const [name, setName] = useState(process?.name || '');
@@ -195,6 +195,9 @@ function ProcessModal({ process, onClose, onSave }) {
       TERMINAL_LOST,
     ];
   });
+  const [automationRules, setAutomationRules] = useState(
+    process?.automation_rules ? JSON.parse(JSON.stringify(process.automation_rules)) : []
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -232,7 +235,8 @@ function ProcessModal({ process, onClose, onSave }) {
       const payload = {
         name: name.trim(), icon, color, description,
         fields_config: fields.map(f => ({ ...f, key: f.key || slugify(f.label) || `field_${Date.now()}` })),
-        stages: stages.map(s => ({ name: s.name, color: s.color, is_terminal: !!s.is_terminal, terminal_type: s.terminal_type || null })),
+        stages: stages.map(s => ({ name: s.name, color: s.color, is_terminal: !!s.is_terminal, terminal_type: s.terminal_type || null, required_fields: s.required_fields || [] })),
+        automation_rules: automationRules,
       };
       const url = isNew ? `${API}/smart-processes` : `${API}/smart-processes/${process.id}`;
       const method = isNew ? 'POST' : 'PUT';
@@ -245,7 +249,7 @@ function ProcessModal({ process, onClose, onSave }) {
     } finally { setSaving(false); }
   };
 
-  const TABS = ['Geral', 'Campos', 'Etapas'];
+  const TABS = ['Geral', 'Campos', 'Etapas', 'Regras'];
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
@@ -374,30 +378,130 @@ function ProcessModal({ process, onClose, onSave }) {
                 <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', fontSize: 13 }}>Adicione pelo menos uma etapa.</div>
               )}
               {stages.map((s, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, padding: '8px 10px', border: `1px solid ${s.is_terminal ? hexToRgba(s.color, 0.4) : 'var(--border)'}`, borderRadius: 8, background: s.is_terminal ? hexToRgba(s.color, 0.06) : 'var(--bg-secondary)' }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 0 3px ${hexToRgba(s.color, 0.25)}` }} />
-                  <input
-                    value={s.name}
-                    onChange={e => !s.is_terminal && updateStage(i, { name: e.target.value })}
-                    readOnly={!!s.is_terminal}
-                    style={{ ...S.input, flex: 1, margin: 0, opacity: s.is_terminal ? 0.75 : 1, cursor: s.is_terminal ? 'default' : 'text' }}
-                  />
-                  {s.is_terminal ? (
-                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: hexToRgba(s.color, 0.12), border: `1px solid ${hexToRgba(s.color, 0.3)}`, borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                      {s.terminal_type === 'success' ? '✓ Ganho' : '✗ Descartado'} · Obrigatória
-                    </span>
-                  ) : (
-                    <>
-                      <input type="color" value={s.color} onChange={e => updateStage(i, { color: e.target.value })} style={{ width: 34, height: 34, border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', padding: 2 }} />
-                      {[[-1, '↑'], [1, '↓']].map(([d, lbl]) => (
-                        <button key={d} onClick={() => moveStage(i, d)} style={{ ...S.iconBtn, fontSize: 13, color: '#64748b' }}>{lbl}</button>
-                      ))}
-                      <button onClick={() => removeStage(i)} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
-                    </>
+                <React.Fragment key={i}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: fields.length > 0 && !s.is_terminal ? 2 : 8, padding: '8px 10px', border: `1px solid ${s.is_terminal ? hexToRgba(s.color, 0.4) : 'var(--border)'}`, borderRadius: 8, background: s.is_terminal ? hexToRgba(s.color, 0.06) : 'var(--bg-secondary)' }}>
+                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 0 3px ${hexToRgba(s.color, 0.25)}` }} />
+                    <input
+                      value={s.name}
+                      onChange={e => !s.is_terminal && updateStage(i, { name: e.target.value })}
+                      readOnly={!!s.is_terminal}
+                      style={{ ...S.input, flex: 1, margin: 0, opacity: s.is_terminal ? 0.75 : 1, cursor: s.is_terminal ? 'default' : 'text' }}
+                    />
+                    {s.is_terminal ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: hexToRgba(s.color, 0.12), border: `1px solid ${hexToRgba(s.color, 0.3)}`, borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        {s.terminal_type === 'success' ? '✓ Ganho' : '✗ Descartado'} · Obrigatória
+                      </span>
+                    ) : (
+                      <>
+                        <input type="color" value={s.color} onChange={e => updateStage(i, { color: e.target.value })} style={{ width: 34, height: 34, border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', padding: 2 }} />
+                        {[[-1, '↑'], [1, '↓']].map(([d, lbl]) => (
+                          <button key={d} onClick={() => moveStage(i, d)} style={{ ...S.iconBtn, fontSize: 13, color: '#64748b' }}>{lbl}</button>
+                        ))}
+                        <button onClick={() => removeStage(i)} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
+                      </>
+                    )}
+                  </div>
+                  {!s.is_terminal && fields.length > 0 && (
+                    <div style={{ marginLeft: 12, marginBottom: 8, display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center', padding: '4px 8px', background: '#f8fafc', borderRadius: '0 0 6px 6px', borderLeft: '3px solid #e2e8f0' }}>
+                      <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, marginRight: 2 }}>Obrigatórios para avançar:</span>
+                      {fields.map(f => {
+                        const fkey = f.key || f.label;
+                        const checked = (s.required_fields || []).includes(fkey);
+                        return (
+                          <label key={fkey} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: checked ? '#6366f1' : '#64748b', cursor: 'pointer', background: checked ? '#eef2ff' : '#fff', border: `1px solid ${checked ? '#c7d2fe' : '#e2e8f0'}`, borderRadius: 4, padding: '2px 7px' }}>
+                            <input type="checkbox" style={{ width: 11, height: 11 }}
+                              checked={checked}
+                              onChange={e => {
+                                const cur = s.required_fields || [];
+                                updateStage(i, { required_fields: e.target.checked ? [...cur, fkey] : cur.filter(k => k !== fkey) });
+                              }}
+                            />
+                            {f.label || f.key}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+              <button onClick={addStage} style={S.addDashed}>+ Etapa</button>
+            </div>
+          )}
+
+          {/* ── Tab 3: Regras de automação ── */}
+          {tab === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4, lineHeight: 1.6 }}>
+                Defina ações automáticas quando um registro entrar em uma etapa.
+              </div>
+              {automationRules.map((rule, ri) => (
+                <div key={rule.id || ri} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 12, background: '#f8fafc' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <input
+                      value={rule.name || ''}
+                      onChange={e => setAutomationRules(prev => prev.map((r, idx) => idx === ri ? { ...r, name: e.target.value } : r))}
+                      placeholder="Nome da regra"
+                      style={{ ...S.input, flex: 1, marginRight: 8, fontWeight: 600 }}
+                    />
+                    <button onClick={() => setAutomationRules(prev => prev.filter((_, idx) => idx !== ri))} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={S.label}>Quando entrar na etapa</label>
+                      <select
+                        value={rule.trigger_stage_index ?? ''}
+                        onChange={e => setAutomationRules(prev => prev.map((r, idx) => idx === ri ? { ...r, trigger_stage_index: Number(e.target.value) } : r))}
+                        style={{ ...S.input, height: 34, padding: '0 8px' }}
+                      >
+                        <option value="">— selecione —</option>
+                        {stages.filter(s => !s.is_terminal).map((s, si) => (
+                          <option key={si} value={si}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={S.label}>Ação</label>
+                      <select
+                        value={rule.action_type || ''}
+                        onChange={e => setAutomationRules(prev => prev.map((r, idx) => idx === ri ? { ...r, action_type: e.target.value, action_data: {} } : r))}
+                        style={{ ...S.input, height: 34, padding: '0 8px' }}
+                      >
+                        <option value="">— selecione —</option>
+                        <option value="notify">Notificar (mensagem)</option>
+                        <option value="auto_assign">Atribuir responsável</option>
+                      </select>
+                    </div>
+                  </div>
+                  {rule.action_type === 'notify' && (
+                    <div style={{ marginTop: 10 }}>
+                      <label style={S.label}>Mensagem</label>
+                      <input
+                        value={rule.action_data?.message || ''}
+                        onChange={e => setAutomationRules(prev => prev.map((r, idx) => idx === ri ? { ...r, action_data: { ...r.action_data, message: e.target.value } } : r))}
+                        placeholder="Ex: Registro movido para análise, verifique os dados."
+                        style={S.input}
+                      />
+                    </div>
+                  )}
+                  {rule.action_type === 'auto_assign' && (
+                    <div style={{ marginTop: 10 }}>
+                      <label style={S.label}>Responsável</label>
+                      <select
+                        value={rule.action_data?.assignee_id || ''}
+                        onChange={e => setAutomationRules(prev => prev.map((r, idx) => idx === ri ? { ...r, action_data: { ...r.action_data, assignee_id: Number(e.target.value) } } : r))}
+                        style={{ ...S.input, height: 34, padding: '0 8px' }}
+                      >
+                        <option value="">— selecione —</option>
+                        {(users || []).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                      </select>
+                    </div>
                   )}
                 </div>
               ))}
-              <button onClick={addStage} style={S.addDashed}>+ Etapa</button>
+              <button
+                onClick={() => setAutomationRules(prev => [...prev, { id: Date.now(), name: '', trigger_stage_index: null, action_type: '', action_data: {} }])}
+                style={S.addDashed}
+              >+ Nova regra</button>
             </div>
           )}
         </div>
@@ -415,19 +519,22 @@ function ProcessModal({ process, onClose, onSave }) {
 
 // ── RecordPanel ── slide-in panel igual ao CardModal ──────────────────────────
 
-function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDelete }) {
+function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSave, onDelete }) {
   const isNew = !record?.id;
   const [title, setTitle] = useState(record?.title || '');
   const [stageIndex, setStageIndex] = useState(record?.stage_index ?? defaultStageIndex ?? 0);
+  const [assigneeId, setAssigneeId] = useState(record?.assignee_id ?? null);
   const [data, setData] = useState(record?.data ? { ...record.data } : {});
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [error, setError] = useState('');
+  const [stageError, setStageError] = useState('');
   const [links, setLinks] = useState(record?.links || []);
   const [rightTab, setRightTab] = useState('activity');
   const [note, setNote] = useState('');
   const [notes, setNotes] = useState([]);
   const [notesLoaded, setNotesLoaded] = useState(false);
+  const [automationLog, setAutomationLog] = useState([]);
 
   // Load notes from API
   useEffect(() => {
@@ -444,7 +551,7 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
     if (isNew) return;
     setSaveStatus('saving');
     try {
-      const payload = { title: title.trim() || record.title, stage_index: stageIndex, data, ...patch };
+      const payload = { title: title.trim() || record.title, stage_index: stageIndex, assignee_id: assigneeId, data, ...patch };
       const res = await fetch(`${API}/smart-processes/${process.id}/records/${record.id}`, {
         method: 'PUT', headers: authHeader(), body: JSON.stringify(payload),
       });
@@ -459,8 +566,39 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
     }
   };
 
+  const executeRules = (newStageIdx) => {
+    const rules = process.automation_rules || [];
+    rules.forEach(rule => {
+      if (rule.trigger_stage_index !== newStageIdx) return;
+      if (rule.action_type === 'notify' && rule.action_data?.message) {
+        setAutomationLog(prev => [{ id: Date.now(), message: rule.action_data.message, rule: rule.name, ts: new Date().toISOString() }, ...prev]);
+      } else if (rule.action_type === 'auto_assign' && rule.action_data?.assignee_id) {
+        setAssigneeId(rule.action_data.assignee_id);
+      }
+    });
+  };
+
   const handleStageClick = async (idx) => {
+    const stage = (process.stages || [])[idx];
+    const required = stage?.required_fields || [];
+    if (required.length > 0) {
+      const missing = required.filter(fkey => {
+        const val = data[fkey];
+        return val === null || val === undefined || val === '';
+      });
+      if (missing.length > 0) {
+        const labels = missing.map(fkey => {
+          const fd = (process.fields_config || []).find(f => f.key === fkey);
+          return fd ? fd.label : fkey;
+        });
+        setStageError(`Preencha antes de avançar: ${labels.join(', ')}`);
+        setTimeout(() => setStageError(''), 4000);
+        return;
+      }
+    }
+    setStageError('');
     setStageIndex(idx);
+    executeRules(idx);
     if (!isNew) autoSave({ stage_index: idx });
   };
 
@@ -468,7 +606,7 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
     if (!title.trim()) { setError('Informe o título'); return; }
     setError(''); setSaving(true);
     try {
-      const payload = { title: title.trim(), stage_index: stageIndex, data };
+      const payload = { title: title.trim(), stage_index: stageIndex, assignee_id: assigneeId, data };
       const url = isNew
         ? `${API}/smart-processes/${process.id}/records`
         : `${API}/smart-processes/${process.id}/records/${record.id}`;
@@ -569,6 +707,13 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
             </div>
           </div>
 
+          {/* Stage validation error */}
+          {stageError && (
+            <div style={{ margin: '0 20px 0', padding: '7px 12px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 6 }}>
+              ⚠ {stageError}
+            </div>
+          )}
+
           {/* Stage bar */}
           <div className="modal-stages-bar">
             {(process.stages || []).map((s, i) => {
@@ -629,6 +774,25 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
                   ) : <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>—</span>;
                 })()}
               </div>
+              {/* Responsável */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div className="form-label" style={{ marginBottom: 3 }}>Responsável</div>
+                <select
+                  className="form-select"
+                  value={assigneeId || ''}
+                  onChange={e => {
+                    const val = e.target.value ? Number(e.target.value) : null;
+                    setAssigneeId(val);
+                    if (!isNew) autoSave({ assignee_id: val });
+                  }}
+                >
+                  <option value="">— Nenhum —</option>
+                  {(users || []).map(u => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+
               {!isNew && (
                 <>
                   <div>
@@ -743,7 +907,18 @@ function RecordPanel({ record, process, defaultStageIndex, onClose, onSave, onDe
                       </div>
                     </div>
                   )}
-                  {notes.length === 0 && isNew && (
+                  {/* Automation rule notifications */}
+                  {automationLog.map(entry => (
+                    <div key={entry.id} className="timeline-event">
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>⚡</div>
+                      <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
+                        <div className="event-content" style={{ color: '#6366f1', fontWeight: 600 }}>Automação: {entry.rule}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{entry.message}</div>
+                        <div className="event-time" style={{ fontSize: 10, marginTop: 2 }}>{fmtTs(entry.ts)}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {notes.length === 0 && automationLog.length === 0 && isNew && (
                     <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                       Nenhuma atividade ainda
                     </div>
@@ -887,7 +1062,12 @@ function SPRecordCard({ record, process, onOpen }) {
 
       <div className="card-footer">
         <div className="card-assignee">
-          {links.length > 0 ? (
+          {record.assignee_name ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: '#f0fdf4', color: '#16a34a', borderRadius: 10, padding: '2px 8px', fontWeight: 600 }}>
+              <IconPerson />
+              {record.assignee_name}
+            </span>
+          ) : links.length > 0 ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: '#eff6ff', color: '#3b82f6', borderRadius: 10, padding: '2px 8px', fontWeight: 600 }}>
               <IconLink />
               {links.length} vínc.
@@ -1177,8 +1357,16 @@ export default function SmartProcessesView() {
   const [searchText, setSearchText] = useState('');
   const [filterStage, setFilterStage] = useState('');
   const [confirm, setConfirm] = useState(null);
+  const [users, setUsers] = useState([]);
 
   const selectedProcess = processes.find(p => p.id === selectedId) || null;
+
+  useEffect(() => {
+    fetch(`${API}/users`, { headers: authHeader() })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setUsers(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, []);
 
   const loadProcesses = useCallback(async () => {
     try {
@@ -1506,6 +1694,7 @@ export default function SmartProcessesView() {
       {showProcessModal && (
         <ProcessModal
           process={editingProcess}
+          users={users}
           onClose={() => setShowProcessModal(false)}
           onSave={(saved) => {
             if (saved?.id) setSelectedId(saved.id);
@@ -1518,6 +1707,7 @@ export default function SmartProcessesView() {
           record={editingRecord}
           process={selectedProcess}
           defaultStageIndex={defaultStageIndex}
+          users={users}
           onClose={() => setShowRecordPanel(false)}
           onSave={handleRecordSaved}
           onDelete={handleDeleteRecord}
