@@ -406,7 +406,13 @@ function ProcessModal({ process, onClose, onSave, users }) {
                         {[[-1, '↑'], [1, '↓']].map(([d, lbl]) => (
                           <button key={d} onClick={() => moveStage(i, d)} style={{ ...S.iconBtn, fontSize: 13, color: '#64748b' }}>{lbl}</button>
                         ))}
-                        <button onClick={() => removeStage(i)} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
+                        <button
+                          onClick={() => removeStage(i)}
+                          title="Excluir etapa"
+                          style={{ background: 'none', border: '1px solid #fca5a5', borderRadius: 5, cursor: 'pointer', padding: '3px 8px', fontSize: 11, color: '#ef4444', fontFamily: 'inherit', fontWeight: 600, flexShrink: 0 }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
+                        >Excluir</button>
                       </>
                     )}
                   </div>
