@@ -257,7 +257,7 @@ export function EntityConfigEditor({ value, onChange }) {
       {needsTarget && (
         <div>
           <label style={{ fontSize: 11, color: '#475569', display: 'block', marginBottom: 4 }}>
-            {entityType === 'spa' ? 'Processo SPA' : 'Pipeline'}
+            {entityType === 'spa' ? 'Processo SPA' : 'Pipeline (opcional — vazio = todos)'}
           </label>
           <select
             value={targetId}
@@ -267,8 +267,8 @@ export function EntityConfigEditor({ value, onChange }) {
             }}
             style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 12, fontFamily: 'inherit', background: '#fff', color: '#0f172a', outline: 'none' }}
           >
-            <option value="">— selecionar —</option>
-            {targetOptions.map(o => <option key={o.id} value={o.id}>{o.name || o.icon + ' ' + o.name}</option>)}
+            <option value="">{entityType === 'pipeline' ? '— Todos os pipelines —' : '— selecionar —'}</option>
+            {targetOptions.map(o => <option key={o.id} value={o.id}>{o.icon ? `${o.icon} ${o.name}` : o.name}</option>)}
           </select>
         </div>
       )}

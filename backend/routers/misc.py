@@ -36,15 +36,13 @@ def entity_search(
         results = [{"id": r.id, "title": r.title} for r in recs]
 
     elif entity_type == "pipeline":
-        if not target_id:
-            return []
-        cards = (db.query(models.Card)
-                 .join(models.Stage, models.Card.stage_id == models.Stage.id)
-                 .filter(models.Stage.pipeline_id == target_id,
-                         models.Card.title.ilike(pat),
-                         models.Card.deleted_at == None)
-                 .limit(limit).all())
-        results = [{"id": c.id, "title": c.title} for c in cards]
+        q_cards = (db.query(models.Card)
+                   .join(models.Stage, models.Card.stage_id == models.Stage.id)
+                   .filter(models.Card.title.ilike(pat),
+                           models.Card.deleted_at == None))
+        if target_id:
+            q_cards = q_cards.filter(models.Stage.pipeline_id == target_id)
+        results = [{"id": c.id, "title": c.title} for c in q_cards.limit(limit).all()]
 
     elif entity_type == "lead":
         leads = (db.query(models.Lead)
