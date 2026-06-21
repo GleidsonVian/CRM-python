@@ -1,17 +1,70 @@
-﻿"""Miscellaneous endpoints: custom fields, field values, file upload, comments, leads/import, health."""
+"""Miscellaneous endpoints: custom fields, field values, file upload, comments, leads/import, health."""
 import re, os, shutil, time
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import models, schemas
 from database import get_db
 from services.helpers import _generate_uid
 
 router = APIRouter()
+
+
+@router.get("/entity-search")
+def entity_search(
+    entity_type: str,
+    q: str = "",
+    target_id: Optional[int] = None,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    """Universal entity search for entity-reference fields."""
+    pat = f"%{q}%"
+    results = []
+
+    if entity_type == "spa":
+        if not target_id:
+            return []
+        recs = (db.query(models.SpRecord)
+                .filter(models.SpRecord.process_id == target_id,
+                        models.SpRecord.title.ilike(pat))
+                .limit(limit).all())
+        results = [{"id": r.id, "title": r.title} for r in recs]
+
+    elif entity_type == "pipeline":
+        if not target_id:
+            return []
+        cards = (db.query(models.Card)
+                 .join(models.Stage, models.Card.stage_id == models.Stage.id)
+                 .filter(models.Stage.pipeline_id == target_id,
+                         models.Card.title.ilike(pat),
+                         models.Card.deleted_at == None)
+                 .limit(limit).all())
+        results = [{"id": c.id, "title": c.title} for c in cards]
+
+    elif entity_type == "lead":
+        leads = (db.query(models.Lead)
+                 .filter(models.Lead.title.ilike(pat))
+                 .limit(limit).all())
+        results = [{"id": l.id, "title": l.title} for l in leads]
+
+    elif entity_type == "contact":
+        contacts = (db.query(models.Contact)
+                    .filter((models.Contact.first_name + " " + models.Contact.last_name).ilike(pat))
+                    .limit(limit).all())
+        results = [{"id": c.id, "title": f"{c.first_name or ''} {c.last_name or ''}".strip()} for c in contacts]
+
+    elif entity_type == "company":
+        companies = (db.query(models.Company)
+                     .filter(models.Company.name.ilike(pat))
+                     .limit(limit).all())
+        results = [{"id": c.id, "title": c.name} for c in companies]
+
+    return results
 
 
 @router.get("/health", response_model=schemas.HealthResponse, tags=["health"])

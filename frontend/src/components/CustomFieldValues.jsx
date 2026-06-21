@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { API_URL as API } from '../config.js';
+import EntityRefField from './EntityRefField.jsx';
 
 const TYPE_META = {
   text:       { label: 'Texto',       icon: 'T'  },
@@ -14,6 +15,7 @@ const TYPE_META = {
   phone:      { label: 'Telefone',    icon: '📞' },
   email:      { label: 'E-mail',      icon: '@'  },
   attachment: { label: 'Anexo',       icon: '📎' },
+  entity:     { label: 'Entidade',    icon: '🔗' },
 };
 
 const FILE_ICONS = {
@@ -642,6 +644,22 @@ export default function CustomFieldValues({
     if (field.field_type === 'attachment') return (
       <AttachmentField fieldId={field.id} value={val} entityId={entityId} entity={entity} disabled={readOnly || !entityId} />
     );
+    if (field.field_type === 'entity') {
+      let cfg = {};
+      try { cfg = JSON.parse(field.options || '{}'); } catch {}
+      return (
+        <EntityRefField
+          value={val}
+          config={cfg}
+          readOnly={readOnly || !entityId}
+          authHeader={() => ({ Authorization: `Bearer ${localStorage.getItem('nexus_token')}` })}
+          onChange={v => {
+            setValues(p => ({ ...p, [field.id]: v }));
+            saveValue(field.id, v);
+          }}
+        />
+      );
+    }
     if (field.field_type === 'checkbox') return (
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
         <input type="checkbox" checked={val === 'true'} disabled={readOnly || !entityId}

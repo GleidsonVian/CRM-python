@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { API_URL as API } from '../config.js';
+import EntityRefField, { EntityConfigEditor } from './EntityRefField.jsx';
 
 const ACCENT = '#ed5418';
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#ef4444', '#64748b'];
-const FIELD_TYPES = ['text', 'number', 'select', 'date', 'textarea', 'url', 'phone'];
+const FIELD_TYPES = ['text', 'number', 'select', 'date', 'textarea', 'url', 'phone', 'entity'];
 
 const authHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem('nexus_token')}`,
@@ -351,6 +352,14 @@ function ProcessModal({ process, onClose, onSave, users }) {
                         value={Array.isArray(f.options) ? f.options.join(', ') : ''}
                         onChange={e => updateField(i, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                         style={S.input} placeholder="Opção 1, Opção 2, Opção 3"
+                      />
+                    </div>
+                  )}
+                  {f.type === 'entity' && (
+                    <div style={{ marginBottom: 8 }}>
+                      <EntityConfigEditor
+                        value={JSON.stringify({ entity_type: f.entity_type || '', target_id: f.target_id || null, target_name: f.target_name || '' })}
+                        onChange={v => { try { const c = JSON.parse(v || '{}'); updateField(i, { entity_type: c.entity_type, target_id: c.target_id, target_name: c.target_name }); } catch {} }}
                       />
                     </div>
                   )}
@@ -830,6 +839,13 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                     <option value="">— selecione —</option>
                     {(field.options || []).map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                ) : field.type === 'entity' ? (
+                  <EntityRefField
+                    value={data[field.key] || ''}
+                    config={{ entity_type: field.entity_type, target_id: field.target_id, target_name: field.target_name }}
+                    authHeader={authHeader}
+                    onChange={v => { setField(field.key, v); if (!isNew) setTimeout(autoSave, 0); }}
+                  />
                 ) : (
                   <input
                     className="form-input"
@@ -1401,6 +1417,39 @@ export default function SmartProcessesView() {
   useEffect(() => {
     setSearchText(''); setFilterStage('');
   }, [selectedId]);
+
+  // Handle cross-entity navigation from entity-reference chips
+  useEffect(() => {
+    const open = (e) => {
+      const { entity_type, target_id, record_id } = e.detail || {};
+      if (entity_type !== 'spa') return;
+      if (target_id) setSelectedId(Number(target_id));
+      if (record_id) {
+        // Defer until after records are loaded
+        const timer = setInterval(() => {
+          setRecords(prev => {
+            const rec = prev.find(r => r.id === Number(record_id));
+            if (rec) {
+              clearInterval(timer);
+              setEditingRecord(rec);
+              setDefaultStageIndex(rec.stage_index || 0);
+              setShowRecordPanel(true);
+            }
+            return prev;
+          });
+        }, 150);
+        setTimeout(() => clearInterval(timer), 5000);
+      }
+    };
+    // Check if there's a pending entity stored before this component mounted
+    const pending = window.__nexus_pending_entity;
+    if (pending) {
+      window.__nexus_pending_entity = null;
+      open({ detail: pending });
+    }
+    window.addEventListener('nexus:open-entity', open);
+    return () => window.removeEventListener('nexus:open-entity', open);
+  }, []);
 
   const askConfirm = (message, onConfirm) => setConfirm({ message, onConfirm });
 

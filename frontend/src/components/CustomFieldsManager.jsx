@@ -2,6 +2,7 @@
 import { useConfirm } from '../App';
 
 import { API_URL as API } from '../config.js';
+import { EntityConfigEditor } from './EntityRefField.jsx';
 
 const ENTITIES = [
   { value: 'deal',       label: 'Negócios',        icon: '📋', desc: 'Campos que aparecem em cada card do pipeline' },
@@ -24,6 +25,7 @@ const FIELD_TYPES = [
   { value: 'url',      label: 'URL',         icon: '🔗',  desc: 'Endereço web' },
   { value: 'phone',    label: 'Telefone',    icon: '📞',  desc: 'Número de telefone' },
   { value: 'email',    label: 'E-mail',      icon: '@',   desc: 'Endereço de e-mail' },
+  { value: 'entity',  label: 'Entidade',    icon: '🔗',  desc: 'Referência a outro registro (SPA, Negócio, Lead…)' },
 ];
 
 const EMPTY_FIELD = {
@@ -237,6 +239,11 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
           <OptionsEditor value={form.options} onChange={v => set('options', v)} />
         )}
 
+        {/* Entity config (for entity type) */}
+        {form.field_type === 'entity' && (
+          <EntityConfigEditor value={form.options} onChange={v => set('options', v)} />
+        )}
+
         {/* Required toggle */}
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 10px', background: '#f8fafc', borderRadius: 8, border: '1px solid #f1f5f9' }}>
           <div
@@ -306,7 +313,7 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
 
 // ── SmartProcessFieldsPanel ───────────────────────────────────────────────────
 
-const SP_FIELD_TYPES = ['text', 'number', 'select', 'date', 'textarea', 'url', 'phone'];
+const SP_FIELD_TYPES = ['text', 'number', 'select', 'date', 'textarea', 'url', 'phone', 'entity'];
 
 function slugifySp(str) {
   return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
@@ -374,8 +381,8 @@ function SmartProcessFieldsPanel() {
     setProcesses(prev => prev.map(p => p.id === selectedId ? { ...p, fields_config: arr } : p));
   };
 
-  const SP_TYPE_ICONS = { text: 'T', number: '#', select: '▾', date: '📅', textarea: '¶', url: '🔗', phone: '📞' };
-  const SP_TYPE_LABELS = { text: 'Texto', number: 'Número', select: 'Lista', date: 'Data', textarea: 'Texto longo', url: 'URL', phone: 'Telefone' };
+  const SP_TYPE_ICONS  = { text: 'T', number: '#', select: '▾', date: '📅', textarea: '¶', url: '🔗', phone: '📞', entity: '🔗' };
+  const SP_TYPE_LABELS = { text: 'Texto', number: 'Número', select: 'Lista', date: 'Data', textarea: 'Texto longo', url: 'URL', phone: 'Telefone', entity: 'Entidade' };
 
   return (
     <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -512,6 +519,14 @@ function SmartProcessFieldsPanel() {
                                 value={Array.isArray(field.options) ? field.options.join(', ') : ''}
                                 onChange={e => updateField(idx, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                                 placeholder="Opção 1, Opção 2, Opção 3"
+                              />
+                            </div>
+                          )}
+                          {field.type === 'entity' && (
+                            <div style={{ marginTop: 10 }}>
+                              <EntityConfigEditor
+                                value={JSON.stringify({ entity_type: field.entity_type || '', target_id: field.target_id || null, target_name: field.target_name || '' })}
+                                onChange={v => { try { const c = JSON.parse(v || '{}'); updateField(idx, { entity_type: c.entity_type, target_id: c.target_id, target_name: c.target_name }); } catch {} }}
                               />
                             </div>
                           )}
