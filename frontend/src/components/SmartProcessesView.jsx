@@ -154,8 +154,8 @@ const S = {
 
 function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div style={{ background: 'var(--bg-primary)', borderRadius: 10, padding: '24px 28px', width: 380, boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onCancel}>
+      <div style={{ background: '#ffffff', borderRadius: 10, padding: '24px 28px', width: 380, boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }} onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 14, color: 'var(--text-primary)', marginBottom: 20, lineHeight: 1.5 }}>{message}</div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onCancel} style={S.cancelBtn}>Cancelar</button>
@@ -248,8 +248,8 @@ function ProcessModal({ process, onClose, onSave }) {
   const TABS = ['Geral', 'Campos', 'Etapas'];
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div style={{ width: 680, maxHeight: '92vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)', borderRadius: 12, boxShadow: '0 20px 60px rgba(0,0,0,0.22)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
+      <div style={{ width: 680, maxHeight: '92vh', display: 'flex', flexDirection: 'column', background: '#ffffff', borderRadius: 12, boxShadow: '0 20px 60px rgba(0,0,0,0.22)', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
 
         <div style={{ background: color, padding: '20px 24px 0', display: 'flex', alignItems: 'flex-end', gap: 14 }}>
           <div style={{ fontSize: 32, lineHeight: 1, paddingBottom: 14 }}>{icon}</div>
