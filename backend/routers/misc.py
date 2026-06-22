@@ -65,6 +65,43 @@ def entity_search(
     return results
 
 
+@router.post("/sp-import/{process_id}")
+def sp_import_records(
+    process_id: int,
+    body: dict,
+    db: Session = Depends(get_db),
+):
+    """Bulk-create SPA records from a JSON payload (used by CSV import)."""
+    from typing import Any as _Any
+    records_in = body.get("records", [])
+    if not isinstance(records_in, list):
+        raise HTTPException(400, "records deve ser uma lista")
+    p = db.query(models.SmartProcess).filter(models.SmartProcess.id == process_id).first()
+    if not p:
+        raise HTTPException(404, "Processo não encontrado")
+    from datetime import datetime as _dt
+    created = []
+    errors = []
+    for i, row in enumerate(records_in):
+        try:
+            r = models.SpRecord(
+                process_id=process_id,
+                title=str(row.get("title", "")),
+                stage_index=int(row.get("stage_index", 0)),
+                assignee_id=row.get("assignee_id"),
+                data=row.get("data", {}),
+                created_at=_dt.utcnow(),
+                updated_at=_dt.utcnow(),
+            )
+            db.add(r)
+            db.flush()
+            created.append(r.id)
+        except Exception as e:
+            errors.append({"row": i + 1, "title": row.get("title", ""), "error": str(e)})
+    db.commit()
+    return {"created": len(created), "errors": errors, "ids": created}
+
+
 @router.get("/health", response_model=schemas.HealthResponse, tags=["health"])
 def health_check(db: Session = Depends(get_db)):
     try:

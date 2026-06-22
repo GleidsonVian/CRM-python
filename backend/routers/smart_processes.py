@@ -77,6 +77,15 @@ class NoteCreate(BaseModel):
     content: str
     actor: str = "Usuário"
 
+class RecordImportRow(BaseModel):
+    title: str
+    stage_index: int = 0
+    assignee_id: Optional[int] = None
+    data: Dict[str, Any] = {}
+
+class RecordImportBody(BaseModel):
+    records: List[RecordImportRow]
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -205,6 +214,33 @@ def create_record(process_id: int, body: RecordCreate, db: Session = Depends(get
     db.commit()
     db.refresh(r)
     return _serialize_record(r, db)
+
+
+@router.post("/smart-processes/{process_id}/import")
+def import_records_bulk(process_id: int, body: RecordImportBody, db: Session = Depends(get_db)):
+    p = db.query(models.SmartProcess).filter(models.SmartProcess.id == process_id).first()
+    if not p:
+        raise HTTPException(404, "Processo não encontrado")
+    created = []
+    errors = []
+    for i, row in enumerate(body.records):
+        try:
+            r = models.SpRecord(
+                process_id=process_id,
+                title=row.title,
+                stage_index=row.stage_index,
+                assignee_id=row.assignee_id,
+                data=row.data,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+            )
+            db.add(r)
+            db.flush()
+            created.append(r.id)
+        except Exception as e:
+            errors.append({"row": i + 1, "title": row.title, "error": str(e)})
+    db.commit()
+    return {"created": len(created), "errors": errors, "ids": created}
 
 
 @router.get("/smart-processes/{process_id}/records/{record_id}")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { API_URL as API } from '../config.js';
 import EntityRefField, { EntityConfigEditor } from './EntityRefField.jsx';
+import SpCsvImport from './SpCsvImport.jsx';
 
 const ACCENT = '#ed5418';
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#ef4444', '#64748b'];
@@ -622,9 +623,20 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
       }
     }
     setStageError('');
+    const oldStage = (process.stages || [])[stageIndex];
+    const oldStageName = oldStage?.name || `Etapa ${stageIndex}`;
+    const newStageName = stage?.name || `Etapa ${idx}`;
     setStageIndex(idx);
     executeRules(idx);
-    if (!isNew) autoSave({ stage_index: idx });
+    if (!isNew) {
+      autoSave({ stage_index: idx });
+      let actor = 'Usuário'; try { const u = JSON.parse(localStorage.getItem('nexus_user') || '{}'); actor = u.name || u.email || 'Usuário'; } catch {}
+      const content = JSON.stringify({ _stage_change: true, from: oldStageName, to: newStageName });
+      fetch(`${API}/smart-processes/${process.id}/records/${record.id}/notes`, {
+        method: 'POST', headers: authHeader(),
+        body: JSON.stringify({ content, actor }),
+      }).then(r => r.ok ? r.json() : null).then(n => { if (n) setNotes(prev => [n, ...prev]); }).catch(() => {});
+    }
   };
 
   const handleSave = async () => {
@@ -980,26 +992,48 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                       Nenhuma atividade ainda
                     </div>
                   )}
-                  {notes.map(n => (
-                    <div key={n.id} className="timeline-event" style={{ position: 'relative' }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#f59e0b18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #f59e0b30' }}>💬</div>
-                      <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
-                        <div className="event-content" style={{ whiteSpace: 'pre-wrap' }}>{n.content}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
-                          <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                          <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(n.created_at)}</span>
+                  {notes.map(n => {
+                    let stageChange = null;
+                    try { const p = JSON.parse(n.content); if (p?._stage_change) stageChange = p; } catch {}
+                    if (stageChange) return (
+                      <div key={n.id} className="timeline-event" style={{ position: 'relative' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🔀</div>
+                        <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Etapa alterada:</span>
+                            <span style={{ fontSize: 11, background: '#f1f5f9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>{stageChange.from}</span>
+                            <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
+                            <span style={{ fontSize: 11, background: '#6366f118', color: '#6366f1', padding: '2px 7px', borderRadius: 4, fontWeight: 700, border: '1px solid #6366f130' }}>{stageChange.to}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
+                            <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
+                            <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(n.created_at)}</span>
+                          </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteNote(n.id)}
-                        style={{ position: 'absolute', top: 6, right: 0, background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: 13, padding: 2, borderRadius: 3 }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#cbd5e1'}
-                        title="Excluir nota"
-                      >×</button>
-                    </div>
-                  ))}
+                    );
+                    return (
+                      <div key={n.id} className="timeline-event" style={{ position: 'relative' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#f59e0b18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #f59e0b30' }}>💬</div>
+                        <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
+                          <div className="event-content" style={{ whiteSpace: 'pre-wrap' }}>{n.content}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
+                            <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
+                            <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(n.created_at)}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteNote(n.id)}
+                          style={{ position: 'absolute', top: 6, right: 0, background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: 13, padding: 2, borderRadius: 3 }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#cbd5e1'}
+                          title="Excluir nota"
+                        >×</button>
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -1007,20 +1041,47 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
             {/* History tab */}
             {rightTab === 'history' && (
               <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-                {!isNew && (
-                  <div className="timeline-event">
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🆕</div>
-                    <div className="event-body" style={{ flex: 1 }}>
-                      <div className="event-content">Registro criado em {process.name}</div>
-                      <div className="event-time" style={{ fontSize: 10, marginTop: 2 }}>{fmtTs(record.created_at)}</div>
-                    </div>
-                  </div>
-                )}
                 {isNew && (
                   <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                     Histórico disponível após criação
                   </div>
                 )}
+                {!isNew && (() => {
+                  const stageNotes = notes.filter(n => { try { return JSON.parse(n.content)?._stage_change; } catch { return false; } });
+                  const historyItems = [
+                    { type: 'created', ts: record.created_at },
+                    ...stageNotes.map(n => ({ type: 'stage', note: n, ts: n.created_at })),
+                  ].sort((a, b) => new Date(a.ts) - new Date(b.ts));
+                  return historyItems.map((item, i) => {
+                    if (item.type === 'created') return (
+                      <div key="created" className="timeline-event">
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🆕</div>
+                        <div className="event-body" style={{ flex: 1 }}>
+                          <div className="event-content">Registro criado em {process.name}</div>
+                          <div className="event-time" style={{ fontSize: 10, marginTop: 2 }}>{fmtTs(record.created_at)}</div>
+                        </div>
+                      </div>
+                    );
+                    let sc = {}; try { sc = JSON.parse(item.note.content); } catch {}
+                    return (
+                      <div key={item.note.id} className="timeline-event">
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🔀</div>
+                        <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 11, background: '#f1f5f9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>{sc.from}</span>
+                            <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
+                            <span style={{ fontSize: 11, background: '#6366f118', color: '#6366f1', padding: '2px 7px', borderRadius: 4, fontWeight: 700, border: '1px solid #6366f130' }}>{sc.to}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {item.note.actor || 'Usuário'}</span>
+                            <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
+                            <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(item.note.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
@@ -1406,6 +1467,7 @@ export default function SmartProcessesView() {
   const [records, setRecords] = useState([]);
   const [viewMode, setViewMode] = useState('kanban');
   const [showProcessModal, setShowProcessModal] = useState(false);
+  const [showCsvImport, setShowCsvImport] = useState(false);
   const [editingProcess, setEditingProcess] = useState(null);
   const [showRecordPanel, setShowRecordPanel] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -1604,6 +1666,13 @@ export default function SmartProcessesView() {
           <div className="header-sep" />
 
           <div className="header-controls">
+            {selectedProcess && (
+              <button
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-primary)', cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'inherit', fontWeight: 600 }}
+                onClick={() => setShowCsvImport(true)}
+                title="Importar registros via CSV"
+              >⬆ CSV</button>
+            )}
             <button
               className="btn btn-primary"
               style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}
@@ -1778,6 +1847,15 @@ export default function SmartProcessesView() {
             );
           })}
         </main>
+      )}
+
+      {/* CSV Import */}
+      {showCsvImport && selectedProcess && (
+        <SpCsvImport
+          process={selectedProcess}
+          onClose={() => setShowCsvImport(false)}
+          onImported={() => { loadRecords(selectedProcess.id); setShowCsvImport(false); }}
+        />
       )}
 
       {/* Modals */}
