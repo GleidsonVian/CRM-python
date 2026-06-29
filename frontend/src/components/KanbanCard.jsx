@@ -18,7 +18,7 @@ const avatarColor = (name) => {
 
 function renderCFValue(field, rawValue) {
   if (!rawValue && rawValue !== 0) return null;
-  if (field.field_type === 'checkbox') return rawValue === 'true' ? 'âœ“ Sim' : 'âœ— NÃ£o';
+  if (field.field_type === 'checkbox') return rawValue === 'true' ? '✓ Sim' : '✗ Não';
   if (field.field_type === 'currency') return `R$ ${parseFloat(rawValue || 0).toFixed(2).replace('.', ',')}`;
   if (field.field_type === 'select') {
     let opts = [];
@@ -28,7 +28,7 @@ function renderCFValue(field, rawValue) {
   if (field.field_type === 'attachment') {
     let files = [];
     try { files = JSON.parse(rawValue || '[]'); } catch {}
-    return files.length ? `ðŸ“Ž ${files.length} arquivo${files.length !== 1 ? 's' : ''}` : null;
+    return files.length ? `📎 ${files.length} arquivo${files.length !== 1 ? 's' : ''}` : null;
   }
   return rawValue;
 }
@@ -178,7 +178,7 @@ export default function KanbanCard({
             fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
             background: '#ede9fe', color: '#7c3aed', padding: '2px 6px', borderRadius: 4,
           }}>
-            {card.converted ? 'âœ“ Convertido' : 'Lead'}
+            {card.converted ? '✓ Convertido' : 'Lead'}
           </span>
         </div>
       )}
@@ -239,7 +239,7 @@ export default function KanbanCard({
               )}
             </div>
           ) : (
-            <span className="card-assignee-name" style={{ fontStyle: 'italic' }}>Sem responsÃ¡vel</span>
+            <span className="card-assignee-name" style={{ fontStyle: 'italic' }}>Sem responsável</span>
           )}
         </div>
         <span className="card-date">{fmtDate(card.created_at)}</span>
