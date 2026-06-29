@@ -95,6 +95,19 @@ export default function FormsView() {
     loadForms();
   };
 
+  // When builder is open, show it as a full page (no modal)
+  if (builderOpen) {
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <FormBuilderModal
+          form={editingForm}
+          onSave={handleSave}
+          onClose={() => setBuilderOpen(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '28px 32px', maxWidth: 1100, margin: '0 auto' }}>
       {/* Header */}
@@ -253,14 +266,6 @@ export default function FormsView() {
             </tbody>
           </table>
         </div>
-      )}
-
-      {builderOpen && (
-        <FormBuilderModal
-          form={editingForm}
-          onSave={handleSave}
-          onClose={() => setBuilderOpen(false)}
-        />
       )}
 
       {/* Submissions modal */}

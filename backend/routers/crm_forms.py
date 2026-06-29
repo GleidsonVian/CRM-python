@@ -33,6 +33,7 @@ class CRMFormCreate(BaseModel):
     button_text: str = "Enviar"
     success_message: str = "Obrigado! Sua resposta foi registrada."
     fields_config: List[Dict[str, Any]] = []
+    display_rules: List[Dict[str, Any]] = []
 
 
 class CRMFormUpdate(BaseModel):
@@ -46,6 +47,7 @@ class CRMFormUpdate(BaseModel):
     button_text: Optional[str] = None
     success_message: Optional[str] = None
     fields_config: Optional[List[Dict[str, Any]]] = None
+    display_rules: Optional[List[Dict[str, Any]]] = None
 
 
 def _form_to_dict(form: models.CRMForm) -> dict:
@@ -68,6 +70,7 @@ def _form_to_dict(form: models.CRMForm) -> dict:
         "button_text": form.button_text,
         "success_message": form.success_message,
         "fields_config": fc,
+        "display_rules": form.display_rules or [],
         "created_at": form.created_at.isoformat() if form.created_at else None,
     }
 
@@ -111,6 +114,7 @@ def create_form(payload: CRMFormCreate, db: Session = Depends(get_db)):
         button_text=payload.button_text,
         success_message=payload.success_message,
         fields_config=payload.fields_config,
+        display_rules=payload.display_rules,
         created_at=datetime.utcnow(),
     )
     db.add(form)

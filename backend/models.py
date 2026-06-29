@@ -436,6 +436,7 @@ class CRMForm(Base):
     button_text     = Column(String, default="Enviar")
     success_message = Column(String, default="Obrigado! Sua resposta foi registrada.")
     fields_config   = Column(JSON, default=list)
+    display_rules   = Column(JSON, default=list)
     created_at      = Column(DateTime, default=datetime.utcnow)
 
 

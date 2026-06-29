@@ -38,16 +38,40 @@ export default function PublicForm({ uid }) {
     setValues(prev => ({ ...prev, [key]: val }));
   };
 
+  const isFieldVisible = (field, vals) => {
+    const rules = (form?.display_rules || []).filter(r => r.target_fields?.includes(field.key));
+    for (const rule of rules) {
+      const actual = (vals[rule.trigger_field] || '').toString().toLowerCase().trim();
+      const expected = (rule.trigger_value || '').toString().toLowerCase().trim();
+      const condMet = actual === expected;
+      if (rule.action === 'show' && !condMet) return false;
+      if (rule.action === 'hide' && condMet) return false;
+    }
+    const cond = field.condition;
+    if (cond?.field_key) {
+      const actual = (vals[cond.field_key] || '').toString().toLowerCase().trim();
+      const expected = (cond.value || '').toString().toLowerCase().trim();
+      if (actual !== expected) return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
 
-    // Validate required
+    // Validate required — skip hidden fields
     for (const f of (form?.fields_config || [])) {
-      if (f.required && !values[f.key]) {
+      if (f.required && !values[f.key] && isFieldVisible(f, values)) {
         setSubmitError(`O campo "${f.label || f.key}" é obrigatório.`);
         return;
       }
+    }
+
+    // Only submit visible fields' values
+    const visibleValues = {};
+    for (const f of (form?.fields_config || [])) {
+      if (isFieldVisible(f, values)) visibleValues[f.key] = values[f.key] || '';
     }
 
     setSubmitting(true);
@@ -55,7 +79,7 @@ export default function PublicForm({ uid }) {
       const r = await fetch(`${API}/public/forms/${uid}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify(visibleValues),
       });
       if (!r.ok) {
         const err = await r.json().catch(() => ({}));
@@ -194,34 +218,35 @@ export default function PublicForm({ uid }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            {fieldsConfig.map((field, i) => (
-              <div key={i} style={{ marginBottom: 18 }}>
-                <label style={labelStyle}>
-                  {field.label || field.key}
-                  {field.required && <span style={{ color: '#ef4444', marginLeft: 3 }}>*</span>}
-                </label>
-                {field.field_type === 'textarea' ? (
-                  <textarea
-                    required={!!field.required}
-                    placeholder={field.placeholder}
-                    value={values[field.key] || ''}
-                    onChange={e => handleChange(field.key, e.target.value)}
-                    style={{ ...inputBase, minHeight: 90, resize: 'vertical' }}
-                  />
-                ) : (
-                  <input
-                    type={field.field_type || 'text'}
-                    required={!!field.required}
-                    placeholder={field.placeholder}
-                    value={values[field.key] || ''}
-                    onChange={e => handleChange(field.key, e.target.value)}
-                    style={inputBase}
-                    onFocus={e => e.target.style.borderColor = '#6366f1'}
-                    onBlur={e => e.target.style.borderColor = '#d1d5db'}
-                  />
-                )}
-              </div>
-            ))}
+            {fieldsConfig.map((field, i) => {
+              if (!isFieldVisible(field, values)) return null;
+              return (
+                <div key={i} style={{ marginBottom: 18 }}>
+                  <label style={labelStyle}>
+                    {field.label || field.key}
+                    {field.required && <span style={{ color: '#ef4444', marginLeft: 3 }}>*</span>}
+                  </label>
+                  {field.field_type === 'textarea' ? (
+                    <textarea
+                      placeholder={field.placeholder}
+                      value={values[field.key] || ''}
+                      onChange={e => handleChange(field.key, e.target.value)}
+                      style={{ ...inputBase, minHeight: 90, resize: 'vertical' }}
+                    />
+                  ) : (
+                    <input
+                      type={field.field_type || 'text'}
+                      placeholder={field.placeholder}
+                      value={values[field.key] || ''}
+                      onChange={e => handleChange(field.key, e.target.value)}
+                      style={inputBase}
+                      onFocus={e => e.target.style.borderColor = '#6366f1'}
+                      onBlur={e => e.target.style.borderColor = '#d1d5db'}
+                    />
+                  )}
+                </div>
+              );
+            })}
 
             {submitError && (
               <div style={{

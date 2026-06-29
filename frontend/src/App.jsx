@@ -647,6 +647,29 @@ function AppInner() {
         return;
       }
 
+      if (hash.startsWith('lead/')) {
+        const lId = parseInt(hash.replace('lead/', ''));
+        try {
+          const [allStagesRes, leadRes] = await Promise.all([
+            authFetch(`${API}/stages`),
+            authFetch(`${API}/leads/${lId}`),
+          ]);
+          const allStages = await allStagesRes.json();
+          if (leadRes.ok) {
+            const leadData = await leadRes.json();
+            const stage = allStages.find(s => s.id === leadData.stage_id);
+            if (stage) {
+              window.history.replaceState(null, '', `#pipeline/${stage.pipeline_id}/stage/${stage.id}/lead/${lId}`);
+              setCurrentView('crm');
+              setActivePipelineId(stage.pipeline_id);
+              setStages(allStages.filter(s => s.pipeline_id === stage.pipeline_id));
+              setSelectedCard(leadData);
+            }
+          }
+        } catch {}
+        return;
+      }
+
       if (!hash) setSelectedCard(null);
     };
 
