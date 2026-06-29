@@ -51,9 +51,11 @@ export default function KanbanCard({
 
   useEffect(() => {
     if (!showPipeMenu) return;
-    const handler = (e) => { if (pipeMenuRef.current && !pipeMenuRef.current.contains(e.target)) setShowPipeMenu(false); };
-    document.addEventListener(‘mousedown’, handler);
-    return () => document.removeEventListener(‘mousedown’, handler);
+    const handler = (e) => {
+      if (pipeMenuRef.current && !pipeMenuRef.current.contains(e.target)) setShowPipeMenu(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [showPipeMenu]);
 
   useEffect(() => {
