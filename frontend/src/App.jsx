@@ -698,6 +698,25 @@ function AppInner() {
     setDraggedCardId(card.id);
   };
 
+  const handleMoveToPipeline = async (card, targetPipelineId) => {
+    try {
+      const res = await authFetch(`${API}/stages?pipeline_id=${targetPipelineId}`);
+      const targetStages = await res.json();
+      if (!Array.isArray(targetStages) || targetStages.length === 0) return;
+      targetStages.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const firstStage = targetStages[0];
+      await authFetch(`${API}/cards/${card.id}/move`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_stage_id: firstStage.id, new_order: 0 }),
+      });
+      // Remove from current board (it now belongs to another pipeline)
+      setCards(prev => prev.filter(c => c.id !== card.id));
+    } catch (e) {
+      console.error('Move to pipeline failed', e);
+    }
+  };
+
   const handleDrop = async (e, newStageId) => {
     e.preventDefault();
     const itemId = parseInt(e.dataTransfer.getData('text/plain') || draggedCardId);
@@ -1649,6 +1668,8 @@ function AppInner() {
                     selectedCardIds={selectedCardIds}
                     customFields={allCustomFields.filter(cf => cf.entity === 'deal')}
                     onUpdateRequiredFields={handleUpdateRequiredFields}
+                    pipelines={pipelines.filter(p => p.id !== activePipelineId && p.name !== 'Leads')}
+                    onMoveToPipeline={handleMoveToPipeline}
                   />
                 ))}
 

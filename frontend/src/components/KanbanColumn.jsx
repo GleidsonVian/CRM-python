@@ -18,13 +18,15 @@ export default function KanbanColumn({
   onDragStart, onDrop,
   onAddCard, onUpdateStage, onDeleteStage,
   onAddStageAfter, onMoveStage,
-  onOpenCard,      // opens the card modal
-  onSelectCard,    // toggles selection
+  onOpenCard,
+  onSelectCard,
   selectedCardIds = new Set(),
   showOnCardFields = [],
   isLead = false,
   customFields = [],
   onUpdateRequiredFields,
+  pipelines = [],
+  onMoveToPipeline,
 }) {
   const [isDragOver, setIsDragOver]               = useState(false);
   const [isColDragOver, setIsColDragOver]         = useState(false);
@@ -304,6 +306,8 @@ export default function KanbanColumn({
             isSelected={selectedCardIds.has(card.id)}
             showOnCardFields={showOnCardFields}
             isLead={isLead}
+            pipelines={pipelines}
+            onMoveToPipeline={onMoveToPipeline}
           />
         ))}
 

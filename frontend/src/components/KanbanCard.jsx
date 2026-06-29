@@ -36,14 +36,25 @@ function renderCFValue(field, rawValue) {
 export default function KanbanCard({
   card,
   onDragStart,
-  onOpen,      // double-click or button â†’ opens modal
-  onSelect,    // single click â†’ selects card
+  onOpen,
+  onSelect,
   isSelected = false,
   showOnCardFields = [],
   isLead = false,
+  pipelines = [],
+  onMoveToPipeline,
 }) {
   const [cfValues, setCfValues] = useState({});
+  const [showPipeMenu, setShowPipeMenu] = useState(false);
   const clickTimer = useRef(null);
+  const pipeMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!showPipeMenu) return;
+    const handler = (e) => { if (pipeMenuRef.current && !pipeMenuRef.current.contains(e.target)) setShowPipeMenu(false); };
+    document.addEventListener(‘mousedown’, handler);
+    return () => document.removeEventListener(‘mousedown’, handler);
+  }, [showPipeMenu]);
 
   useEffect(() => {
     if (!showOnCardFields.length) return;
@@ -121,6 +132,41 @@ export default function KanbanCard({
           <path d="M1 11L11 1M11 1H5M11 1v6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
+
+      {/* Move to pipeline button + dropdown */}
+      {!isLead && pipelines.length > 0 && onMoveToPipeline && (
+        <div ref={pipeMenuRef} style={{ position: 'absolute', top: 6, right: 28, zIndex: 10 }}>
+          <button
+            className="card-open-btn"
+            title="Mover para outro funil"
+            style={{ right: 'unset', left: 0, fontSize: 13, padding: '0 2px' }}
+            onClick={e => { e.stopPropagation(); setShowPipeMenu(v => !v); }}
+          >⇒</button>
+          {showPipeMenu && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, zIndex: 200,
+              background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.13)', overflow: 'hidden',
+              minWidth: 170, marginTop: 4,
+            }}>
+              <div style={{ padding: '6px 10px', fontSize: 10, color: '#94a3b8', fontWeight: 700, borderBottom: '1px solid #f1f5f9', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Mover para funil
+              </div>
+              {pipelines.map(p => (
+                <div
+                  key={p.id}
+                  onMouseDown={e => { e.stopPropagation(); setShowPipeMenu(false); onMoveToPipeline(card, p.id); }}
+                  style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', color: '#0f172a' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  {p.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {isLead && (
         <div style={{ marginBottom: 4 }}>
