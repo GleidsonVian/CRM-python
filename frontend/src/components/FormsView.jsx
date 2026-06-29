@@ -14,6 +14,9 @@ export default function FormsView() {
   const [loading, setLoading] = useState(true);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState(null);
+  const [submissionsForm, setSubmissionsForm] = useState(null); // form object whose submissions to view
+  const [submissions, setSubmissions] = useState([]);
+  const [subsLoading, setSubsLoading] = useState(false);
 
   const loadForms = useCallback(async () => {
     setLoading(true);
@@ -53,6 +56,20 @@ export default function FormsView() {
       body: JSON.stringify({ is_active: !form.is_active }),
     });
     loadForms();
+  };
+
+  const handleOpenSubmissions = async (form) => {
+    setSubmissionsForm(form);
+    setSubsLoading(true);
+    try {
+      const r = await authFetch(`${API}/crm-forms/${form.id}/submissions`);
+      const data = await r.json();
+      setSubmissions(Array.isArray(data) ? data : []);
+    } catch {
+      setSubmissions([]);
+    } finally {
+      setSubsLoading(false);
+    }
   };
 
   const handleCopyLink = (form) => {
@@ -185,8 +202,20 @@ export default function FormsView() {
                       </button>
                     </div>
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-                    {form.submission_count ?? 0}
+                  <td style={{ padding: '12px 14px' }}>
+                    <button
+                      onClick={() => handleOpenSubmissions(form)}
+                      style={{
+                        background: (form.submission_count ?? 0) > 0 ? '#eef2ff' : 'var(--bg-hover)',
+                        color: (form.submission_count ?? 0) > 0 ? '#4338ca' : 'var(--text-muted)',
+                        border: 'none', borderRadius: 6, padding: '3px 10px',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        transition: 'background 0.15s',
+                      }}
+                      title="Ver respostas"
+                    >
+                      {form.submission_count ?? 0}
+                    </button>
                   </td>
                   <td style={{ padding: '12px 14px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
@@ -232,6 +261,145 @@ export default function FormsView() {
           onSave={handleSave}
           onClose={() => setBuilderOpen(false)}
         />
+      )}
+
+      {/* Submissions modal */}
+      {submissionsForm && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+            zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 24,
+          }}
+          onClick={() => setSubmissionsForm(null)}
+        >
+          <div
+            style={{
+              background: '#fff', borderRadius: 14, width: '100%', maxWidth: 900,
+              maxHeight: '85vh', display: 'flex', flexDirection: 'column',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div style={{
+              padding: '18px 24px', borderBottom: '1px solid #f1f5f9',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
+            }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
+                  📋 Respostas — {submissionsForm.name}
+                </div>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                  {submissions.length} resposta{submissions.length !== 1 ? 's' : ''} recebida{submissions.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+              <button
+                onClick={() => setSubmissionsForm(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#94a3b8', lineHeight: 1 }}
+              >×</button>
+            </div>
+
+            {/* Modal body */}
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {subsLoading ? (
+                <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>Carregando…</div>
+              ) : submissions.length === 0 ? (
+                <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Nenhuma resposta ainda</div>
+                  <div style={{ fontSize: 12 }}>As submissões do formulário aparecerão aqui.</div>
+                </div>
+              ) : (() => {
+                // Collect all field keys from submissions + form config
+                const fc = submissionsForm.fields_config || [];
+                const fieldLabels = {};
+                fc.forEach(f => { fieldLabels[f.key] = f.label || f.key; });
+                // Also collect keys present in submissions that aren't in config
+                const allKeys = [];
+                const seenKeys = new Set();
+                fc.forEach(f => { if (!seenKeys.has(f.key)) { allKeys.push(f.key); seenKeys.add(f.key); } });
+                submissions.forEach(s => {
+                  Object.keys(s.data || {}).forEach(k => {
+                    if (!seenKeys.has(k)) { allKeys.push(k); seenKeys.add(k); fieldLabels[k] = k; }
+                  });
+                });
+
+                return (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                          Data/Hora
+                        </th>
+                        {allKeys.map(k => (
+                          <th key={k} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                            {fieldLabels[k]}
+                          </th>
+                        ))}
+                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                          Registro
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {submissions.map((s, i) => {
+                        const dt = s.submitted_at
+                          ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+                              .format(new Date(s.submitted_at.endsWith('Z') ? s.submitted_at : s.submitted_at + 'Z'))
+                          : '—';
+                        const isLead = s.entity_type === 'lead';
+                        const hash = s.entity_id
+                          ? isLead ? `#lead/${s.entity_id}` : `#deal/${s.entity_id}`
+                          : null;
+                        return (
+                          <tr key={s.id} style={{ borderBottom: '1px solid #f8fafc' }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <td style={{ padding: '10px 16px', color: '#64748b', whiteSpace: 'nowrap', fontSize: 12 }}>{dt}</td>
+                            {allKeys.map(k => (
+                              <td key={k} style={{ padding: '10px 12px', color: '#0f172a', maxWidth: 200 }}>
+                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {s.data?.[k] !== undefined && s.data?.[k] !== null && s.data?.[k] !== ''
+                                    ? String(s.data[k])
+                                    : <span style={{ color: '#cbd5e1' }}>—</span>
+                                  }
+                                </div>
+                              </td>
+                            ))}
+                            <td style={{ padding: '10px 16px' }}>
+                              {hash ? (
+                                <a
+                                  href={hash}
+                                  onClick={() => setSubmissionsForm(null)}
+                                  style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                    background: isLead ? '#ede9fe' : '#dbeafe',
+                                    color: isLead ? '#7c3aed' : '#1d4ed8',
+                                    borderRadius: 5, padding: '3px 8px', fontSize: 12, fontWeight: 600,
+                                    textDecoration: 'none',
+                                  }}
+                                >
+                                  {isLead ? 'Lead' : 'Negócio'} #{s.entity_id}
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                    <path d="M1 9L9 1M9 1H5M9 1v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </a>
+                              ) : (
+                                <span style={{ color: '#cbd5e1', fontSize: 12 }}>—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
