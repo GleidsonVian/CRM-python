@@ -208,6 +208,8 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const [openTask, setOpenTask]       = useState(null); // task object to open in TaskModal
 
   const [historyItems, setHistoryItems] = useState([]);
+  const [timelineItems, setTimelineItems] = useState([]);
+  const [timelineLoading, setTimelineLoading] = useState(false);
   const [mentionQuery, setMentionQuery]   = useState('');
   const [mentionOpen, setMentionOpen]     = useState(false);
   const [mentionIndex, setMentionIndex]   = useState(0);
@@ -297,6 +299,28 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
       const data = await authFetch(`${API}/audit-log?entity_type=card&entity_id=${card.id}&limit=50`).then(r => r.json());
       setHistoryItems(data.items || []);
     } catch {}
+  };
+
+  const fetchTimeline = async () => {
+    if (isLead) return;
+    setTimelineLoading(true);
+    try {
+      const [acts, cmts, tsks, hist] = await Promise.all([
+        authFetch(`${API}/${entityBase}/${card.id}/activities`).then(r => r.json()).catch(() => []),
+        authFetch(`${API}/cards/${card.id}/comments`).then(r => r.json()).catch(() => []),
+        authFetch(`${API}/cards/${card.id}/tasks`).then(r => r.json()).catch(() => []),
+        authFetch(`${API}/audit-log?entity_type=card&entity_id=${card.id}&limit=100`).then(r => r.json()).catch(() => ({})),
+      ]);
+      const merged = [
+        ...(Array.isArray(acts) ? acts : []).map(a => ({ ...a, _type: 'activity', ts: a.created_at })),
+        ...(Array.isArray(cmts) ? cmts : []).map(c => ({ ...c, _type: 'comment',  ts: c.created_at })),
+        ...(Array.isArray(tsks) ? tsks : []).map(t => ({ ...t, _type: 'task',     ts: t.created_at })),
+        ...((hist.items || [])).map(h => ({ ...h, _type: 'history', ts: h.created_at })),
+      ];
+      merged.sort((a, b) => new Date(b.ts || 0) - new Date(a.ts || 0));
+      setTimelineItems(merged);
+    } catch {}
+    setTimelineLoading(false);
   };
 
   useEffect(() => {
@@ -858,13 +882,14 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
               {/* Tab header */}
               <div style={{ display: 'flex', borderBottom: '1px solid #f1f5f9', marginBottom: 0, flexShrink: 0 }}>
                 {[
+                  { key: 'timeline', label: '⏱ Timeline' },
                   { key: 'activity', label: 'Atividades' },
                   { key: 'comment',  label: 'Comentários' },
                   { key: 'task',     label: `Tarefas${tasks.length > 0 ? ` (${tasks.length})` : ''}` },
                   { key: 'history',  label: 'Histórico' },
                   { key: 'workflows', label: 'Fluxos' },
                 ].map(t => (
-                  <button key={t.key} onClick={() => { setRightTab(t.key); if (t.key === 'history') fetchHistory(); if (t.key === 'workflows') fetchWorkflows(); }}
+                  <button key={t.key} onClick={() => { setRightTab(t.key); if (t.key === 'history') fetchHistory(); if (t.key === 'workflows') fetchWorkflows(); if (t.key === 'timeline') fetchTimeline(); }}
                     style={{
                       flex: 1, background: 'none', border: 'none', borderBottom: `2px solid ${rightTab === t.key ? '#6366f1' : 'transparent'}`,
                       color: rightTab === t.key ? '#6366f1' : '#64748b', fontWeight: rightTab === t.key ? 700 : 500,
@@ -873,6 +898,108 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                   >{t.label}</button>
                 ))}
               </div>
+
+              {/* Timeline tab — unified chronological feed */}
+              {rightTab === 'timeline' && (
+                <div style={{ overflowY: 'auto', flex: 1, padding: '8px 0' }}>
+                  {timelineLoading ? (
+                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '24px 0' }}>Carregando…</div>
+                  ) : timelineItems.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>Nenhum evento registrado</div>
+                  ) : timelineItems.map((item, idx) => {
+                    /* ── activity ── */
+                    if (item._type === 'activity') {
+                      const meta = ACTIVITY_META[item.type] || { icon: '•', color: '#94a3b8' };
+                      const isAuto = item.actor === 'Automação';
+                      return (
+                        <div key={`act-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: meta.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: `1.5px solid ${meta.color}30` }}>{meta.icon}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>{item.content}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                              <span style={{ fontSize: 10, fontWeight: 600, color: isAuto ? '#0ea5e9' : '#64748b', background: isAuto ? '#f0f9ff' : '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>{isAuto ? '🤖 Automação' : '👤 ' + (item.actor || 'Usuário')}</span>
+                              <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(item.ts)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    /* ── comment ── */
+                    if (item._type === 'comment') {
+                      return (
+                        <div key={`cmt-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: avatarColor(item.author), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
+                            {(item.author || 'U').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                              <span style={{ fontSize: 11, background: '#fef9c3', color: '#854d0e', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>💬 Comentário</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: '#0f172a' }}>{item.author}</span>
+                              <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(item.ts)}</span>
+                            </div>
+                            <div style={{ fontSize: 13, color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{item.content}</div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    /* ── task ── */
+                    if (item._type === 'task') {
+                      return (
+                        <div key={`task-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: item.done ? '#f0fdf4' : '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: `1.5px solid ${item.done ? '#bbf7d0' : '#bfdbfe'}` }}>
+                            {item.done ? '✅' : '📋'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                              <span style={{ fontSize: 11, background: item.done ? '#f0fdf4' : '#eff6ff', color: item.done ? '#16a34a' : '#2563eb', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>
+                                {item.done ? '✓ Tarefa concluída' : '📋 Tarefa criada'}
+                              </span>
+                              <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(item.ts)}</span>
+                            </div>
+                            <div style={{ fontSize: 13, color: item.done ? '#94a3b8' : '#0f172a', textDecoration: item.done ? 'line-through' : 'none', fontWeight: 500 }}>{item.title}</div>
+                            {(item.due_date || item.assigned_to) && (
+                              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, display: 'flex', gap: 8 }}>
+                                {item.due_date && <span>📅 {item.due_date}</span>}
+                                {item.assigned_to && <span>👤 {item.assigned_to}</span>}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+                    /* ── history (audit log) ── */
+                    if (item._type === 'history') {
+                      const actionColors = { created: '#10b981', updated: '#3b82f6', deleted: '#ef4444', moved: '#f59e0b', converted: '#8b5cf6', workflow_executed: '#6366f1' };
+                      const actionIcons  = { created: '✦', updated: '✏️', deleted: '🗑️', moved: '→', converted: '⚡', workflow_executed: '🤖' };
+                      const actionLabels = { created: 'Criou', updated: 'Editou', deleted: 'Excluiu', moved: 'Moveu para', converted: 'Converteu', workflow_executed: 'Executou fluxo' };
+                      const color = actionColors[item.action] || '#94a3b8';
+                      const icon  = actionIcons[item.action]  || '⚙️';
+                      const label = actionLabels[item.action] || item.action;
+                      let detail = null;
+                      try {
+                        const d = typeof item.details === 'string' ? JSON.parse(item.details) : (item.details || {});
+                        if (item.action === 'workflow_executed') detail = d.workflow_name || d.workflow || null;
+                        else if (d.new_stage_name) detail = d.new_stage_name;
+                        else if (d.new_stage_id) detail = `etapa #${d.new_stage_id}`;
+                      } catch {}
+                      return (
+                        <div key={`hist-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: `1.5px solid ${color}30` }}>{icon}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>
+                              <span style={{ fontWeight: 600 }}>{item.actor} </span>
+                              <span style={{ color }}>{label}</span>
+                              {detail && <span style={{ fontWeight: 600, color }}> {detail}</span>}
+                            </div>
+                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{relTime(item.ts)}</div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              )}
 
               {/* Activity tab */}
               {rightTab === 'activity' && (
