@@ -139,9 +139,13 @@ export default function KanbanCard({
           <button
             className="card-open-btn"
             title="Mover para outro funil"
-            style={{ right: 'unset', left: 0, fontSize: 13, padding: '0 2px' }}
+            style={{ right: 'unset', left: 0, padding: '0 2px' }}
             onClick={e => { e.stopPropagation(); setShowPipeMenu(v => !v); }}
-          >⇒</button>
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           {showPipeMenu && (
             <div style={{
               position: 'absolute', top: '100%', right: 0, zIndex: 200,
