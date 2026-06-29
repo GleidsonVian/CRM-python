@@ -53,6 +53,8 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
   const [pipelines, setPipelines] = useState([]);
   const [stages, setStages] = useState([]);
   const [customFields, setCustomFields] = useState([]);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
+  const [previewValues, setPreviewValues] = useState({});
 
   useEffect(() => {
     authFetch(`${API}/pipelines`).then(r => r.json()).then(data => {
@@ -168,69 +170,82 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
     }
   };
 
-  // ── Live preview ──────────────────────────────────────────────────────────
+  // ── Live preview — identical to PublicForm ────────────────────────────────
 
-  const Preview = () => (
+  const inputBase = {
+    width: '100%', borderRadius: 8, border: '1.5px solid #d1d5db',
+    padding: '10px 12px', fontSize: 14, color: '#1e293b',
+    background: '#fff', boxSizing: 'border-box', outline: 'none',
+    transition: 'border-color 0.15s',
+  };
+
+  const Preview = ({ compact = false }) => (
     <div style={{
-      background: '#f8fafc', borderRadius: 12, padding: '28px 24px',
-      border: '1px solid #e2e8f0', maxWidth: 400,
+      background: '#fff', borderRadius: compact ? 12 : 16,
+      padding: compact ? '24px 20px' : '40px 36px',
+      boxShadow: '0 4px 32px rgba(0,0,0,0.10)',
+      width: '100%', maxWidth: compact ? 420 : 500,
     }}>
       {title && (
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e293b', margin: '0 0 6px' }}>
+        <h1 style={{ fontSize: compact ? 20 : 24, fontWeight: 800, color: '#1e293b', margin: '0 0 8px', lineHeight: 1.2 }}>
           {title}
-        </h2>
+        </h1>
       )}
       {subtitle && (
-        <p style={{ fontSize: 13.5, color: '#64748b', margin: '0 0 20px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 24px', lineHeight: 1.6 }}>
           {subtitle}
         </p>
       )}
-      {fields.length === 0 && (
-        <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
+      {fields.length === 0 ? (
+        <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
           Adicione campos para visualizar o formulário
         </div>
-      )}
-      {fields.map((f, i) => (
-        <div key={i} style={{ marginBottom: 14 }}>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
-            {f.label || f.key || `Campo ${i + 1}`}
-            {f.required && <span style={{ color: '#ef4444', marginLeft: 3 }}>*</span>}
-          </label>
-          {f.field_type === 'textarea' ? (
-            <textarea
-              disabled
-              placeholder={f.placeholder}
-              style={{
-                width: '100%', borderRadius: 7, border: '1px solid #d1d5db',
-                padding: '8px 10px', fontSize: 13.5, resize: 'vertical',
-                minHeight: 72, background: '#fff', boxSizing: 'border-box',
-              }}
-            />
-          ) : (
-            <input
-              disabled
-              type={f.field_type === 'number' ? 'number' : 'text'}
-              placeholder={f.placeholder}
-              style={{
-                width: '100%', borderRadius: 7, border: '1px solid #d1d5db',
-                padding: '8px 10px', fontSize: 13.5, background: '#fff', boxSizing: 'border-box',
-              }}
-            />
-          )}
+      ) : (
+        <div>
+          {fields.map((f, i) => (
+            <div key={i} style={{ marginBottom: 18 }}>
+              <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                {f.label || f.key || `Campo ${i + 1}`}
+                {f.required && <span style={{ color: '#ef4444', marginLeft: 3 }}>*</span>}
+              </label>
+              {f.field_type === 'textarea' ? (
+                <textarea
+                  placeholder={f.placeholder}
+                  value={previewValues[f.key] || ''}
+                  onChange={e => setPreviewValues(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  style={{ ...inputBase, minHeight: 90, resize: 'vertical' }}
+                />
+              ) : (
+                <input
+                  type={f.field_type || 'text'}
+                  placeholder={f.placeholder}
+                  value={previewValues[f.key] || ''}
+                  onChange={e => setPreviewValues(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  style={inputBase}
+                  onFocus={e => e.target.style.borderColor = '#6366f1'}
+                  onBlur={e => e.target.style.borderColor = '#d1d5db'}
+                />
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {}}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 9,
+              background: '#6366f1', color: '#fff', border: 'none',
+              fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4,
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#4f46e5'}
+            onMouseLeave={e => e.currentTarget.style.background = '#6366f1'}
+          >
+            {buttonText || 'Enviar'}
+          </button>
+          <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
+            Prévia — o envio não funciona aqui
+          </p>
         </div>
-      ))}
-      {fields.length > 0 && (
-        <button
-          disabled
-          style={{
-            width: '100%', padding: '10px', borderRadius: 8,
-            background: '#6366f1', color: '#fff', border: 'none',
-            fontWeight: 600, fontSize: 14, cursor: 'not-allowed', opacity: 0.85,
-            marginTop: 4,
-          }}
-        >
-          {buttonText || 'Enviar'}
-        </button>
       )}
     </div>
   );
@@ -301,6 +316,16 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                 ⚠ {saveError}
               </span>
             )}
+            <button
+              className="btn btn-ghost"
+              onClick={() => { setPreviewValues({}); setFullscreenPreview(true); }}
+              style={{ fontSize: 12, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <path d="M1 5V1h4M8 1h4v4M12 8v4H8M5 12H1V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Visualizar
+            </button>
             <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
               {saving ? 'Salvando...' : 'Salvar'}
@@ -489,18 +514,50 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
           {/* Right panel — preview */}
           <div style={{
             flex: 1, overflowY: 'auto', padding: '24px',
-            background: 'var(--bg-hover)',
+            background: 'linear-gradient(135deg, #f0f4ff 0%, #fafafa 100%)',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
           }}>
-            <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
               Prévia do formulário
             </div>
             <div style={{ width: '100%', maxWidth: 420 }}>
-              <Preview />
+              <Preview compact />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Fullscreen preview modal */}
+      {fullscreenPreview && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1200,
+            background: 'linear-gradient(135deg, #f0f4ff 0%, #fafafa 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '32px 16px',
+          }}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setFullscreenPreview(false)}
+            style={{
+              position: 'fixed', top: 16, right: 16, zIndex: 10,
+              background: 'rgba(0,0,0,0.12)', border: 'none', borderRadius: 8,
+              padding: '6px 14px', cursor: 'pointer', color: '#1e293b',
+              fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Fechar prévia
+          </button>
+          <div style={{ width: '100%', maxWidth: 500 }}>
+            <Preview />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
