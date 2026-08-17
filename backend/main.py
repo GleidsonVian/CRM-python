@@ -61,7 +61,7 @@ app.add_middleware(
 # ── Routers ───────────────────────────────────────────────────────────────────
 
 from routers import auth, pipelines, cards, leads, contacts, companies
-from routers import webhooks, automations, tasks, roles, reports, misc, workflows, crm_forms, task_rules, smart_processes
+from routers import webhooks, automations, tasks, roles, reports, misc, workflows, crm_forms, task_rules, smart_processes, products
 
 app.include_router(auth.router)
 app.include_router(pipelines.router)
@@ -79,6 +79,7 @@ app.include_router(misc.router)
 app.include_router(workflows.router)
 app.include_router(crm_forms.router)
 app.include_router(smart_processes.router)
+app.include_router(products.router)
 
 # ── Startup seed ──────────────────────────────────────────────────────────────
 

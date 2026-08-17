@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ContactModal from './ContactModal';
+import UniversalImportModal from './UniversalImportModal';
 
 import { API_URL as API } from '../config.js';
 
@@ -42,9 +43,10 @@ export default function ContactsView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedContact, setSelectedContact] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  useEffect(() => {
+  const fetchContacts = () => {
     fetch(`${API}/contacts`)
       .then(r => r.json())
       .then(data => {
@@ -59,6 +61,10 @@ export default function ContactsView() {
         }
       })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchContacts();
   }, []);
 
   const openContact = (c) => {
@@ -105,10 +111,11 @@ export default function ContactsView() {
         <div className="view-controls">
           <input
             className="search-input"
-            placeholder="Buscar por nome, email ou telefone..."
+            placeholder="Buscar por nome, email ou empresa..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
           <button className="btn btn-primary" onClick={() => setIsCreating(true)}>+ Novo contato</button>
         </div>
       </div>
@@ -229,6 +236,17 @@ export default function ContactsView() {
           onUpdate={(updated) => {
             setContacts(prev => prev.map(c => c.id === updated.id ? updated : c));
             setSelectedContact(updated);
+          }}
+        />
+      )}
+
+      {showImport && (
+        <UniversalImportModal
+          entityType="contacts"
+          onClose={() => setShowImport(false)}
+          onImported={() => {
+            setShowImport(false);
+            fetchContacts();
           }}
         />
       )}

@@ -33,6 +33,10 @@ from .automations import (
     WorkflowTemplateBase, WorkflowTemplateCreate, WorkflowTemplate,
     WorkflowExecutionOut,
 )
+from .products import (
+    ProductBase, ProductCreate, ProductUpdate, Product,
+    CardProductBase, CardProductCreate, CardProductUpdate, CardProduct,
+)
 
 __all__ = [
     "MessageResponse", "OkResponse", "HealthResponse", "coerce_json_str",
@@ -58,4 +62,6 @@ __all__ = [
     "WorkflowStepBase", "WorkflowStepCreate", "WorkflowStep",
     "WorkflowTemplateBase", "WorkflowTemplateCreate", "WorkflowTemplate",
     "WorkflowExecutionOut",
+    "ProductBase", "ProductCreate", "ProductUpdate", "Product",
+    "CardProductBase", "CardProductCreate", "CardProductUpdate", "CardProduct"
 ]

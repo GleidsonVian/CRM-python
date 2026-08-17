@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import CompanyModal from './CompanyModal';
+import UniversalImportModal from './UniversalImportModal';
 
 import { API_URL as API } from '../config.js';
 
@@ -36,9 +37,10 @@ export default function CompaniesView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  useEffect(() => {
+  const fetchCompanies = () => {
     fetch(`${API}/companies`)
       .then(r => r.json())
       .then(data => {
@@ -46,6 +48,10 @@ export default function CompaniesView() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchCompanies();
   }, []);
 
   const openCompany = (c) => setSelectedCompany(c);
@@ -86,10 +92,11 @@ export default function CompaniesView() {
         <div className="view-controls">
           <input
             className="search-input"
-            placeholder="Buscar por nome, indústria ou email..."
+            placeholder="Buscar por nome, indústria ou cidade..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
           <button className="btn btn-primary" onClick={() => setIsCreating(true)}>+ Nova empresa</button>
         </div>
       </div>
@@ -225,7 +232,17 @@ export default function CompaniesView() {
           onDelete={(id) => setCompanies(prev => prev.filter(c => c.id !== id))}
         />
       )}
+
+      {showImport && (
+        <UniversalImportModal
+          entityType="companies"
+          onClose={() => setShowImport(false)}
+          onImported={() => {
+            setShowImport(false);
+            fetchCompanies();
+          }}
+        />
+      )}
     </div>
   );
 }
-

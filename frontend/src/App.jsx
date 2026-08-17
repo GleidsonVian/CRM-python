@@ -1,4 +1,4 @@
-﻿// v2 — Slate & Emerald palette
+// v2 — Slate & Emerald palette
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import LoginPage from './components/LoginPage';
@@ -17,7 +17,7 @@ import WorkflowsView from './components/WorkflowsView';
 import CustomFieldsManager from './components/CustomFieldsManager';
 import ReportsView from './components/ReportsView';
 import AuditLogView from './components/AuditLogView';
-import ImportLeadsModal from './components/ImportLeadsModal';
+import UniversalImportModal from './components/UniversalImportModal';
 import TasksKanban from './components/TasksKanban';
 import ProjectsView from './components/ProjectsView';
 import FormsView from './components/FormsView';
@@ -27,6 +27,7 @@ import NotificationBell from './components/NotificationBell';
 import { ToastContainer as GlobalToastContainer } from './components/Toast';
 import SearchModal, { useSearchShortcut } from './components/SearchModal';
 import StageRequiredModal from './components/StageRequiredModal';
+import ProductsView from './components/ProductsView';
 import './index.css';
 
 import { API_URL as API } from './config.js';
@@ -566,6 +567,7 @@ function AppInner() {
 
       if (hash === 'contacts' || hash.startsWith('contacts/')) { setCurrentView('contacts'); setSelectedCard(null); return; }
       if (hash === 'companies' || hash.startsWith('companies/')) { setCurrentView('companies'); setSelectedCard(null); return; }
+      if (hash === 'products' || hash.startsWith('products/')) { setCurrentView('products'); setSelectedCard(null); return; }
       if (hash === 'webhooks') { setCurrentView('webhooks'); setSelectedCard(null); return; }
       if (hash === 'users' || hash.startsWith('users/')) { setCurrentView('users'); setSelectedCard(null); return; }
       if (hash === 'tasks' || hash.startsWith('tasks/')) { setCurrentView('tasks'); setSelectedCard(null); return; }
@@ -1321,6 +1323,9 @@ function AppInner() {
           <div className={`nav-item ${currentView === 'companies' ? 'active' : ''}`} onClick={() => navigate('companies', 'companies')}>
             <IconCompany /> Empresas
           </div>
+          <div className={`nav-item ${currentView === 'products' ? 'active' : ''}`} onClick={() => navigate('products', 'products')}>
+            📦 Produtos & Serviços
+          </div>
           <div className={`nav-item ${currentView === 'users' ? 'active' : ''}`} onClick={() => navigate('users', 'users')}>
             <IconUsers /> Equipe
           </div>
@@ -1394,6 +1399,7 @@ function AppInner() {
       <div className="main-content">
         {currentView === 'contacts' && <ContactsView />}
         {currentView === 'companies' && <CompaniesView />}
+        {currentView === 'products' && <ProductsView />}
         {currentView === 'users' && <UsersView />}
         {currentView === 'roles' && <RolesView />}
         {currentView === 'webhooks' && <WebhooksView />}
@@ -1441,19 +1447,17 @@ function AppInner() {
                     {isLeadsPipeline ? '+ Novo Lead' : '+ Criar'}
                   </button>
 
-                  {isLeadsPipeline && (
-                    <button
-                      className="btn btn-ghost"
-                      style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
-                      onClick={() => setShowImportLeads(true)}
-                      title="Importar leads via CSV"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                        <path d="M6.5 1v7M3.5 5l3 3 3-3M1.5 9.5v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Importar CSV
-                    </button>
-                  )}
+                  <button
+                    className="btn btn-ghost"
+                    style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
+                    onClick={() => setShowImportLeads(true)}
+                    title="Importar via Arquivo"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                      <path d="M6.5 1v7M3.5 5l3 3 3-3M1.5 9.5v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Importar
+                  </button>
 
                   {/* Automations button */}
                   <button
@@ -1799,9 +1803,11 @@ function AppInner() {
         </div>
       )}
       {showImportLeads && (
-        <ImportLeadsModal
-          defaultStageId={stages?.[0]?.id}
+        <UniversalImportModal
+          entityType={isLeadsPipeline ? 'leads' : 'cards'}
+          pipelineId={activePipelineId}
           onClose={() => { setShowImportLeads(false); doFetchBoard(activePipelineId, pipelines); }}
+          onImported={() => { setShowImportLeads(false); doFetchBoard(activePipelineId, pipelines); }}
         />
       )}
       {pendingMoveData && (

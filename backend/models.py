@@ -354,6 +354,7 @@ class Card(Base):
     activities = relationship("Activity", back_populates="card", cascade="all, delete-orphan")
     contacts = relationship("Contact", secondary=card_contacts, lazy="joined")
     users = relationship("User", secondary=card_users, lazy="joined")
+    products = relationship("CardProduct", back_populates="card", cascade="all, delete-orphan")
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
@@ -519,3 +520,30 @@ class SpNote(Base):
     actor     = Column(String, default="Usuário")
     created_at = Column(DateTime, default=datetime.utcnow)
     record    = relationship("SpRecord", back_populates="notes")
+
+# ── Products & Catalog ────────────────────────────────────────────────────────
+
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False, index=True)
+    description = Column(String, nullable=True)
+    sku = Column(String, nullable=True, unique=True, index=True)
+    price = Column(Float, default=0.0)
+    type = Column(String, default="product") # "product" or "service"
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class CardProduct(Base):
+    __tablename__ = "card_products"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    card_id = Column(Integer, ForeignKey("cards.id", ondelete="CASCADE"), index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="RESTRICT"))
+    
+    quantity = Column(Float, default=1.0)
+    unit_price = Column(Float, default=0.0)
+    discount = Column(Float, default=0.0) # Absolute discount value
+    total_price = Column(Float, default=0.0) # (quantity * unit_price) - discount
+    
+    card = relationship("Card", back_populates="products")
+    product = relationship("Product")

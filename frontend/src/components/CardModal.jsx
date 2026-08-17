@@ -1,10 +1,12 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ContactModal from './ContactModal';
 import UserModal from './UserModal';
 import CustomFieldValues from './CustomFieldValues';
 import TaskModal from './TaskModal';
 import { useConfirm } from '../App';
 import { useAuth } from '../AuthContext';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 import { API_URL as API } from '../config.js';
 
@@ -202,6 +204,12 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
   const [newComment, setNewComment]   = useState('');
   const [commentAuthor, setCommentAuthor] = useState('Usuário');
 
+  const [cardProducts, setCardProducts] = useState([]);
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [productQuantity, setProductQuantity] = useState(1);
+  const [productDiscount, setProductDiscount] = useState(0);
+
   const [tasks, setTasks]             = useState([]);
   const [newTask, setNewTask]         = useState({ title: '', due_date: '', assigned_to: '' });
   const [addingTask, setAddingTask]   = useState(false);
@@ -323,6 +331,20 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     setTimelineLoading(false);
   };
 
+  const fetchCardProducts = async () => {
+    if (isLead) return;
+    try { setCardProducts(await authFetch(`${API}/cards/${card.id}/products`).then(r => r.json())); } catch {}
+  };
+
+  const fetchAvailableProducts = async () => {
+    if (isLead) return;
+    try { 
+      authFetch(`${API}/products`).then(r => r.json()).then(data => {
+        if (Array.isArray(data)) setAvailableProducts(data);
+      });
+    } catch {}
+  };
+
   useEffect(() => {
     Promise.all([
       authFetch(`${API}/contacts`).then(r => r.json()),
@@ -334,6 +356,8 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
     fetchActivities();
     fetchComments();
     fetchTasks();
+    fetchCardProducts();
+    fetchAvailableProducts();
     authFetch(`${API}/custom-fields?entity=deal`)
       .then(r => r.json()).then(setCustomFields).catch(() => {});
   }, [card.id]);
@@ -719,7 +743,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     {
                       id: 'deal.price', name: 'Valor',
                       renderContent: () => (
-                        <div className="price-box">
+                        <div className="price-box" title={cardProducts.length > 0 ? "Valor calculado a partir dos produtos. Edite na aba de Orçamento." : ""}>
                           <span className="price-symbol">R$</span>
                           <input
                             type="number"
@@ -727,6 +751,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                             value={price}
                             onChange={e => setPrice(e.target.value)}
                             placeholder="0"
+                            disabled={cardProducts.length > 0}
                           />
                         </div>
                       ),
@@ -886,6 +911,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                   { key: 'activity', label: 'Atividades' },
                   { key: 'comment',  label: 'Comentários' },
                   { key: 'task',     label: `Tarefas${tasks.length > 0 ? ` (${tasks.length})` : ''}` },
+                  { key: 'budget',   label: 'Orçamento' },
                   { key: 'history',  label: 'Histórico' },
                   { key: 'workflows', label: 'Fluxos' },
                 ].map(t => (
@@ -1269,6 +1295,138 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Budget tab */}
+              {rightTab === 'budget' && !isLead && (
+                <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: 13, color: '#334155' }}>Adicionar Item</h4>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                      <div style={{ flex: 2, minWidth: 150 }}>
+                        <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Produto / Serviço</label>
+                        <select className="form-input" value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
+                          <option value="">Selecione...</option>
+                          {(availableProducts || []).filter(p => p.is_active).map(p => (
+                            <option key={p.id} value={p.id}>{p.name} - R$ {p.price}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 70 }}>
+                        <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Qtd</label>
+                        <input type="number" min="1" className="form-input" value={productQuantity} onChange={e => setProductQuantity(e.target.value)} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 70 }}>
+                        <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Desc (R$)</label>
+                        <input type="number" min="0" step="0.01" className="form-input" value={productDiscount} onChange={e => setProductDiscount(e.target.value)} />
+                      </div>
+                      <button 
+                        className="btn btn-primary" 
+                        style={{ height: 34, padding: '0 16px' }}
+                        disabled={!selectedProduct}
+                        onClick={async () => {
+                          const prod = availableProducts.find(p => p.id == selectedProduct);
+                          if(!prod) return;
+                          try {
+                            const payload = { product_id: prod.id, quantity: parseFloat(productQuantity), unit_price: prod.price, discount: parseFloat(productDiscount) };
+                            const res = await authFetch(`${API}/cards/${card.id}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                            const data = await res.json();
+                            fetchCardProducts();
+                            // update local card price to match
+                            authFetch(`${API}/cards/${card.id}`).then(r => r.json()).then(c => setPrice(c.price));
+                            setSelectedProduct(''); setProductQuantity(1); setProductDiscount(0);
+                          } catch(e) { console.error(e); }
+                        }}
+                      >Adicionar</button>
+                    </div>
+                  </div>
+
+                  {cardProducts.length > 0 ? (
+                    <>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                        <thead>
+                          <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
+                            <th style={{ padding: '8px 4px' }}>Item</th>
+                            <th style={{ padding: '8px 4px' }}>Qtd</th>
+                            <th style={{ padding: '8px 4px' }}>Preço Unit.</th>
+                            <th style={{ padding: '8px 4px' }}>Desc.</th>
+                            <th style={{ padding: '8px 4px' }}>Total</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(cardProducts || []).map(cp => {
+                            const p = (availableProducts || []).find(x => x.id === cp.product_id) || {};
+                            return (
+                              <tr key={cp.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '8px 4px', fontWeight: 500 }}>{p.name}</td>
+                                <td style={{ padding: '8px 4px' }}>{cp.quantity}</td>
+                                <td style={{ padding: '8px 4px' }}>R$ {cp.unit_price}</td>
+                                <td style={{ padding: '8px 4px', color: '#ef4444' }}>{cp.discount > 0 ? `R$ ${cp.discount}` : '-'}</td>
+                                <td style={{ padding: '8px 4px', fontWeight: 600 }}>R$ {cp.total_price}</td>
+                                <td style={{ padding: '8px 4px', textAlign: 'right' }}>
+                                  <button onClick={async () => {
+                                    if(confirm('Remover item?')) {
+                                      await authFetch(`${API}/cards/${card.id}/products/${cp.id}`, { method: 'DELETE' });
+                                      fetchCardProducts();
+                                      authFetch(`${API}/cards/${card.id}`).then(r => r.json()).then(c => setPrice(c.price));
+                                    }
+                                  }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>✕</button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan="4" style={{ textAlign: 'right', padding: '12px 8px', fontWeight: 600 }}>Total Final:</td>
+                            <td colSpan="2" style={{ padding: '12px 4px', fontWeight: 700, color: '#10b981', fontSize: 14 }}>R$ {(cardProducts || []).reduce((sum, item) => sum + item.total_price, 0).toFixed(2)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                      
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          const doc = new jsPDF();
+                          doc.setFontSize(20);
+                          doc.text(`Orçamento: ${title}`, 14, 22);
+                          doc.setFontSize(11);
+                          doc.text(`Empresa: Nexus CRM`, 14, 30);
+                          if(selectedContacts[0]) doc.text(`Cliente: ${selectedContacts[0].name}`, 14, 36);
+                          
+                          const tableData = (cardProducts || []).map(cp => {
+                            const p = (availableProducts || []).find(x => x.id === cp.product_id) || {};
+                            return [
+                              p.name || 'Item', 
+                              cp.quantity, 
+                              `R$ ${cp.unit_price}`, 
+                              `R$ ${cp.discount}`, 
+                              `R$ ${cp.total_price}`
+                            ];
+                          });
+                          
+                          doc.autoTable({
+                            startY: 45,
+                            head: [['Produto/Serviço', 'Qtd', 'Preço Unit.', 'Desconto', 'Total']],
+                            body: tableData,
+                          });
+                          
+                          const finalY = doc.lastAutoTable.finalY || 45;
+                          const totalFinal = (cardProducts || []).reduce((sum, item) => sum + item.total_price, 0).toFixed(2);
+                          doc.setFontSize(14);
+                          doc.text(`Total Final: R$ ${totalFinal}`, 14, finalY + 15);
+                          
+                          doc.save(`Orcamento_${card.id}.pdf`);
+                        }}
+                      >📄 Baixar PDF do Orçamento</button>
+                    </>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: 12 }}>
+                      Nenhum produto ou serviço adicionado ao orçamento deste negócio.
+                    </div>
+                  )}
                 </div>
               )}
             </div>

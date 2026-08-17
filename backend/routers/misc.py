@@ -239,11 +239,7 @@ def delete_comment(comment_id: int, db: Session = Depends(get_db)):
     return {"ok": True}
 
 
-# ── Leads bulk import ─────────────────────────────────────────────────────────
-
-class LeadImportBody(BaseModel):
-    leads: List[Dict[str, Any]]
-
+# ── Bulk Import ─────────────────────────────────────────────────────────
 
 _LEAD_SAFE_KEYS = {
     "title", "first_name", "last_name", "email", "phone", "company_name",
@@ -252,37 +248,88 @@ _LEAD_SAFE_KEYS = {
     "description", "price", "order",
 }
 
-
 @router.post("/leads/import")
-def import_leads(body: LeadImportBody, db: Session = Depends(get_db)):
+def import_leads(leads: List[Dict[str, Any]], db: Session = Depends(get_db)):
     fallback_stage_id = None
     p_leads = db.query(models.Pipeline).filter(models.Pipeline.name == "Leads").first()
     if p_leads:
-        first_stage = (
-            db.query(models.Stage)
-            .filter(models.Stage.pipeline_id == p_leads.id)
-            .order_by(models.Stage.order)
-            .first()
-        )
-        if first_stage:
-            fallback_stage_id = first_stage.id
+        first_stage = db.query(models.Stage).filter(models.Stage.pipeline_id == p_leads.id).order_by(models.Stage.order).first()
+        if first_stage: fallback_stage_id = first_stage.id
 
     created_ids = []
-    for lead_dict in body.leads:
+    for lead_dict in leads:
         safe_data = {k: v for k, v in lead_dict.items() if k in _LEAD_SAFE_KEYS}
-        if not safe_data.get("stage_id"):
-            safe_data["stage_id"] = fallback_stage_id
+        if not safe_data.get("stage_id"): safe_data["stage_id"] = fallback_stage_id
         safe_data.setdefault("created_at", datetime.now(timezone.utc))
         db_lead = models.Lead(**safe_data)
         db.add(db_lead)
         db.flush()
-        db.add(models.Activity(
-            lead_id=db_lead.id,
-            type='created',
-            content='Lead importado via CSV',
-            actor='Usuário',
-        ))
+        db.add(models.Activity(lead_id=db_lead.id, type='created', content='Lead importado via CSV', actor='Sistema'))
         created_ids.append(db_lead.id)
 
     db.commit()
     return {"imported": len(created_ids), "ids": created_ids}
+
+
+_CARD_SAFE_KEYS = {"title", "price", "stage_id"}
+
+@router.post("/cards/import")
+def import_cards(items: List[Dict[str, Any]], pipeline_id: Optional[int] = None, db: Session = Depends(get_db)):
+    fallback_stage_id = None
+    if pipeline_id:
+        first_stage = db.query(models.Stage).filter(models.Stage.pipeline_id == pipeline_id).order_by(models.Stage.order).first()
+        if first_stage: fallback_stage_id = first_stage.id
+
+    created_ids = []
+    for data in items:
+        safe_data = {k: v for k, v in data.items() if k in _CARD_SAFE_KEYS}
+        if not safe_data.get("stage_id"): safe_data["stage_id"] = fallback_stage_id
+        
+        db_card = models.Card(**safe_data)
+        db.add(db_card)
+        db.flush()
+
+        # Handle inline contact creation if provided
+        c_name = data.get("contact_name")
+        c_email = data.get("contact_email")
+        c_phone = data.get("contact_phone")
+        if c_name or c_email or c_phone:
+            contact = models.Contact(first_name=c_name or '', email=c_email, phone=c_phone)
+            db.add(contact)
+            db.flush()
+            db_card.contacts.append(contact)
+
+        db.add(models.Activity(card_id=db_card.id, type='created', content='Negócio importado via CSV', actor='Sistema'))
+        created_ids.append(db_card.id)
+
+    db.commit()
+    return {"imported": len(created_ids), "ids": created_ids}
+
+_CONTACT_SAFE_KEYS = {"first_name", "last_name", "email", "phone", "cpf", "position"}
+
+@router.post("/contacts/import")
+def import_contacts(items: List[Dict[str, Any]], db: Session = Depends(get_db)):
+    created_ids = []
+    for data in items:
+        safe_data = {k: v for k, v in data.items() if k in _CONTACT_SAFE_KEYS}
+        db_contact = models.Contact(**safe_data)
+        db.add(db_contact)
+        db.flush()
+        created_ids.append(db_contact.id)
+    db.commit()
+    return {"imported": len(created_ids), "ids": created_ids}
+
+_COMPANY_SAFE_KEYS = {"name", "legal_name", "cnpj", "email", "phone", "industry"}
+
+@router.post("/companies/import")
+def import_companies(items: List[Dict[str, Any]], db: Session = Depends(get_db)):
+    created_ids = []
+    for data in items:
+        safe_data = {k: v for k, v in data.items() if k in _COMPANY_SAFE_KEYS}
+        db_company = models.Company(**safe_data)
+        db.add(db_company)
+        db.flush()
+        created_ids.append(db_company.id)
+    db.commit()
+    return {"imported": len(created_ids), "ids": created_ids}
+

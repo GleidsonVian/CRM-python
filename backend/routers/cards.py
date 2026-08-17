@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -383,3 +383,68 @@ def get_card_workflow_executions(card_id: int, db: Session = Depends(get_db)):
     return db.query(models.WorkflowExecution).filter(
         models.WorkflowExecution.card_id == card_id
     ).order_by(models.WorkflowExecution.executed_at.desc()).limit(50).all()
+
+# ── Card Products ─────────────────────────────────────────────────────────────
+
+@router.get("/cards/{card_id}/products", response_model=List[schemas.CardProduct])
+def get_card_products(card_id: int, db: Session = Depends(get_db)):
+    return db.query(models.CardProduct).filter(models.CardProduct.card_id == card_id).all()
+
+@router.post("/cards/{card_id}/products", response_model=schemas.CardProduct)
+def add_product_to_card(card_id: int, cp: schemas.CardProductCreate, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Negócio não encontrado")
+        
+    product = db.query(models.Product).filter(models.Product.id == cp.product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+        
+    total_price = (cp.quantity * cp.unit_price) - cp.discount
+    db_cp = models.CardProduct(
+        card_id=card_id,
+        product_id=cp.product_id,
+        quantity=cp.quantity,
+        unit_price=cp.unit_price,
+        discount=cp.discount,
+        total_price=total_price
+    )
+    db.add(db_cp)
+    
+    # Recalculate card price based on all its products
+    # Wait, we need to commit this product first to sum them all.
+    db.commit()
+    db.refresh(db_cp)
+    
+    # Recalculate total price of card
+    all_cps = db.query(models.CardProduct).filter(models.CardProduct.card_id == card_id).all()
+    new_price = sum([item.total_price for item in all_cps])
+    card.price = new_price
+    db.commit()
+    
+    return db_cp
+
+@router.delete("/cards/{card_id}/products/{cp_id}")
+def remove_product_from_card(card_id: int, cp_id: int, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Negócio não encontrado")
+        
+    db_cp = db.query(models.CardProduct).filter(
+        models.CardProduct.id == cp_id,
+        models.CardProduct.card_id == card_id
+    ).first()
+    
+    if not db_cp:
+        raise HTTPException(status_code=404, detail="Produto não vinculado ao negócio")
+        
+    db.delete(db_cp)
+    db.commit()
+    
+    # Recalculate total price of card
+    all_cps = db.query(models.CardProduct).filter(models.CardProduct.card_id == card_id).all()
+    new_price = sum([item.total_price for item in all_cps])
+    card.price = new_price
+    db.commit()
+    
+    return {"ok": True}
