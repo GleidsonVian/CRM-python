@@ -31,7 +31,7 @@ function FieldRow({ label, children }) {
       display: 'flex', alignItems: 'flex-start', gap: 12, padding: '7px 0',
       borderBottom: '1px solid #f1f5f9',
     }}>
-      <span style={{ fontSize: 12, color: '#94a3b8', minWidth: 160, paddingTop: 2, flexShrink: 0 }}>
+      <span style={{ fontSize: 14, color: '#94a3b8', minWidth: 160, paddingTop: 2, flexShrink: 0 }}>
         {label}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
@@ -48,7 +48,7 @@ function InlineInput({ value, onChange, placeholder, type = 'text' }) {
       placeholder={placeholder || 'o campo está vazio'}
       style={{
         width: '100%', border: 'none', outline: 'none', background: 'transparent',
-        fontSize: 12, color: '#0f172a', fontFamily: 'inherit', padding: 0,
+        fontSize: 14, color: '#0f172a', fontFamily: 'inherit', padding: 0,
       }}
     />
   );
@@ -61,7 +61,7 @@ function InlineSelect({ value, onChange, options, emptyLabel = 'o campo está va
       onChange={e => onChange(e.target.value)}
       style={{
         border: 'none', outline: 'none', background: 'transparent',
-        fontSize: 12, color: '#0f172a', fontFamily: 'inherit', padding: 0,
+        fontSize: 14, color: '#0f172a', fontFamily: 'inherit', padding: 0,
         cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none',
       }}
     >
@@ -85,7 +85,7 @@ function Toggle({ value, onChange }) {
           transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
         }} />
       </div>
-      <span style={{ fontSize: 12, color: value ? '#10b981' : '#94a3b8' }}>
+      <span style={{ fontSize: 14, color: value ? '#10b981' : '#94a3b8' }}>
         {value ? 'Sim' : 'Não'}
       </span>
     </div>
@@ -100,9 +100,9 @@ function Section({ title, children }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '10px 20px', cursor: 'pointer', background: '#f8fafc',
       }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#475569',
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#475569',
           textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</span>
-        <span style={{ fontSize: 10, color: '#94a3b8' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 12, color: '#94a3b8' }}>{open ? '▲' : '▼'}</span>
       </div>
       {open && <div style={{ padding: '4px 20px 12px' }}>{children}</div>}
     </div>
@@ -210,7 +210,7 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                 width: 42, height: 42, borderRadius: 8,
                 background: form.logo_url ? 'transparent' : color,
                 color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 15, fontWeight: 700, flexShrink: 0, overflow: 'hidden',
+                fontSize: 17, fontWeight: 700, flexShrink: 0, overflow: 'hidden',
                 border: '2px solid #e2e8f0',
               }}>
                 {form.logo_url
@@ -220,7 +220,7 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
               <div>
                 <input
                   className="modal-title-input"
-                  style={{ fontSize: 17 }}
+                  style={{ fontSize: 19 }}
                   value={form.name}
                   onChange={e => set('name')(e.target.value)}
                   placeholder="Nome da empresa"
@@ -234,15 +234,15 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
             <div className="modal-header-actions">
               {confirmDelete ? (
                 <>
-                  <span style={{ fontSize: 12, color: '#ef4444' }}>Confirmar?</span>
-                  <button className="btn btn-danger" style={{ fontSize: 12 }} onClick={handleDelete}>Excluir</button>
-                  <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setConfirmDelete(false)}>Não</button>
+                  <span style={{ fontSize: 14, color: '#ef4444' }}>Confirmar?</span>
+                  <button className="btn btn-danger" style={{ fontSize: 14 }} onClick={handleDelete}>Excluir</button>
+                  <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setConfirmDelete(false)}>Não</button>
                 </>
               ) : (
-                <button className="btn btn-ghost" style={{ fontSize: 12, color: '#ef4444' }}
+                <button className="btn btn-ghost" style={{ fontSize: 14, color: '#ef4444' }}
                   onClick={() => setConfirmDelete(true)}>Excluir</button>
               )}
-              <button className="btn btn-primary" style={{ fontSize: 12 }}
+              <button className="btn btn-primary" style={{ fontSize: 14 }}
                 onClick={handleSave} disabled={saving}>
                 {saved ? '✓ Salvo' : saving ? 'Salvando...' : 'Salvar'}
               </button>
@@ -299,11 +299,11 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                 <div>
                   {linkedContacts.map(c => (
                     <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: 12 }}>{c.first_name} {c.last_name || ''}</span>
-                      {c.phone && <span style={{ fontSize: 11, color: '#94a3b8' }}>{c.phone}</span>}
+                      <span style={{ fontSize: 14 }}>{c.first_name} {c.last_name || ''}</span>
+                      {c.phone && <span style={{ fontSize: 13, color: '#94a3b8' }}>{c.phone}</span>}
                       <button onClick={() => removeContact(c.id)} style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        color: '#cbd5e1', fontSize: 11, padding: 0, marginLeft: 'auto',
+                        color: '#cbd5e1', fontSize: 13, padding: 0, marginLeft: 'auto',
                       }}>✕</button>
                     </div>
                   ))}
@@ -316,7 +316,7 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                       onBlur={() => setTimeout(() => setShowContactDropdown(false), 150)}
                       style={{
                         border: 'none', borderBottom: '1px dashed #e2e8f0', outline: 'none',
-                        background: 'transparent', fontSize: 12, color: '#6366f1',
+                        background: 'transparent', fontSize: 14, color: '#6366f1',
                         fontFamily: 'inherit', padding: '2px 0', width: '100%',
                       }}
                     />
@@ -332,7 +332,7 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                             <div key={c.id} className="contact-dropdown-item"
                               onMouseDown={() => addContact(c)}>
                               {c.first_name} {c.last_name || ''}
-                              {c.phone && <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>{c.phone}</span>}
+                              {c.phone && <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 4 }}>{c.phone}</span>}
                             </div>
                           ))}
                       </div>
@@ -357,14 +357,14 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                         width: 20, height: 20, borderRadius: '50%',
                         background: avatarColor(responsibleUser.name), color: 'white',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 8, fontWeight: 700,
+                        fontSize: 10, fontWeight: 700,
                       }}>
                         {responsibleUser.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                       </div>
-                      <span style={{ fontSize: 12 }}>{responsibleUser.name}</span>
+                      <span style={{ fontSize: 14 }}>{responsibleUser.name}</span>
                       <button onClick={() => setResponsibleUser(null)} style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        color: '#94a3b8', fontSize: 11, padding: 0,
+                        color: '#94a3b8', fontSize: 13, padding: 0,
                       }}>Alterar</button>
                     </div>
                   ) : (
@@ -377,7 +377,7 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                         onBlur={() => setTimeout(() => setShowUserDropdown(false), 150)}
                         style={{
                           border: 'none', borderBottom: '1px dashed #e2e8f0', outline: 'none',
-                          background: 'transparent', fontSize: 12, color: '#6366f1',
+                          background: 'transparent', fontSize: 14, color: '#6366f1',
                           fontFamily: 'inherit', padding: '2px 0', width: '100%',
                         }}
                       />
@@ -394,7 +394,7 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                                   setShowUserDropdown(false);
                                 }}>
                                 {u.name}
-                                <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>{u.role}</span>
+                                <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 4 }}>{u.role}</span>
                               </div>
                             ))}
                         </div>
@@ -414,20 +414,20 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                   rows={2}
                   style={{
                     width: '100%', border: 'none', borderBottom: '1px solid #f1f5f9',
-                    outline: 'none', background: 'transparent', fontSize: 12,
+                    outline: 'none', background: 'transparent', fontSize: 14,
                     color: '#0f172a', fontFamily: 'inherit', resize: 'vertical', padding: 0,
                   }}
                 />
               </FieldRow>
               <FieldRow label="Parâmetros UTM">
                 {(form.utm_source || form.utm_medium || form.utm_campaign) ? (
-                  <div style={{ fontSize: 11, color: '#64748b' }}>
+                  <div style={{ fontSize: 13, color: '#64748b' }}>
                     {form.utm_source && <div>utm_source: <b>{form.utm_source}</b></div>}
                     {form.utm_medium && <div>utm_medium: <b>{form.utm_medium}</b></div>}
                     {form.utm_campaign && <div>utm_campaign: <b>{form.utm_campaign}</b></div>}
                   </div>
                 ) : (
-                  <span style={{ fontSize: 12, color: '#cbd5e1' }}>Nenhum</span>
+                  <span style={{ fontSize: 14, color: '#cbd5e1' }}>Nenhum</span>
                 )}
               </FieldRow>
             </Section>
@@ -442,8 +442,8 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                 background: '#f8fafc', borderRadius: 8, padding: '12px 14px',
                 border: '1px solid #e2e8f0',
               }}>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>Receita anual</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 4 }}>Receita anual</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#0f172a' }}>
                   {fmtCurrency(form.annual_revenue)}
                 </div>
               </div>
@@ -451,8 +451,8 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                 background: '#f8fafc', borderRadius: 8, padding: '12px 14px',
                 border: '1px solid #e2e8f0',
               }}>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>Tipo</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 4 }}>Tipo</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: '#475569' }}>
                   {form.company_type || '—'}
                 </div>
               </div>
@@ -460,24 +460,24 @@ export default function CompanyModal({ company, onClose, onUpdate, onDelete }) {
                 background: '#f8fafc', borderRadius: 8, padding: '12px 14px',
                 border: '1px solid #e2e8f0',
               }}>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 6 }}>
                   Contatos ({linkedContacts.length})
                 </div>
                 {linkedContacts.length === 0 ? (
-                  <div style={{ fontSize: 12, color: '#cbd5e1', fontStyle: 'italic' }}>Nenhum</div>
+                  <div style={{ fontSize: 14, color: '#cbd5e1', fontStyle: 'italic' }}>Nenhum</div>
                 ) : linkedContacts.map(c => (
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                     <div style={{
                       width: 24, height: 24, borderRadius: '50%',
                       background: avatarColor(`${c.first_name}${c.last_name}`),
                       color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 9, fontWeight: 700, flexShrink: 0,
+                      fontSize: 11, fontWeight: 700, flexShrink: 0,
                     }}>
                       {`${c.first_name[0] || ''}${(c.last_name || '')[0] || ''}`.toUpperCase()}
                     </div>
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 500 }}>{c.first_name} {c.last_name || ''}</div>
-                      {c.phone && <div style={{ fontSize: 11, color: '#94a3b8' }}>{c.phone}</div>}
+                      <div style={{ fontSize: 14, fontWeight: 500 }}>{c.first_name} {c.last_name || ''}</div>
+                      {c.phone && <div style={{ fontSize: 13, color: '#94a3b8' }}>{c.phone}</div>}
                     </div>
                   </div>
                 ))}

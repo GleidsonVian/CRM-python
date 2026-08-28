@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment, useRef } from 'react';
 
 import { API_URL as API } from '../config.js';
 
@@ -73,18 +73,6 @@ const OPERATORS_BY_TYPE = {
   ],
 };
 
-const VARIABLES = [
-  { key: 'deal.title',       desc: 'Título do negócio' },
-  { key: 'deal.price',       desc: 'Valor' },
-  { key: 'deal.id',          desc: 'ID' },
-  { key: 'deal.description', desc: 'Descrição' },
-  { key: 'contact.name',     desc: 'Nome do contato' },
-  { key: 'contact.email',    desc: 'Email' },
-  { key: 'contact.phone',    desc: 'Telefone' },
-  { key: 'stage.name',       desc: 'Etapa' },
-  { key: 'pipeline.name',    desc: 'Funil' },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -118,7 +106,11 @@ function parseFlow(configOrStr) {
 function stepSummary(step) {
   const c = step.config || {};
   switch (step.type) {
-    case 'webhook':     return c.url ? `${c.method || 'POST'} ${c.url}` : 'URL não configurada';
+    case 'webhook': {
+      if (!c.url) return 'URL não configurada';
+      const mapped = Object.values(c.response_mapping || {}).filter(Boolean).length;
+      return `${c.method || 'POST'} ${c.url}` + (mapped ? `  ·  preenche ${mapped} campo(s)` : '');
+    }
     case 'assign_user': return c.user_name || (c.user_id ? `ID ${c.user_id}` : 'Usuário não selecionado');
     case 'add_note':    return c.content ? c.content.slice(0, 55) + (c.content.length > 55 ? '…' : '') : 'Sem conteúdo';
     case 'set_price':   return c.price !== '' ? `R$ ${c.price}` : 'Valor não definido';
@@ -178,7 +170,7 @@ const AddBtn = ({ onClick }) => (
     title="Adicionar bloco"
     style={{
       width: 26, height: 26, borderRadius: '50%', border: '2px dashed #94a3b8',
-      background: 'white', cursor: 'pointer', fontSize: 17, color: '#94a3b8',
+      background: 'white', cursor: 'pointer', fontSize: 19, color: '#94a3b8',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       lineHeight: 1, transition: 'all 0.13s', flexShrink: 0, fontFamily: 'inherit',
     }}
@@ -214,7 +206,7 @@ function NodeCard({ step, active, onEdit, onDelete, isFirst = false }) {
             position: 'absolute', top: -9, right: -9,
             width: 20, height: 20, borderRadius: '50%', border: '2px solid white',
             background: '#ef4444', color: 'white', cursor: 'pointer',
-            fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'inherit',
           }}
         >×</button>
@@ -223,11 +215,11 @@ function NodeCard({ step, active, onEdit, onDelete, isFirst = false }) {
         <div style={{
           width: 32, height: 32, borderRadius: 8, flexShrink: 0,
           background: meta.color + '20',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19,
         }}>{meta.icon}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{meta.label}</div>
-          <div style={{ fontSize: 12, color: '#475569', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{meta.label}</div>
+          <div style={{ fontSize: 14, color: '#475569', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {summary || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Clique para configurar</span>}
           </div>
         </div>
@@ -318,7 +310,7 @@ function IfElseNode({ step, active, onEdit, onDelete, onUpdate, activeId, setAct
             <div style={{
               background: branch.bg, border: `1px solid ${branch.border}`,
               color: branch.color, borderRadius: 12,
-              padding: '3px 14px', fontSize: 11, fontWeight: 700,
+              padding: '3px 14px', fontSize: 13, fontWeight: 700,
             }}>{branch.label}</div>
 
             {/* Branch content */}
@@ -354,8 +346,8 @@ function NodePicker({ onSelect, onClose }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: 14, padding: 24, width: 400, boxShadow: '0 25px 60px rgba(0,0,0,0.25)' }}>
-        <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>Adicionar bloco</div>
-        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 16, marginTop: 3 }}>Escolha uma ação ou condição lógica</div>
+        <div style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>Adicionar bloco</div>
+        <div style={{ fontSize: 14, color: '#64748b', marginBottom: 16, marginTop: 3 }}>Escolha uma ação ou condição lógica</div>
 
         {[
           { title: 'CRM', types: CRM_TYPES },
@@ -363,7 +355,7 @@ function NodePicker({ onSelect, onClose }) {
           { title: 'Controle de Fluxo', types: CONTROL_TYPES },
         ].map(group => (
           <div key={group.title}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 12 }}>{group.title}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 12 }}>{group.title}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {group.types.map(type => {
                 const m = NODE_META[type];
@@ -380,8 +372,8 @@ function NodePicker({ onSelect, onClose }) {
                     onMouseEnter={e => { e.currentTarget.style.background = m.bg; e.currentTarget.style.borderColor = m.color; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                   >
-                    <span style={{ fontSize: 20, width: 28, textAlign: 'center', flexShrink: 0 }}>{m.icon}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{m.label}</span>
+                    <span style={{ fontSize: 22, width: 28, textAlign: 'center', flexShrink: 0 }}>{m.icon}</span>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{m.label}</span>
                   </button>
                 );
               })}
@@ -389,7 +381,7 @@ function NodePicker({ onSelect, onClose }) {
           </div>
         ))}
 
-        <button onClick={onClose} style={{ marginTop: 16, width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 13, color: '#64748b', fontFamily: 'inherit' }}>
+        <button onClick={onClose} style={{ marginTop: 16, width: '100%', padding: 8, borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 15, color: '#64748b', fontFamily: 'inherit' }}>
           Cancelar
         </button>
       </div>
@@ -399,7 +391,7 @@ function NodePicker({ onSelect, onClose }) {
 
 // ── Edit Panel (right sidebar) ────────────────────────────────────────────────
 // ── SetField editor ───────────────────────────────────────────────────────────
-function SetFieldEditor({ step, cfg, onChange, Lbl, insertVar }) {
+function SetFieldEditor({ step, cfg, onChange, Lbl, variables = [] }) {
   const [pipelines, setPipelines] = useState([]);
   const [stages, setStages]       = useState([]);
 
@@ -447,10 +439,10 @@ function SetFieldEditor({ step, cfg, onChange, Lbl, insertVar }) {
                 width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                 background: cfg.field === f.value ? '#0ea5e9' : '#e2e8f0',
               }} />
-              <span style={{ fontSize: 12, fontWeight: cfg.field === f.value ? 700 : 500, color: cfg.field === f.value ? '#0369a1' : '#475569' }}>
+              <span style={{ fontSize: 14, fontWeight: cfg.field === f.value ? 700 : 500, color: cfg.field === f.value ? '#0369a1' : '#475569' }}>
                 {f.label}
               </span>
-              <code style={{ marginLeft: 'auto', fontSize: 10, color: '#94a3b8', background: '#f1f5f9', padding: '1px 5px', borderRadius: 3 }}>
+              <code style={{ marginLeft: 'auto', fontSize: 12, color: '#94a3b8', background: '#f1f5f9', padding: '1px 5px', borderRadius: 3 }}>
                 {f.value}
               </code>
             </button>
@@ -477,7 +469,7 @@ function SetFieldEditor({ step, cfg, onChange, Lbl, insertVar }) {
             <div>
               <Lbl>Etapa destino</Lbl>
               {stages.length === 0 ? (
-                <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
+                <div style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {stages.map(s => (
@@ -493,7 +485,7 @@ function SetFieldEditor({ step, cfg, onChange, Lbl, insertVar }) {
                       }}
                     >
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, fontWeight: cfg.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
+                      <span style={{ fontSize: 14, fontWeight: cfg.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
                     </button>
                   ))}
                 </div>
@@ -508,59 +500,28 @@ function SetFieldEditor({ step, cfg, onChange, Lbl, insertVar }) {
         <div>
           <Lbl>Novo valor</Lbl>
 
-          {/* Variable chips for text fields */}
-          {(fieldDef?.type === 'text' || fieldDef?.type === 'textarea') && (
-            <div style={{ background: '#1e293b', borderRadius: 7, padding: '8px 10px', marginBottom: 8 }}>
-              <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Inserir variável</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {VARIABLES.map(v => (
-                  <VarChip key={v.key} varKey={v.key} onInsert={() => set('value', (cfg.value || '') + `{{${v.key}}}`)} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {fieldDef?.type === 'textarea' ? (
-            <textarea
-              className="form-textarea"
-              style={{ fontSize: 12, minHeight: 70 }}
+          {fieldDef?.type === 'number' ? (
+            <input
+              type="number"
+              className="form-input"
+              style={{ fontSize: 14 }}
               value={cfg.value || ''}
               onChange={e => set('value', e.target.value)}
-              placeholder="Novo conteúdo..."
+              placeholder="0.00"
             />
           ) : (
-            <input
-              type={fieldDef?.type === 'number' ? 'number' : 'text'}
-              className="form-input"
-              style={{ fontSize: 12 }}
-              value={cfg.value || ''}
-              onChange={e => set('value', e.target.value)}
-              placeholder={fieldDef?.type === 'number' ? '0.00' : 'Novo valor...'}
+            <VarInput
+              as={fieldDef?.type === 'textarea' ? 'textarea' : 'input'}
+              minHeight={fieldDef?.type === 'textarea' ? 70 : undefined}
+              value={cfg.value}
+              onChange={v => set('value', v)}
+              variables={variables}
+              placeholder={fieldDef?.type === 'textarea' ? 'Novo conteúdo...' : 'Novo valor...'}
             />
           )}
-
-          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 5 }}>
-            Suporta variáveis: <code style={{ fontSize: 10 }}>{'{{deal.price}}'}</code>
-          </div>
         </div>
       )}
     </div>
-  );
-}
-
-function VarChip({ varKey, onInsert }) {
-  return (
-    <button
-      onClick={() => onInsert(varKey)}
-      title={varKey}
-      style={{
-        background: '#1e293b', border: '1px solid #334155',
-        color: '#10b981', borderRadius: 4, padding: '2px 6px',
-        fontSize: 10, fontFamily: 'monospace', cursor: 'pointer', whiteSpace: 'nowrap',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#fff'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.color = '#10b981'; }}
-    >{`{{${varKey}}}`}</button>
   );
 }
 
@@ -620,7 +581,7 @@ function ConditionEditor({ step, onChange }) {
   };
 
   const Lbl = ({ children }) => (
-    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
       {children}
     </label>
   );
@@ -658,8 +619,8 @@ function ConditionEditor({ step, onChange }) {
         </select>
         {fieldDef && (
           <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <code style={{ fontSize: 10, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3 }}>{cond.field}</code>
-            <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '1px 5px', borderRadius: 3, background: tc.bg, color: tc.color }}>
+            <code style={{ fontSize: 12, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3 }}>{cond.field}</code>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '1px 5px', borderRadius: 3, background: tc.bg, color: tc.color }}>
               {tc.label}
             </span>
           </div>
@@ -679,7 +640,7 @@ function ConditionEditor({ step, onChange }) {
                   padding: '5px 11px', borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit',
                   border: `2px solid ${cond.operator === op.value ? '#8b5cf6' : '#e2e8f0'}`,
                   background: cond.operator === op.value ? '#f5f3ff' : 'white',
-                  fontSize: 11, fontWeight: cond.operator === op.value ? 700 : 500,
+                  fontSize: 13, fontWeight: cond.operator === op.value ? 700 : 500,
                   color: cond.operator === op.value ? '#7c3aed' : '#475569',
                   transition: 'all 0.12s',
                 }}
@@ -708,7 +669,7 @@ function ConditionEditor({ step, onChange }) {
             <div>
               <Lbl>Etapa</Lbl>
               {stages.length === 0 ? (
-                <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
+                <div style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {stages.map(s => (
@@ -724,18 +685,18 @@ function ConditionEditor({ step, onChange }) {
                       }}
                     >
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, fontWeight: cond.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
-                      <code style={{ marginLeft: 'auto', fontSize: 9, color: '#94a3b8', background: '#f1f5f9', padding: '1px 4px', borderRadius: 3 }}>ID {s.id}</code>
+                      <span style={{ fontSize: 14, fontWeight: cond.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
+                      <code style={{ marginLeft: 'auto', fontSize: 11, color: '#94a3b8', background: '#f1f5f9', padding: '1px 4px', borderRadius: 3 }}>ID {s.id}</code>
                     </button>
                   ))}
                 </div>
               )}
               <div style={{ marginTop: 8, padding: '8px 10px', background: '#f8fafc', borderRadius: 7, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4 }}>Ou inserir ID manualmente:</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>Ou inserir ID manualmente:</div>
                 <input
                   type="number"
                   className="form-input"
-                  style={{ fontSize: 12 }}
+                  style={{ fontSize: 14 }}
                   value={cond.stage_id || ''}
                   onChange={e => {
                     const id = parseInt(e.target.value);
@@ -757,7 +718,7 @@ function ConditionEditor({ step, onChange }) {
           <input
             type="number"
             className="form-input"
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 14 }}
             value={cond.value || ''}
             onChange={e => setCond({ value: e.target.value })}
             placeholder="Ex: 1000"
@@ -772,13 +733,13 @@ function ConditionEditor({ step, onChange }) {
           <input
             type="text"
             className="form-input"
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 14 }}
             value={cond.value || ''}
             onChange={e => setCond({ value: e.target.value })}
             placeholder="Ex: gmail.com"
           />
-          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
-            Suporta variáveis: <code style={{ fontSize: 9 }}>{'{{deal.title}}'}</code>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+            Suporta variáveis: <code style={{ fontSize: 11 }}>{'{{deal.title}}'}</code>
           </div>
         </div>
       )}
@@ -790,7 +751,7 @@ function ConditionEditor({ step, onChange }) {
           <input
             type="date"
             className="form-input"
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 14 }}
             value={cond.value || ''}
             onChange={e => setCond({ value: e.target.value })}
           />
@@ -804,7 +765,7 @@ function ConditionEditor({ step, onChange }) {
           <div style={{ display: 'flex', gap: 8 }}>
             {[{ v: 'true', label: 'Verdadeiro ✓' }, { v: 'false', label: 'Falso ✗' }].map(opt => (
               <button key={opt.v} onClick={() => setCond({ value: opt.v })}
-                style={{ flex: 1, padding: '6px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: cond.value === opt.v ? 700 : 500, border: `2px solid ${cond.value === opt.v ? '#8b5cf6' : '#e2e8f0'}`, background: cond.value === opt.v ? '#f5f3ff' : 'white', color: cond.value === opt.v ? '#7c3aed' : '#475569' }}>
+                style={{ flex: 1, padding: '6px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: cond.value === opt.v ? 700 : 500, border: `2px solid ${cond.value === opt.v ? '#8b5cf6' : '#e2e8f0'}`, background: cond.value === opt.v ? '#f5f3ff' : 'white', color: cond.value === opt.v ? '#7c3aed' : '#475569' }}>
                 {opt.label}
               </button>
             ))}
@@ -818,11 +779,11 @@ function ConditionEditor({ step, onChange }) {
         const valLabel = fieldDef?.type === 'stage' ? cond.stage_name : cond.value;
         return (
           <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 8, padding: '9px 12px' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>Preview</div>
-            <div style={{ fontSize: 12, color: '#0f172a', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
-              <code style={{ background: '#ede9fe', padding: '2px 6px', borderRadius: 3, color: '#7c3aed', fontSize: 11 }}>{cond.field}</code>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>Preview</div>
+            <div style={{ fontSize: 14, color: '#0f172a', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+              <code style={{ background: '#ede9fe', padding: '2px 6px', borderRadius: 3, color: '#7c3aed', fontSize: 13 }}>{cond.field}</code>
               <strong style={{ color: '#6d28d9' }}>{opLabel}</strong>
-              <code style={{ background: '#ede9fe', padding: '2px 6px', borderRadius: 3, color: '#7c3aed', fontSize: 11 }}>
+              <code style={{ background: '#ede9fe', padding: '2px 6px', borderRadius: 3, color: '#7c3aed', fontSize: 13 }}>
                 {valLabel}{cond.stage_id ? ` (ID ${cond.stage_id})` : ''}
               </code>
             </div>
@@ -867,7 +828,7 @@ function ChangeStageEditor({ step, cfg, onChange, Lbl, label = 'Etapa destino' }
         <div>
           <Lbl>{label}</Lbl>
           {stages.length === 0 ? (
-            <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
+            <div style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>Carregando etapas...</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {stages.map(s => (
@@ -879,7 +840,7 @@ function ChangeStageEditor({ step, cfg, onChange, Lbl, label = 'Etapa destino' }
                   textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s',
                 }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, fontWeight: cfg.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
+                  <span style={{ fontSize: 14, fontWeight: cfg.stage_id === s.id ? 700 : 500, color: '#0f172a' }}>{s.name}</span>
                 </button>
               ))}
             </div>
@@ -890,70 +851,679 @@ function ChangeStageEditor({ step, cfg, onChange, Lbl, label = 'Etapa destino' }
   );
 }
 
-function EditPanel({ step, users, onChange, onClose }) {
+// ── Variáveis: catálogo vindo do backend ─────────────────────────────────────
+// O backend é a fonte da verdade das chaves ({{cf.cep}} etc). A UI nunca inventa
+// nome de variável — se não veio do catálogo, o runner não saberia resolver.
+
+const EMPTY_CATALOG = { variables: [], writable_fields: [], sample_card: null };
+
+// O que ainda conta como "nome de campo sendo digitado" depois do "{"
+const VAR_NAME_RE = /^\{?[\w.:-]*$/;
+
+// ── Largura do painel de edicao: arrastavel e lembrada entre sessoes ─────────
+const PANEL_W_KEY = 'flow_panel_width';
+const PANEL_W_MIN = 280;
+const PANEL_W_MAX = 900;
+const PANEL_W_DEFAULT = 340;
+
+const clampPanelW = w => Math.min(PANEL_W_MAX, Math.max(PANEL_W_MIN, Math.round(w)));
+
+function usePanelWidth() {
+  const [width, setWidth] = useState(() => {
+    const saved = parseInt(localStorage.getItem(PANEL_W_KEY), 10);
+    return Number.isFinite(saved) ? clampPanelW(saved) : PANEL_W_DEFAULT;
+  });
+  const [dragging, setDragging] = useState(false);
+
+  const startDrag = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = width;
+    setDragging(true);
+
+    const onMove = ev => setWidth(clampPanelW(startW + (startX - ev.clientX)));
+    const onUp = ev => {
+      const final = clampPanelW(startW + (startX - ev.clientX));
+      setWidth(final);
+      localStorage.setItem(PANEL_W_KEY, String(final));
+      setDragging(false);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  const reset = () => {
+    setWidth(PANEL_W_DEFAULT);
+    localStorage.setItem(PANEL_W_KEY, String(PANEL_W_DEFAULT));
+  };
+
+  return { width, dragging, startDrag, reset };
+}
+
+// Alca de arraste na borda esquerda do painel
+function ResizeHandle({ onMouseDown, onDoubleClick, active }) {
+  const [hover, setHover] = useState(false);
+  const lit = hover || active;
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      onDoubleClick={onDoubleClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      title="Arraste para redimensionar (duplo clique para restaurar)"
+      style={{
+        position: 'absolute', top: 0, bottom: 0, left: -3, width: 7,
+        cursor: 'col-resize', zIndex: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <div style={{
+        width: lit ? 3 : 1, height: '100%',
+        background: lit ? '#3b82f6' : 'transparent',
+        transition: 'background 0.12s, width 0.12s',
+      }} />
+      <div style={{
+        position: 'absolute', width: 4, height: 32, borderRadius: 3,
+        background: lit ? '#3b82f6' : '#cbd5e1',
+        opacity: lit ? 1 : 0.6, transition: 'all 0.12s',
+      }} />
+    </div>
+  );
+}
+
+function resolvePreview(text, variables) {
+  if (!text || !text.includes('{{')) return null;
+  const byKey = {};
+  variables.forEach(v => { byKey[v.key] = v; });
+  let unknown = false;
+  const out = text.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, k) => {
+    const v = byKey[k.trim()];
+    if (!v) { unknown = true; return `⟨${k.trim()}?⟩`; }
+    return v.sample || `⟨${v.label} vazio⟩`;
+  });
+  return { text: out, unknown };
+}
+
+// ── Campo de texto com autocomplete de variáveis ao digitar "{" ──────────────
+function VarInput({
+  as = 'input', value, onChange, placeholder, variables = [],
+  mono = false, minHeight, showPreview = true, autoFocus = false,
+}) {
+  const [open, setOpen]     = useState(false);
+  const [filter, setFilter] = useState('');
+  const [idx, setIdx]       = useState(0);
+  const ref  = useRef(null);
+  const listRef = useRef(null);
+
+  const filtered = React.useMemo(() => {
+    const f = filter.trim().toLowerCase();
+    const norm = s => (s || '').toLowerCase();
+    const hits = variables.filter(v =>
+      !f || norm(v.key).includes(f) || norm(v.label).includes(f)
+    );
+    // agrupa preservando a ordem dos grupos
+    const groups = [];
+    hits.forEach(v => {
+      let g = groups.find(x => x.name === v.group);
+      if (!g) { g = { name: v.group, items: [] }; groups.push(g); }
+      g.items.push(v);
+    });
+    return { flat: hits, groups };
+  }, [variables, filter]);
+
+  useEffect(() => { if (idx >= filtered.flat.length) setIdx(0); }, [filtered.flat.length, idx]);
+
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    const el = listRef.current.querySelector(`[data-i="${idx}"]`);
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }, [idx, open]);
+
+  const openMenu = (f = '') => { setFilter(f); setIdx(0); setOpen(true); };
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    onChange(val);
+    const caret = e.target.selectionStart;
+    const before = val.slice(0, caret);
+    const brace = before.lastIndexOf('{');
+    if (brace !== -1) {
+      const typed = before.slice(brace + 1).replace(/^\{/, '');
+      // só mantém aberto enquanto o que foi digitado após "{" parece um nome de campo
+      if (VAR_NAME_RE.test(typed) && typed.length <= 40) { openMenu(typed); return; }
+    }
+    setOpen(false);
+  };
+
+  const insert = (key) => {
+    const el = ref.current;
+    if (!el) return;
+    const val = typeof value === 'string' ? value : '';
+    const caret = el.selectionStart;
+    const before = val.slice(0, caret);
+    const after  = val.slice(caret);
+    const brace = before.lastIndexOf('{');
+    // se o usuário abriu com "{" (ou "{{"), substitui a partir dali; senão insere no caret
+    let start = caret;
+    if (brace !== -1 && VAR_NAME_RE.test(before.slice(brace + 1))) {
+      start = before[brace - 1] === '{' ? brace - 1 : brace;
+    }
+    const token = `{{${key}}}`;
+    const next = val.slice(0, start) + token + after;
+    onChange(next);
+    setOpen(false);
+    requestAnimationFrame(() => {
+      if (!ref.current) return;
+      const pos = start + token.length;
+      ref.current.focus();
+      ref.current.setSelectionRange(pos, pos);
+    });
+  };
+
+  const handleKeyDown = (e) => {
+    if (!open) {
+      if (e.key === ' ' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openMenu(''); }
+      return;
+    }
+    const n = filtered.flat.length;
+    if (e.key === 'ArrowDown')      { e.preventDefault(); setIdx(i => (i + 1) % Math.max(n, 1)); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); setIdx(i => (i - 1 + n) % Math.max(n, 1)); }
+    else if (e.key === 'Enter' || e.key === 'Tab') {
+      if (n > 0) { e.preventDefault(); insert(filtered.flat[idx].key); }
+    }
+    else if (e.key === 'Escape')    { e.preventDefault(); setOpen(false); }
+  };
+
+  const preview = showPreview ? resolvePreview(value, variables) : null;
+
+  const inputStyle = {
+    fontSize: mono ? 13 : 14,
+    fontFamily: mono ? 'ui-monospace, SFMono-Regular, Menlo, monospace' : 'inherit',
+    ...(minHeight ? { minHeight } : {}),
+  };
+
+  const Tag = as === 'textarea' ? 'textarea' : 'input';
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <Tag
+        ref={ref}
+        {...(as === 'input' ? { type: 'text' } : {})}
+        className={as === 'textarea' ? 'form-textarea' : 'form-input'}
+        style={inputStyle}
+        placeholder={placeholder}
+        value={value || ''}
+        autoFocus={autoFocus}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onBlur={() => setTimeout(() => setOpen(false), 120)}
+      />
+
+      {/* dica discreta, para o recurso não ficar escondido */}
+      <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 3 }}>
+        Digite <code style={{ background: '#f1f5f9', padding: '0 3px', borderRadius: 3 }}>{'{'}</code> para inserir um campo do CRM
+      </div>
+
+      {preview && (
+        <div style={{
+          marginTop: 4, fontSize: 12, lineHeight: 1.45, padding: '5px 7px', borderRadius: 6,
+          background: preview.unknown ? '#fffbeb' : '#f0fdf4',
+          border: `1px solid ${preview.unknown ? '#fde68a' : '#bbf7d0'}`,
+          color: preview.unknown ? '#92400e' : '#166534',
+          wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+          maxHeight: 88, overflowY: 'auto',
+        }}>
+          <strong style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.75 }}>
+            {preview.unknown ? 'Prévia — variável desconhecida' : 'Prévia com dados reais'}
+          </strong>
+          <div style={{ marginTop: 2 }}>{preview.text}</div>
+        </div>
+      )}
+
+      {open && (
+        <div
+          ref={listRef}
+          style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999,
+            marginTop: 2, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8,
+            boxShadow: '0 10px 28px rgba(15,23,42,0.18)', maxHeight: 230, overflowY: 'auto',
+          }}
+        >
+          {filtered.flat.length === 0 ? (
+            <div style={{ padding: '10px 12px', fontSize: 13, color: '#94a3b8' }}>
+              Nenhum campo com “{filter}”.
+            </div>
+          ) : filtered.groups.map(g => (
+            <div key={g.name}>
+              <div style={{
+                position: 'sticky', top: 0, background: '#f8fafc', padding: '4px 10px',
+                fontSize: 11, fontWeight: 800, color: '#64748b',
+                textTransform: 'uppercase', letterSpacing: '0.07em',
+                borderBottom: '1px solid #eef2f6',
+              }}>{g.name}</div>
+              {g.items.map(item => {
+                const i = filtered.flat.indexOf(item);
+                const on = i === idx;
+                return (
+                  <div
+                    key={item.key}
+                    data-i={i}
+                    onMouseDown={e => { e.preventDefault(); insert(item.key); }}
+                    onMouseEnter={() => setIdx(i)}
+                    style={{
+                      padding: '5px 10px', cursor: 'pointer',
+                      background: on ? '#eff6ff' : 'transparent',
+                      borderLeft: `3px solid ${on ? '#3b82f6' : 'transparent'}`,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: '#0f172a' }}>{item.label}</span>
+                      <code style={{ fontSize: 11.5, color: '#64748b', whiteSpace: 'nowrap' }}>{`{{${item.key}}}`}</code>
+                    </div>
+                    {item.sample ? (
+                      <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        agora: {item.sample}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Seletor de campo do CRM (destino de gravação), agrupado ──────────────────
+function CrmFieldSelect({ value, onChange, fields, placeholder = '— não gravar —' }) {
+  const groups = [];
+  fields.forEach(f => {
+    let g = groups.find(x => x.name === f.group);
+    if (!g) { g = { name: f.group, items: [] }; groups.push(g); }
+    g.items.push(f);
+  });
+  return (
+    <select
+      className="form-select"
+      style={{ fontSize: 13, padding: '4px 6px' }}
+      value={value || ''}
+      onChange={e => onChange(e.target.value)}
+    >
+      <option value="">{placeholder}</option>
+      {groups.map(g => (
+        <optgroup key={g.name} label={g.name}>
+          {g.items.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </optgroup>
+      ))}
+    </select>
+  );
+}
+
+// ── Editor de cabeçalhos HTTP ────────────────────────────────────────────────
+function HeadersEditor({ headers = {}, onChange, variables }) {
+  const rows = Object.entries(headers);
+  const setRow = (i, k, v) => {
+    const next = {};
+    rows.forEach(([ok, ov], j) => { if (j === i) { if (k) next[k] = v; } else next[ok] = ov; });
+    onChange(next);
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      {rows.map(([k, v], i) => (
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 22px', gap: 4 }}>
+          <input className="form-input" style={{ fontSize: 12.5, padding: '3px 6px' }}
+            value={k} placeholder="Authorization"
+            onChange={e => setRow(i, e.target.value, v)} />
+          <input className="form-input" style={{ fontSize: 12.5, padding: '3px 6px' }}
+            value={v} placeholder="Bearer ..."
+            onChange={e => setRow(i, k, e.target.value)} />
+          <button type="button" onClick={() => setRow(i, '', '')}
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#cbd5e1', fontSize: 17 }}
+            title="Remover">×</button>
+        </div>
+      ))}
+      <button type="button"
+        onClick={() => onChange({ ...headers, '': '' })}
+        style={{ alignSelf: 'flex-start', border: '1px dashed #cbd5e1', background: 'none',
+                 borderRadius: 6, padding: '2px 8px', fontSize: 12, color: '#64748b',
+                 cursor: 'pointer', fontFamily: 'inherit' }}>
+        + cabeçalho
+      </button>
+    </div>
+  );
+}
+
+function Section({ n, title, hint, children, done }) {
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
+                    background: done ? '#f0fdf4' : '#f8fafc', borderBottom: '1px solid #eef2f6' }}>
+        <span style={{
+          width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+          background: done ? '#16a34a' : '#94a3b8', color: '#fff',
+          fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>{done ? '✓' : n}</span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>{title}</div>
+          {hint && <div style={{ fontSize: 11.5, color: '#94a3b8' }}>{hint}</div>}
+        </div>
+      </div>
+      <div style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 9 }}>{children}</div>
+    </div>
+  );
+}
+
+// ── Editor do nó Webhook: configurar → testar → mapear a resposta ────────────
+function WebhookEditor({ step, cfg, onChange, catalog, Lbl }) {
+  const variables = catalog.variables || [];
+  const writable  = catalog.writable_fields || [];
+  const mapping   = cfg.response_mapping || {};
+
+  const [testing, setTesting]   = useState(false);
+  const [result, setResult]     = useState(null);
+  const [overrides, setOverrides] = useState({});
+  const [showReq, setShowReq]   = useState(false);
+  const [showHeaders, setShowHeaders] = useState(Object.keys(cfg.headers || {}).length > 0);
+
+  const set = (k, v) => onChange({ ...step, config: { ...cfg, [k]: v } });
+  const setMapping = (m) => onChange({ ...step, config: { ...cfg, response_mapping: m } });
+
+  const method  = (cfg.method || 'POST').toUpperCase();
+  const hasBody = ['POST', 'PUT', 'PATCH'].includes(method);
+
+  // variáveis usadas nos templates — o painel de teste deixa sobrescrever cada uma
+  const usedVars = React.useMemo(() => {
+    const src = `${cfg.url || ''} ${cfg.payload || ''} ${Object.values(cfg.headers || {}).join(' ')}`;
+    return Array.from(new Set(Array.from(src.matchAll(/\{\{\s*([^}]+?)\s*\}\}/g), m => m[1].trim())));
+  }, [cfg.url, cfg.payload, cfg.headers]);
+
+  const runTest = async () => {
+    setTesting(true);
+    setResult(null);
+    try {
+      const res = await fetch(`${API}/automations/test-webhook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('nexus_token')}`,
+        },
+        body: JSON.stringify({
+          url: cfg.url || '',
+          method,
+          payload: hasBody ? (cfg.payload || '') : '',
+          headers: cfg.headers || {},
+          card_id: catalog.sample_card?.id || null,
+          overrides: Object.fromEntries(Object.entries(overrides).filter(([, v]) => v !== '')),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Falha ao testar');
+      setResult(data);
+    } catch (e) {
+      setResult({ ok: false, error: e.message || 'Erro ao testar', fields: [], status: null });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  // linhas de mapeamento: o que o teste devolveu + o que já estava salvo
+  const rows = React.useMemo(() => {
+    const seen = new Map();
+    (result?.fields || []).forEach(f => seen.set(f.path, { ...f, fromTest: true }));
+    Object.keys(mapping).forEach(p => {
+      if (!seen.has(p)) seen.set(p, { path: p, sample: '', type: '', fromTest: false });
+    });
+    return Array.from(seen.values());
+  }, [result, mapping]);
+
+  const mappedCount = Object.values(mapping).filter(Boolean).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* 1 — requisição */}
+      <Section n={1} title="A requisição" hint="Para onde e o que enviar" done={!!cfg.url}>
+        <div style={{ display: 'grid', gridTemplateColumns: '82px 1fr', gap: 6 }}>
+          <div>
+            <Lbl>Método</Lbl>
+            <select className="form-select" style={{ fontSize: 14 }} value={method}
+              onChange={e => set('method', e.target.value)}>
+              {['POST', 'GET', 'PUT', 'PATCH', 'DELETE'].map(m => <option key={m}>{m}</option>)}
+            </select>
+          </div>
+          <div>
+            <Lbl>URL</Lbl>
+            <VarInput value={cfg.url} onChange={v => set('url', v)} variables={variables}
+              placeholder="https://viacep.com.br/ws/{{cf.cep}}/json/" />
+          </div>
+        </div>
+
+        <div>
+          <button type="button" onClick={() => setShowHeaders(v => !v)}
+            style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer',
+                     fontSize: 12.5, color: '#3b82f6', fontFamily: 'inherit' }}>
+            {showHeaders ? '▾' : '▸'} Cabeçalhos {Object.keys(cfg.headers || {}).length ? `(${Object.keys(cfg.headers).length})` : '(opcional)'}
+          </button>
+          {showHeaders && (
+            <div style={{ marginTop: 6 }}>
+              <HeadersEditor headers={cfg.headers || {}} onChange={h => set('headers', h)} variables={variables} />
+            </div>
+          )}
+        </div>
+
+        {hasBody && (
+          <div>
+            <Lbl>Corpo (JSON)</Lbl>
+            <VarInput as="textarea" mono minHeight={100}
+              value={cfg.payload} onChange={v => set('payload', v)} variables={variables} />
+          </div>
+        )}
+      </Section>
+
+      {/* 2 — teste */}
+      <Section n={2} title="Testar agora" hint={
+        catalog.sample_card
+          ? `Usa dados reais de: ${catalog.sample_card.title}`
+          : 'Nenhum negócio disponível para amostra'
+      } done={!!result?.ok}>
+
+        {usedVars.length > 0 && (
+          <div>
+            <Lbl>Valores do teste</Lbl>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {usedVars.map(v => {
+                const def = variables.find(x => x.key === v);
+                return (
+                  <div key={v} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, color: '#475569', overflow: 'hidden',
+                                   textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v}>
+                      {def ? def.label : <span style={{ color: '#f59e0b' }}>⚠ {v}</span>}
+                    </span>
+                    <input className="form-input" style={{ fontSize: 12.5, padding: '3px 6px' }}
+                      placeholder={def?.sample || 'vazio no CRM'}
+                      value={overrides[v] ?? ''}
+                      onChange={e => setOverrides(o => ({ ...o, [v]: e.target.value }))} />
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 4 }}>
+              Em branco = usa o valor real do negócio acima.
+            </div>
+          </div>
+        )}
+
+        <button type="button" onClick={runTest} disabled={testing || !cfg.url}
+          style={{
+            width: '100%', padding: '7px', borderRadius: 8, cursor: cfg.url ? 'pointer' : 'not-allowed',
+            border: '1px solid #bfdbfe', background: cfg.url ? '#eff6ff' : '#f8fafc',
+            color: cfg.url ? '#1d4ed8' : '#94a3b8', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit',
+          }}>
+          {testing ? 'Disparando…' : '▶ Disparar teste'}
+        </button>
+
+        {result && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 700,
+              padding: '5px 8px', borderRadius: 6,
+              background: result.ok ? '#f0fdf4' : '#fef2f2',
+              color: result.ok ? '#15803d' : '#b91c1c',
+              border: `1px solid ${result.ok ? '#bbf7d0' : '#fecaca'}`,
+            }}>
+              {result.ok ? '✓' : '✕'}
+              {result.status ? `HTTP ${result.status}` : 'Sem resposta'}
+              {result.error ? <span style={{ fontWeight: 500, fontSize: 12 }}>— {result.error}</span> : null}
+            </div>
+
+            {result.request && (
+              <div>
+                <button type="button" onClick={() => setShowReq(v => !v)}
+                  style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer',
+                           fontSize: 12.5, color: '#3b82f6', fontFamily: 'inherit' }}>
+                  {showReq ? '▾' : '▸'} O que foi enviado
+                </button>
+                {showReq && (
+                  <pre style={{
+                    marginTop: 5, fontSize: 11.5, background: '#f8fafc', border: '1px solid #e2e8f0',
+                    color: '#334155', padding: 7, borderRadius: 6, maxHeight: 120, overflow: 'auto',
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+                  }}>{`${result.request.method} ${result.request.url}\n${result.request.payload || ''}`}</pre>
+                )}
+              </div>
+            )}
+
+            {result.body ? (
+              <div>
+                <Lbl>Resposta</Lbl>
+                <pre style={{
+                  fontSize: 11.5, background: '#0f172a', color: '#7dd3fc', padding: 8, borderRadius: 6,
+                  maxHeight: 130, overflow: 'auto', margin: 0,
+                  fontFamily: 'ui-monospace, Menlo, monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+                }}>{result.json ? JSON.stringify(result.json, null, 2) : result.body}</pre>
+                {!result.json && result.body && (
+                  <div style={{ fontSize: 11.5, color: '#f59e0b', marginTop: 3 }}>
+                    ⚠ A resposta não é JSON — não é possível mapear em campos.
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </Section>
+
+      {/* 3 — mapeamento */}
+      <Section n={3}
+        title="Gravar a resposta em campos"
+        hint={mappedCount ? `${mappedCount} campo(s) mapeado(s)` : 'Escolha onde salvar cada valor devolvido'}
+        done={mappedCount > 0}>
+
+        {rows.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5 }}>
+            Dispare o teste acima para ver os valores que a API devolve e escolher,
+            em cada um, o campo do CRM que deve ser preenchido.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {rows.map(r => {
+              const target = mapping[r.path] || '';
+              return (
+                <div key={r.path} style={{
+                  border: `1px solid ${target ? '#bbf7d0' : '#eef2f6'}`,
+                  background: target ? '#f0fdf4' : '#f8fafc',
+                  borderRadius: 7, padding: 6,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, alignItems: 'baseline' }}>
+                    <code style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>{r.path}</code>
+                    {r.sample ? (
+                      <span style={{ fontSize: 11.5, color: '#94a3b8', fontStyle: 'italic',
+                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}
+                        title={r.sample}>{r.sample}</span>
+                    ) : (!r.fromTest && result) ? (
+                      <span style={{ fontSize: 11, color: '#f59e0b' }}>não veio no último teste</span>
+                    ) : null}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                    <span style={{ fontSize: 13, color: '#64748b' }}>→</span>
+                    <div style={{ flex: 1 }}>
+                      <CrmFieldSelect
+                        value={target}
+                        fields={writable}
+                        onChange={v => {
+                          const next = { ...mapping };
+                          if (v) next[r.path] = v; else delete next[r.path];
+                          setMapping(next);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {mappedCount > 0 && (
+              <button type="button" onClick={() => setMapping({})}
+                style={{ alignSelf: 'flex-start', border: 'none', background: 'none', padding: 0,
+                         cursor: 'pointer', fontSize: 12, color: '#94a3b8', fontFamily: 'inherit' }}>
+                limpar mapeamento
+              </button>
+            )}
+          </div>
+        )}
+      </Section>
+    </div>
+  );
+}
+
+function EditPanel({ step, users, catalog = EMPTY_CATALOG, onChange, onClose,
+                     width = PANEL_W_DEFAULT, resize }) {
+  const variables = catalog.variables || [];
   const meta = NODE_META[step.type] || {};
   const cfg = step.config || {};
   const set = (k, v) => onChange({ ...step, config: { ...cfg, [k]: v } });
 
-  const insertVar = (field, key) => {
-    if (field === '__condition') {
-      onChange({ ...step, condition: (step.condition || '') + `{{${key}}}` });
-    } else {
-      set(field, (cfg[field] || '') + `{{${key}}}`);
-    }
-  };
-
-  // set_field tem seu próprio painel de variáveis interno
-  const textField = step.type === 'webhook' ? 'payload' : step.type === 'add_note' ? 'content' : null;
-
   const Lbl = ({ children }) => (
-    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
       {children}
     </label>
   );
 
   return (
-    <div style={{ width: 300, flexShrink: 0, borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', background: 'white' }}>
+    <div style={{
+      width, flexShrink: 0, borderLeft: '1px solid #e2e8f0', position: 'relative',
+      display: 'flex', flexDirection: 'column', background: 'white',
+    }}>
+      {resize && (
+        <ResizeHandle
+          onMouseDown={resize.startDrag}
+          onDoubleClick={resize.reset}
+          active={resize.dragging}
+        />
+      )}
+
       {/* Panel header */}
       <div style={{ padding: '12px 14px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: meta.bg }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 18 }}>{meta.icon}</span>
-          <span style={{ fontWeight: 700, fontSize: 13, color: meta.color }}>{meta.label}</span>
+          <span style={{ fontSize: 20 }}>{meta.icon}</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: meta.color }}>{meta.label}</span>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 18, lineHeight: 1 }}>×</button>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, lineHeight: 1 }}>×</button>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-        {/* Variable chips */}
-        {textField && (
-          <div style={{ background: '#1e293b', borderRadius: 8, padding: '10px 10px' }}>
-            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>Inserir variável</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {VARIABLES.map(v => <VarChip key={v.key} varKey={v.key} onInsert={k => insertVar(textField, k)} />)}
-            </div>
-          </div>
-        )}
-
         {/* Webhook */}
-        {step.type === 'webhook' && <>
-          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8 }}>
-            <div>
-              <Lbl>Método</Lbl>
-              <select className="form-select" style={{ fontSize: 12 }} value={cfg.method || 'POST'} onChange={e => set('method', e.target.value)}>
-                {['POST', 'GET', 'PUT', 'PATCH'].map(m => <option key={m}>{m}</option>)}
-              </select>
-            </div>
-            <div>
-              <Lbl>URL</Lbl>
-              <input className="form-input" style={{ fontSize: 12 }} value={cfg.url || ''} onChange={e => set('url', e.target.value)} placeholder="https://..." />
-            </div>
-          </div>
-          <div>
-            <Lbl>Payload (JSON)</Lbl>
-            <textarea className="form-textarea" style={{ fontSize: 11, fontFamily: 'monospace', minHeight: 120 }} value={cfg.payload || ''} onChange={e => set('payload', e.target.value)} />
-          </div>
-        </>}
+        {step.type === 'webhook' && (
+          <WebhookEditor step={step} cfg={cfg} onChange={onChange} catalog={catalog} Lbl={Lbl} />
+        )}
 
         {/* Assign user */}
         {step.type === 'assign_user' && <div>
@@ -970,19 +1540,26 @@ function EditPanel({ step, users, onChange, onClose }) {
         {/* Add note */}
         {step.type === 'add_note' && <div>
           <Lbl>Conteúdo da nota</Lbl>
-          <textarea className="form-textarea" style={{ fontSize: 12, minHeight: 80 }} value={cfg.content || ''} onChange={e => set('content', e.target.value)} placeholder='Ex: Negócio "{{deal.title}}" movido para {{stage.name}}.' />
+          <VarInput
+              as="textarea"
+            style={{ fontSize: 14, minHeight: 80 }}
+            value={cfg.content || ''}
+            onChange={val => set('content', val)}
+            placeholder='Ex: Negócio "{{deal.title}}" movido para {{stage.name}}.'
+            variables={variables}
+          />
         </div>}
 
         {/* Set price */}
         {step.type === 'set_price' && <div>
           <Lbl>Novo valor (R$)</Lbl>
           <input type="number" className="form-input" value={cfg.price || ''} onChange={e => set('price', e.target.value)} placeholder="0.00" />
-          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 5 }}>Substitui o valor atual do negócio.</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 5 }}>Substitui o valor atual do negócio.</div>
         </div>}
 
         {/* Modificar Elemento */}
         {step.type === 'set_field' && (
-          <SetFieldEditor step={step} cfg={cfg} onChange={onChange} Lbl={Lbl} insertVar={insertVar} />
+          <SetFieldEditor step={step} cfg={cfg} onChange={onChange} Lbl={Lbl} variables={variables} />
         )}
 
         {/* If/Else */}
@@ -1004,17 +1581,30 @@ function EditPanel({ step, users, onChange, onClose }) {
         {step.type === 'create_task' && <>
           <div>
             <Lbl>Título da tarefa</Lbl>
-            <input className="form-input" style={{ fontSize: 12 }} value={cfg.title || ''} onChange={e => set('title', e.target.value)} placeholder="Ex: Tarefa: {{deal.title}}" />
-            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>Suporta variáveis: <code style={{ fontSize: 10 }}>{'{{deal.title}}'}</code></div>
+            <VarInput
+              style={{ fontSize: 14 }}
+              value={cfg.title || ''}
+              onChange={val => set('title', val)}
+              placeholder="Ex: Tarefa: {{deal.title}}"
+              variables={variables}
+            />
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Suporta variáveis: <code style={{ fontSize: 12 }}>{'{{deal.title}}'}</code></div>
           </div>
           <div>
             <Lbl>Descrição</Lbl>
-            <textarea className="form-textarea" style={{ fontSize: 12, minHeight: 60 }} value={cfg.description || ''} onChange={e => set('description', e.target.value)} placeholder="Opcional..." />
+            <VarInput
+              as="textarea"
+              style={{ fontSize: 14, minHeight: 60 }}
+              value={cfg.description || ''}
+              onChange={val => set('description', val)}
+              placeholder="Opcional..."
+              variables={variables}
+            />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <Lbl>Prioridade</Lbl>
-              <select className="form-select" style={{ fontSize: 12 }} value={cfg.priority || 'normal'} onChange={e => set('priority', e.target.value)}>
+              <select className="form-select" style={{ fontSize: 14 }} value={cfg.priority || 'normal'} onChange={e => set('priority', e.target.value)}>
                 <option value="low">Baixa</option>
                 <option value="normal">Normal</option>
                 <option value="high">Alta</option>
@@ -1023,7 +1613,7 @@ function EditPanel({ step, users, onChange, onClose }) {
             </div>
             <div>
               <Lbl>Prazo (dias)</Lbl>
-              <input type="number" className="form-input" style={{ fontSize: 12 }} value={cfg.due_days ?? 1} onChange={e => set('due_days', +e.target.value)} min={0} placeholder="1" />
+              <input type="number" className="form-input" style={{ fontSize: 14 }} value={cfg.due_days ?? 1} onChange={e => set('due_days', +e.target.value)} min={0} placeholder="1" />
             </div>
           </div>
         </>}
@@ -1033,18 +1623,18 @@ function EditPanel({ step, users, onChange, onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8 }}>
             <div>
               <Lbl>Quantidade</Lbl>
-              <input type="number" className="form-input" style={{ fontSize: 12 }} value={cfg.delay_amount ?? 1} onChange={e => set('delay_amount', +e.target.value)} min={1} />
+              <input type="number" className="form-input" style={{ fontSize: 14 }} value={cfg.delay_amount ?? 1} onChange={e => set('delay_amount', +e.target.value)} min={1} />
             </div>
             <div>
               <Lbl>Unidade</Lbl>
-              <select className="form-select" style={{ fontSize: 12 }} value={cfg.delay_unit || 'hours'} onChange={e => set('delay_unit', e.target.value)}>
+              <select className="form-select" style={{ fontSize: 14 }} value={cfg.delay_unit || 'hours'} onChange={e => set('delay_unit', e.target.value)}>
                 <option value="minutes">Minutos</option>
                 <option value="hours">Horas</option>
                 <option value="days">Dias</option>
               </select>
             </div>
           </div>
-          <div style={{ background: '#fef9c3', border: '1px solid #fde047', borderRadius: 7, padding: '8px 10px', fontSize: 11, color: '#854d0e' }}>
+          <div style={{ background: '#fef9c3', border: '1px solid #fde047', borderRadius: 7, padding: '8px 10px', fontSize: 13, color: '#854d0e' }}>
             Pausa registrada no fluxo. Na versão atual a execução é imediata; suporte a delay assíncrono em breve.
           </div>
         </>}
@@ -1053,15 +1643,34 @@ function EditPanel({ step, users, onChange, onClose }) {
         {step.type === 'send_email' && <>
           <div>
             <Lbl>Para (e-mail)</Lbl>
-            <input className="form-input" style={{ fontSize: 12 }} value={cfg.to || ''} onChange={e => set('to', e.target.value)} placeholder="{{contact.email}}" />
+            <VarInput
+              style={{ fontSize: 14 }}
+              value={cfg.to || ''}
+              onChange={val => set('to', val)}
+              placeholder="{{contact.email}}"
+              variables={variables}
+            />
           </div>
           <div>
             <Lbl>Assunto</Lbl>
-            <input className="form-input" style={{ fontSize: 12 }} value={cfg.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="Ex: Seu negócio foi atualizado" />
+            <VarInput
+              style={{ fontSize: 14 }}
+              value={cfg.subject || ''}
+              onChange={val => set('subject', val)}
+              placeholder="Ex: Seu negócio foi atualizado"
+              variables={variables}
+            />
           </div>
           <div>
             <Lbl>Corpo do e-mail</Lbl>
-            <textarea className="form-textarea" style={{ fontSize: 12, minHeight: 100 }} value={cfg.body || ''} onChange={e => set('body', e.target.value)} placeholder="Olá,&#10;Seu negócio &quot;{{deal.title}}&quot; foi atualizado." />
+            <VarInput
+              as="textarea"
+              style={{ fontSize: 14, minHeight: 100 }}
+              value={cfg.body || ''}
+              onChange={val => set('body', val)}
+              placeholder="Olá,&#10;Seu negócio &quot;{{deal.title}}&quot; foi atualizado."
+              variables={variables}
+            />
           </div>
         </>}
       </div>
@@ -1101,7 +1710,21 @@ export default function FlowBuilderModal({
   const [active, setActiveRaw]      = useState(null);
   const [saving, setSaving]         = useState(false);
   const [saveError, setSaveError]   = useState('');
+  const [justSaved, setJustSaved]   = useState(false);
   const [pipelines, setPipelines]   = useState([]);
+  const [catalog, setCatalog]       = useState(EMPTY_CATALOG);
+  const panel                       = usePanelWidth();
+
+  // Catalogo de campos/variaveis: fonte unica de verdade, vem do backend
+  useEffect(() => {
+    const ent = entityType === 'any' ? 'deal' : entityType;
+    fetch(`${API}/automations/field-catalog?entity=${ent}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('nexus_token')}` },
+    })
+      .then(r => r.json())
+      .then(d => setCatalog({ ...EMPTY_CATALOG, ...(d || {}) }))
+      .catch(() => setCatalog(EMPTY_CATALOG));
+  }, [entityType]);
 
   useEffect(() => {
     if (isWorkflow) {
@@ -1116,9 +1739,10 @@ export default function FlowBuilderModal({
     setSteps(prev => updateById(prev, updated.id, () => updated));
   };
 
-  const handleSave = async () => {
+  const handleSave = async ({ close = true } = {}) => {
     setSaving(true);
     setSaveError('');
+    setJustSaved(false);
     try {
       if (isWorkflow) {
         await onSave({
@@ -1144,12 +1768,32 @@ export default function FlowBuilderModal({
           entity_type: entityType,
         });
       }
-      onClose();
+      if (close) {
+        onClose();
+      } else {
+        // fica na tela: so confirma visualmente que gravou
+        setJustSaved(true);
+        setTimeout(() => setJustSaved(false), 2200);
+      }
     } catch (e) {
       setSaveError(e.message || 'Erro ao salvar');
       setTimeout(() => setSaveError(''), 5000);
     } finally { setSaving(false); }
   };
+
+  // Ctrl+S / Cmd+S = salvar sem sair do editor
+  const saveRef = useRef(handleSave);
+  saveRef.current = handleSave;
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        saveRef.current({ close: false });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', zIndex: 400, display: 'flex', flexDirection: 'column', padding: 20 }}>
@@ -1157,28 +1801,28 @@ export default function FlowBuilderModal({
 
         {/* Header */}
         <div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 13, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 15, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
             ← Voltar
           </button>
           <div style={{ width: 1, height: 20, background: '#e2e8f0' }} />
-          <span style={{ fontSize: 12, color: isWorkflow ? '#6366f1' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 14, color: isWorkflow ? '#6366f1' : '#10b981', fontWeight: 700, whiteSpace: 'nowrap' }}>
             {isWorkflow ? '⚡ Fluxo de Trabalho' : '⚡ Automação'}
           </span>
           <div style={{ width: 1, height: 20, background: '#e2e8f0' }} />
           <input
             value={ruleName}
             onChange={e => setRuleName(e.target.value)}
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 700, color: '#0f172a', background: 'transparent', fontFamily: 'inherit', minWidth: 0 }}
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 17, fontWeight: 700, color: '#0f172a', background: 'transparent', fontFamily: 'inherit', minWidth: 0 }}
             placeholder={isWorkflow ? 'Nome do fluxo...' : 'Nome da regra...'}
           />
-          <select value={entityType} onChange={e => setEntityType(e.target.value)} style={{ fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', color: '#475569', background: '#f8fafc', cursor: 'pointer' }}>
+          <select value={entityType} onChange={e => setEntityType(e.target.value)} style={{ fontSize: 14, border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', color: '#475569', background: '#f8fafc', cursor: 'pointer' }}>
             <option value="deal">Negócios</option>
             <option value="lead">Leads</option>
             <option value="any">Qualquer</option>
           </select>
           {isWorkflow ? (
             <>
-              <select value={wfPipelineId} onChange={e => setWfPipelineId(e.target.value)} style={{ fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', color: '#475569', background: '#f8fafc', cursor: 'pointer' }}>
+              <select value={wfPipelineId} onChange={e => setWfPipelineId(e.target.value)} style={{ fontSize: 14, border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 10px', color: '#475569', background: '#f8fafc', cursor: 'pointer' }}>
                 <option value="">Todos os pipelines</option>
                 {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
@@ -1190,17 +1834,32 @@ export default function FlowBuilderModal({
               </button>
             </>
           ) : (
-            <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 14, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>
               Gatilho: <strong style={{ color: '#0f172a' }}>{stageName}</strong>
             </span>
           )}
           {saveError && (
-            <span style={{ fontSize: 12, color: '#ef4444', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '4px 10px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 14, color: '#ef4444', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '4px 10px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               ⚠ {saveError}
             </span>
           )}
-          <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13, minWidth: 110, whiteSpace: 'nowrap' }}>
-            {saving ? 'Salvando...' : isWorkflow ? 'Salvar fluxo' : 'Salvar regra'}
+          <button
+            onClick={() => handleSave({ close: false })}
+            disabled={saving}
+            title="Salvar e continuar editando (Ctrl+S)"
+            style={{
+              fontSize: 15, minWidth: 92, whiteSpace: 'nowrap', cursor: saving ? 'default' : 'pointer',
+              padding: '6px 12px', borderRadius: 8, fontFamily: 'inherit', fontWeight: 700,
+              border: `1px solid ${justSaved ? '#86efac' : '#cbd5e1'}`,
+              background: justSaved ? '#f0fdf4' : 'white',
+              color: justSaved ? '#15803d' : '#475569',
+              transition: 'all 0.15s',
+            }}
+          >
+            {saving ? 'Salvando…' : justSaved ? '✓ Salvo' : 'Salvar'}
+          </button>
+          <button onClick={() => handleSave({ close: true })} disabled={saving} className="btn btn-primary" style={{ fontSize: 15, minWidth: 110, whiteSpace: 'nowrap' }}>
+            {saving ? 'Salvando...' : isWorkflow ? 'Salvar e sair' : 'Salvar e sair'}
           </button>
         </div>
 
@@ -1208,7 +1867,7 @@ export default function FlowBuilderModal({
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
           {/* Canvas */}
-          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '32px 40px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'auto', padding: '32px 40px', display: 'flex', justifyContent: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 360 }}>
 
               {/* Trigger node */}
@@ -1218,10 +1877,10 @@ export default function FlowBuilderModal({
                 border: `2px solid ${isWorkflow ? '#6366f1' : '#10b981'}`,
                 display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
               }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: isWorkflow ? '#6366f120' : '#10b98120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>⚡</div>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: isWorkflow ? '#6366f120' : '#10b98120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>⚡</div>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: isWorkflow ? '#6366f1' : '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gatilho</div>
-                  <div style={{ fontSize: 12, color: '#0f172a', fontWeight: 600, marginTop: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: isWorkflow ? '#6366f1' : '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gatilho</div>
+                  <div style={{ fontSize: 14, color: '#0f172a', fontWeight: 600, marginTop: 1 }}>
                     {isWorkflow ? 'Execução Manual' : `Quando entrar em: ${stageName}`}
                   </div>
                 </div>
@@ -1239,7 +1898,7 @@ export default function FlowBuilderModal({
               <Arrow />
               <div style={{
                 border: '2px dashed #e2e8f0', borderRadius: 12, padding: '9px 24px',
-                fontSize: 12, color: '#94a3b8', fontWeight: 600, background: 'white',
+                fontSize: 14, color: '#94a3b8', fontWeight: 600, background: 'white',
               }}>Fim do fluxo</div>
             </div>
           </div>
@@ -1249,6 +1908,9 @@ export default function FlowBuilderModal({
             <EditPanel
               step={active}
               users={users}
+              catalog={catalog}
+              width={panel.width}
+              resize={panel}
               onChange={handleEditChange}
               onClose={() => setActiveRaw(null)}
             />

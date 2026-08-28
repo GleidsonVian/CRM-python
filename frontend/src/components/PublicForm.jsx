@@ -108,13 +108,13 @@ export default function PublicForm({ uid }) {
   };
 
   const labelStyle = {
-    display: 'block', fontSize: 13.5, fontWeight: 600,
+    display: 'block', fontSize: 15.5, fontWeight: 600,
     color: '#374151', marginBottom: 6,
   };
 
   const inputBase = {
     width: '100%', borderRadius: 8, border: '1.5px solid #d1d5db',
-    padding: '10px 12px', fontSize: 14, color: '#1e293b',
+    padding: '10px 12px', fontSize: 16, color: '#1e293b',
     background: '#fff', boxSizing: 'border-box', outline: 'none',
     transition: 'border-color 0.15s',
   };
@@ -124,7 +124,7 @@ export default function PublicForm({ uid }) {
   if (loading) {
     return (
       <div style={pageStyle}>
-        <div style={{ color: '#64748b', fontSize: 15 }}>Carregando formulário...</div>
+        <div style={{ color: '#64748b', fontSize: 17 }}>Carregando formulário...</div>
       </div>
     );
   }
@@ -133,11 +133,11 @@ export default function PublicForm({ uid }) {
     return (
       <div style={pageStyle}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>
+          <div style={{ fontSize: 50, marginBottom: 12 }}>🔍</div>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>
             Formulário não encontrado
           </h2>
-          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: 16, color: '#64748b', margin: 0 }}>
             Este link não é válido ou o formulário foi removido.
           </p>
         </div>
@@ -149,11 +149,11 @@ export default function PublicForm({ uid }) {
     return (
       <div style={pageStyle}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>⏸️</div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>
+          <div style={{ fontSize: 50, marginBottom: 12 }}>⏸️</div>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>
             Formulário inativo
           </h2>
-          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: 16, color: '#64748b', margin: 0 }}>
             Este formulário não está mais disponível.
           </p>
         </div>
@@ -165,11 +165,11 @@ export default function PublicForm({ uid }) {
     return (
       <div style={pageStyle}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>
+          <div style={{ fontSize: 50, marginBottom: 12 }}>⚠️</div>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>
             Erro ao carregar
           </h2>
-          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: 16, color: '#64748b', margin: 0 }}>
             Não foi possível carregar o formulário. Tente novamente mais tarde.
           </p>
         </div>
@@ -181,11 +181,11 @@ export default function PublicForm({ uid }) {
     return (
       <div style={pageStyle}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>
-          <div style={{ fontSize: 52, marginBottom: 14 }}>✅</div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>
+          <div style={{ fontSize: 54, marginBottom: 14 }}>✅</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>
             Enviado com sucesso!
           </h2>
-          <p style={{ fontSize: 14.5, color: '#475569', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16.5, color: '#475569', margin: 0, lineHeight: 1.6 }}>
             {form?.success_message || 'Obrigado! Sua resposta foi registrada.'}
           </p>
         </div>
@@ -199,12 +199,12 @@ export default function PublicForm({ uid }) {
     <div style={pageStyle}>
       <div style={cardStyle}>
         {form?.title && (
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1e293b', margin: '0 0 8px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1e293b', margin: '0 0 8px', lineHeight: 1.2 }}>
             {form.title}
           </h1>
         )}
         {form?.subtitle && (
-          <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 28px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16, color: '#64748b', margin: '0 0 28px', lineHeight: 1.6 }}>
             {form.subtitle}
           </p>
         )}
@@ -252,7 +252,7 @@ export default function PublicForm({ uid }) {
               <div style={{
                 background: '#fef2f2', border: '1px solid #fecaca',
                 borderRadius: 8, padding: '10px 14px', marginBottom: 16,
-                fontSize: 13.5, color: '#b91c1c',
+                fontSize: 15.5, color: '#b91c1c',
               }}>
                 {submitError}
               </div>
@@ -265,7 +265,7 @@ export default function PublicForm({ uid }) {
                 width: '100%', padding: '12px', borderRadius: 9,
                 background: submitting ? '#a5b4fc' : '#6366f1',
                 color: '#fff', border: 'none', fontWeight: 700,
-                fontSize: 15, cursor: submitting ? 'not-allowed' : 'pointer',
+                fontSize: 17, cursor: submitting ? 'not-allowed' : 'pointer',
                 marginTop: 4, transition: 'background 0.15s',
               }}
             >

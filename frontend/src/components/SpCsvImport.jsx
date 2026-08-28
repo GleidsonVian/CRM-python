@@ -148,15 +148,15 @@ export default function SpCsvImport({ process, onClose, onImported }) {
       <div style={S.modal} onClick={e => e.stopPropagation()}>
         <div style={S.header}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>Importar via CSV — {process.name}</div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Importe múltiplos registros de uma planilha CSV</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#0f172a' }}>Importar via CSV — {process.name}</div>
+            <div style={{ fontSize: 14, color: '#64748b', marginTop: 2 }}>Importe múltiplos registros de uma planilha CSV</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => downloadTemplate(process)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', cursor: 'pointer', fontSize: 12, color: '#475569', fontFamily: 'inherit', fontWeight: 600 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', cursor: 'pointer', fontSize: 14, color: '#475569', fontFamily: 'inherit', fontWeight: 600 }}
             >⬇ Baixar template</button>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, lineHeight: 1, padding: 2 }}>×</button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: 2 }}>×</button>
           </div>
         </div>
 
@@ -175,11 +175,11 @@ export default function SpCsvImport({ process, onClose, onImported }) {
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
             >
-              <div style={{ fontSize: 32, marginBottom: 10 }}>📂</div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: '#475569', marginBottom: 4 }}>
+              <div style={{ fontSize: 34, marginBottom: 10 }}>📂</div>
+              <div style={{ fontWeight: 600, fontSize: 16, color: '#475569', marginBottom: 4 }}>
                 Arraste o arquivo CSV aqui ou clique para selecionar
               </div>
-              <div style={{ fontSize: 12, color: '#94a3b8' }}>Apenas arquivos .csv</div>
+              <div style={{ fontSize: 14, color: '#94a3b8' }}>Apenas arquivos .csv</div>
               <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={e => loadFile(e.target.files[0])} />
             </div>
           )}
@@ -187,16 +187,16 @@ export default function SpCsvImport({ process, onClose, onImported }) {
           {/* Result screen */}
           {result && (
             <div style={{ textAlign: 'center', padding: '32px 0' }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>{result.errors?.length ? '⚠️' : '✅'}</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+              <div style={{ fontSize: 50, marginBottom: 12 }}>{result.errors?.length ? '⚠️' : '✅'}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
                 {result.created} registro{result.created !== 1 ? 's' : ''} criado{result.created !== 1 ? 's' : ''}
               </div>
               {result.errors?.length > 0 && (
-                <div style={{ fontSize: 12, color: '#ef4444', marginTop: 8 }}>
+                <div style={{ fontSize: 14, color: '#ef4444', marginTop: 8 }}>
                   {result.errors.length} erro{result.errors.length > 1 ? 's' : ''} durante a importação
                 </div>
               )}
-              <button onClick={onClose} style={{ marginTop: 20, padding: '9px 24px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>
+              <button onClick={onClose} style={{ marginTop: 20, padding: '9px 24px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 700, fontFamily: 'inherit' }}>
                 Fechar
               </button>
             </div>
@@ -206,25 +206,25 @@ export default function SpCsvImport({ process, onClose, onImported }) {
           {rows.length > 0 && !result && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <div style={{ fontSize: 13, color: '#475569' }}>
+                <div style={{ fontSize: 15, color: '#475569' }}>
                   Arquivo: <strong>{fileName}</strong> — {rows.length} linha{rows.length !== 1 ? 's' : ''}
                   {invalidRows.length > 0 && <span style={{ color: '#ef4444', marginLeft: 6 }}>({invalidRows.length} com erro)</span>}
                 </div>
                 <button
                   onClick={() => { setRows([]); setHeaders([]); setFileName(''); setErrors([]); fileRef.current && (fileRef.current.value = ''); }}
-                  style={{ marginLeft: 'auto', background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: '#64748b', padding: '3px 8px', fontFamily: 'inherit' }}
+                  style={{ marginLeft: 'auto', background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: '#64748b', padding: '3px 8px', fontFamily: 'inherit' }}
                 >Trocar arquivo</button>
               </div>
 
               {errors.length > 0 && (
                 <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#b91c1c', marginBottom: 4 }}>Problemas encontrados:</div>
-                  {errors.map((e, i) => <div key={i} style={{ fontSize: 11, color: '#ef4444' }}>• {e}</div>)}
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#b91c1c', marginBottom: 4 }}>Problemas encontrados:</div>
+                  {errors.map((e, i) => <div key={i} style={{ fontSize: 13, color: '#ef4444' }}>• {e}</div>)}
                 </div>
               )}
 
               <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: 10 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
                       <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#64748b', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>#</th>
@@ -247,7 +247,7 @@ export default function SpCsvImport({ process, onClose, onImported }) {
                         </td>
                         <td style={{ padding: '7px 12px', borderBottom: '1px solid #f1f5f9' }}>
                           {stages[row.stage_index] ? (
-                            <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 4, background: (stages[row.stage_index].color || '#6366f1') + '18', color: stages[row.stage_index].color || '#6366f1', fontWeight: 600 }}>
+                            <span style={{ fontSize: 13, padding: '2px 7px', borderRadius: 4, background: (stages[row.stage_index].color || '#6366f1') + '18', color: stages[row.stage_index].color || '#6366f1', fontWeight: 600 }}>
                               {stages[row.stage_index].name}
                             </span>
                           ) : <span style={{ color: '#94a3b8' }}>—</span>}
@@ -261,7 +261,7 @@ export default function SpCsvImport({ process, onClose, onImported }) {
                       </tr>
                     ))}
                     {rows.length > 50 && (
-                      <tr><td colSpan={99} style={{ padding: '8px 12px', textAlign: 'center', color: '#94a3b8', fontSize: 11 }}>… e mais {rows.length - 50} linhas</td></tr>
+                      <tr><td colSpan={99} style={{ padding: '8px 12px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>… e mais {rows.length - 50} linhas</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -272,16 +272,16 @@ export default function SpCsvImport({ process, onClose, onImported }) {
 
         {rows.length > 0 && !result && (
           <div style={S.footer}>
-            <div style={{ fontSize: 12, color: '#64748b' }}>
+            <div style={{ fontSize: 14, color: '#64748b' }}>
               {validRows.length} de {rows.length} linha{rows.length !== 1 ? 's' : ''} válida{validRows.length !== 1 ? 's' : ''}
               {invalidRows.length > 0 && <span style={{ color: '#f59e0b', marginLeft: 6 }}>(linhas inválidas serão ignoradas)</span>}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, color: '#475569', fontFamily: 'inherit' }}>Cancelar</button>
+              <button onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 15, color: '#475569', fontFamily: 'inherit' }}>Cancelar</button>
               <button
                 onClick={handleImport}
                 disabled={importing || !validRows.length}
-                style={{ padding: '8px 20px', background: validRows.length ? '#6366f1' : '#e2e8f0', color: validRows.length ? '#fff' : '#94a3b8', border: 'none', borderRadius: 8, cursor: validRows.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
+                style={{ padding: '8px 20px', background: validRows.length ? '#6366f1' : '#e2e8f0', color: validRows.length ? '#fff' : '#94a3b8', border: 'none', borderRadius: 8, cursor: validRows.length ? 'pointer' : 'not-allowed', fontSize: 15, fontWeight: 700, fontFamily: 'inherit' }}
               >
                 {importing ? 'Importando…' : `Importar ${validRows.length} registro${validRows.length !== 1 ? 's' : ''}`}
               </button>

@@ -71,7 +71,7 @@ function TagBadge({ label, color }) {
   return (
     <span style={{
       background: color + '18', color, border: `1px solid ${color}40`,
-      borderRadius: 4, padding: '1px 7px', fontSize: 11, fontWeight: 600,
+      borderRadius: 4, padding: '1px 7px', fontSize: 13, fontWeight: 600,
       display: 'inline-block',
     }}>{label}</span>
   );
@@ -122,13 +122,13 @@ function MultiCheckbox({ options, value, onChange, renderLabel, colors }) {
           onChange={toggleAll}
           style={{ accentColor: ACCENT, width: 13, height: 13 }}
         />
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>
           {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
         </span>
       </label>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', paddingLeft: 4 }}>
         {options.map(opt => (
-          <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12 }}>
+          <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 14 }}>
             <input type="checkbox" checked={value.includes(opt)} onChange={() => toggle(opt)}
               style={{ accentColor: ACCENT, width: 13, height: 13 }} />
             {renderLabel ? renderLabel(opt) : opt}
@@ -243,7 +243,7 @@ function OutboundGuide({ form, webhookId }) {
 
   if (form.allowed_entities.length === 0 && form.events.length === 0) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 15, textAlign: 'center', padding: 24 }}>
         Selecione entidades ou eventos<br />para ver os payloads de exemplo
       </div>
     );
@@ -260,7 +260,7 @@ function OutboundGuide({ form, webhookId }) {
             if (evs.length === 0) return null;
             return (
               <div key={entity}>
-                <div style={{ padding: '5px 16px', fontSize: 10, fontWeight: 700, color: ENTITY_LABELS[entity].color, textTransform: 'uppercase', letterSpacing: '.06em', background: '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ padding: '5px 16px', fontSize: 12, fontWeight: 700, color: ENTITY_LABELS[entity].color, textTransform: 'uppercase', letterSpacing: '.06em', background: '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
                   {ENTITY_LABELS[entity].label}
                 </div>
                 {evs.map(ek => {
@@ -270,10 +270,10 @@ function OutboundGuide({ form, webhookId }) {
                     <div key={ek} onClick={() => { setSelectedEvent(ek); setTestResult(null); }}
                       style={{ padding: '8px 16px', cursor: 'pointer', background: isActive ? '#eef2ff' : 'white', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: isActive ? '#6366f1' : '#cbd5e1', flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: isActive ? '#4338ca' : '#334155', fontWeight: isActive ? 600 : 400 }}>
+                      <span style={{ fontSize: 14, color: isActive ? '#4338ca' : '#334155', fontWeight: isActive ? 600 : 400 }}>
                         {meta?.label || ek}
                       </span>
-                      <code style={{ fontSize: 10, color: '#94a3b8', marginLeft: 'auto', fontFamily: 'monospace' }}>{ek}</code>
+                      <code style={{ fontSize: 12, color: '#94a3b8', marginLeft: 'auto', fontFamily: 'monospace' }}>{ek}</code>
                     </div>
                   );
                 })}
@@ -285,19 +285,19 @@ function OutboundGuide({ form, webhookId }) {
       {/* Payload preview */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '12px 16px', gap: 10 }}>
         {!selectedEvent ? (
-          <div style={{ color: '#94a3b8', fontSize: 12, textAlign: 'center', marginTop: 24 }}>
+          <div style={{ color: '#94a3b8', fontSize: 14, textAlign: 'center', marginTop: 24 }}>
             Clique em um evento para ver o payload
           </div>
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#475569' }}>Payload enviado pelo CRM</span>
-              <button onClick={copyPayload} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>Payload enviado pelo CRM</span>
+              <button onClick={copyPayload} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <IconCopy /> {copied ? 'Copiado!' : 'Copiar'}
               </button>
             </div>
             <pre style={{
-              flex: 1, margin: 0, padding: '10px 12px', fontSize: 11, fontFamily: 'monospace',
+              flex: 1, margin: 0, padding: '10px 12px', fontSize: 13, fontFamily: 'monospace',
               background: '#0f172a', color: '#a5f3fc', borderRadius: 8, overflowY: 'auto',
               whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.6,
             }}>{payloadStr}</pre>
@@ -305,13 +305,13 @@ function OutboundGuide({ form, webhookId }) {
             {/* Test button */}
             {webhookId && form.url && (
               <div style={{ flexShrink: 0 }}>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 6 }}>
                   URL destino: <code style={{ color: '#334155', fontFamily: 'monospace' }}>{form.url}</code>
                 </div>
                 <button onClick={runTest} disabled={testing} style={{
                   width: '100%', background: testing ? '#e2e8f0' : ACCENT,
                   color: testing ? '#94a3b8' : 'white', border: 'none', borderRadius: 7,
-                  padding: '9px 0', fontWeight: 700, fontSize: 13,
+                  padding: '9px 0', fontWeight: 700, fontSize: 15,
                   cursor: testing ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}>
@@ -320,22 +320,22 @@ function OutboundGuide({ form, webhookId }) {
                 {testResult && (
                   <div style={{ marginTop: 8, border: `1px solid ${testResult.success ? '#bbf7d0' : '#fecaca'}`, borderRadius: 7, overflow: 'hidden' }}>
                     <div style={{ padding: '6px 12px', background: testResult.success ? '#f0fdf4' : '#fef2f2', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontWeight: 700, fontSize: 12, color: testResult.success ? '#16a34a' : '#dc2626' }}>
+                      <span style={{ fontWeight: 700, fontSize: 14, color: testResult.success ? '#16a34a' : '#dc2626' }}>
                         {testResult.success ? '✅ Sucesso' : '❌ Falhou'}
                       </span>
-                      {testResult.status_code && <span style={{ fontSize: 11, color: '#64748b' }}>HTTP {testResult.status_code}</span>}
-                      {testResult.latency_ms && <span style={{ fontSize: 11, color: '#94a3b8' }}>{testResult.latency_ms}ms</span>}
-                      <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>×</button>
+                      {testResult.status_code && <span style={{ fontSize: 13, color: '#64748b' }}>HTTP {testResult.status_code}</span>}
+                      {testResult.latency_ms && <span style={{ fontSize: 13, color: '#94a3b8' }}>{testResult.latency_ms}ms</span>}
+                      <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}>×</button>
                     </div>
                     {!testResult.success && (
-                      <div style={{ padding: '6px 12px', fontSize: 11, color: '#991b1b', background: '#fef2f2', lineHeight: 1.5 }}>
+                      <div style={{ padding: '6px 12px', fontSize: 13, color: '#991b1b', background: '#fef2f2', lineHeight: 1.5 }}>
                         {testResult.status_code === 404
                           ? '⚠️ URL retornou 404 — se estiver usando n8n, clique em "Listen for test event" no nó Webhook ANTES de disparar o teste.'
                           : testResult.error || 'Erro desconhecido ao disparar o webhook.'}
                       </div>
                     )}
                     {testResult.success && testResult.status_code && (
-                      <div style={{ padding: '6px 12px', fontSize: 11, color: '#166534', background: '#f0fdf4' }}>
+                      <div style={{ padding: '6px 12px', fontSize: 13, color: '#166534', background: '#f0fdf4' }}>
                         Resposta: {testResult.status_code} — a URL recebeu o payload com sucesso.
                       </div>
                     )}
@@ -344,10 +344,10 @@ function OutboundGuide({ form, webhookId }) {
               </div>
             )}
             {webhookId && !form.url && (
-              <div style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center' }}>Salve o webhook com uma URL para poder testar</div>
+              <div style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center' }}>Salve o webhook com uma URL para poder testar</div>
             )}
             {!webhookId && (
-              <div style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center' }}>Crie o webhook primeiro para poder testar</div>
+              <div style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center' }}>Crie o webhook primeiro para poder testar</div>
             )}
           </>
         )}
@@ -425,7 +425,7 @@ function EndpointTester({ entities, token }) {
 
   if (allEndpoints.length === 0) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 15, textAlign: 'center', padding: 24 }}>
         Selecione ao menos uma entidade<br />para testar os endpoints
       </div>
     );
@@ -437,7 +437,7 @@ function EndpointTester({ entities, token }) {
       <div style={{ overflowY: 'auto', maxHeight: 200, borderBottom: '1px solid #f1f5f9' }}>
         {entities.map(ent => (
           <div key={ent}>
-            <div style={{ padding: '6px 16px', fontSize: 10, fontWeight: 700, color: ENTITY_LABELS[ent].color,
+            <div style={{ padding: '6px 16px', fontSize: 12, fontWeight: 700, color: ENTITY_LABELS[ent].color,
               textTransform: 'uppercase', letterSpacing: '.06em', background: '#fafafa',
               borderBottom: '1px solid #f1f5f9' }}>
               {ENTITY_LABELS[ent].label}
@@ -453,13 +453,13 @@ function EndpointTester({ entities, token }) {
                     borderBottom: '1px solid #f8fafc',
                   }}>
                   <span style={{
-                    fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 3, flexShrink: 0,
+                    fontSize: 11, fontWeight: 800, padding: '2px 5px', borderRadius: 3, flexShrink: 0,
                     background: (METHOD_COLORS[m] || '#94a3b8') + '18',
                     color: METHOD_COLORS[m] || '#94a3b8',
                     border: `1px solid ${(METHOD_COLORS[m] || '#94a3b8')}30`,
                     fontFamily: 'monospace',
                   }}>{m}</span>
-                  <code style={{ fontSize: 11, color: isActive ? '#4338ca' : '#475569', fontFamily: 'monospace' }}>{p}</code>
+                  <code style={{ fontSize: 13, color: isActive ? '#4338ca' : '#475569', fontFamily: 'monospace' }}>{p}</code>
                 </div>
               );
             })}
@@ -473,12 +473,12 @@ function EndpointTester({ entities, token }) {
           {/* URL preview */}
           <div style={{ background: '#0f172a', borderRadius: 6, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{
-              fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 3, flexShrink: 0,
+              fontSize: 11, fontWeight: 800, padding: '2px 5px', borderRadius: 3, flexShrink: 0,
               background: (METHOD_COLORS[selected.method] || '#94a3b8') + '30',
               color: METHOD_COLORS[selected.method] || '#94a3b8',
               fontFamily: 'monospace',
             }}>{selected.method}</span>
-            <code style={{ fontSize: 10, color: '#94a3b8', fontFamily: 'monospace', wordBreak: 'break-all', flex: 1 }}>
+            <code style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'monospace', wordBreak: 'break-all', flex: 1 }}>
               {fullUrl}
             </code>
           </div>
@@ -486,18 +486,18 @@ function EndpointTester({ entities, token }) {
           {/* ID param */}
           {needsId && (
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
                 ID do recurso
               </label>
               <input className="form-input" value={pathParam} onChange={e => setPathParam(e.target.value)}
-                placeholder="1" style={{ fontSize: 12 }} />
+                placeholder="1" style={{ fontSize: 14 }} />
             </div>
           )}
 
           {/* Body */}
           {needsBody && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
                 Body (JSON)
               </label>
               <textarea
@@ -505,7 +505,7 @@ function EndpointTester({ entities, token }) {
                 onChange={e => setBody(e.target.value)}
                 rows={5}
                 style={{
-                  flex: 1, fontFamily: 'monospace', fontSize: 12,
+                  flex: 1, fontFamily: 'monospace', fontSize: 14,
                   border: '1px solid #e2e8f0', borderRadius: 6,
                   padding: '8px 10px', outline: 'none', resize: 'vertical',
                   background: '#f8fafc', color: '#0f172a',
@@ -519,7 +519,7 @@ function EndpointTester({ entities, token }) {
             background: running ? '#e2e8f0' : ACCENT,
             color: running ? '#94a3b8' : 'white',
             border: 'none', borderRadius: 7,
-            padding: '9px 0', fontWeight: 700, fontSize: 13,
+            padding: '9px 0', fontWeight: 700, fontSize: 15,
             cursor: running ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}>
@@ -537,15 +537,15 @@ function EndpointTester({ entities, token }) {
                 background: result.ok ? '#f0fdf4' : '#fef2f2',
                 borderBottom: `1px solid ${result.ok ? '#bbf7d0' : '#fecaca'}`,
               }}>
-                <span style={{ fontWeight: 700, fontSize: 12, color: result.ok ? '#16a34a' : '#dc2626' }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: result.ok ? '#16a34a' : '#dc2626' }}>
                   {result.ok ? '✅' : '❌'} {result.status || 'Erro de rede'}
                 </span>
-                <span style={{ fontSize: 11, color: '#64748b' }}>{result.latency}ms</span>
-                <button onClick={() => setResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>×</button>
+                <span style={{ fontSize: 13, color: '#64748b' }}>{result.latency}ms</span>
+                <button onClick={() => setResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}>×</button>
               </div>
               <pre style={{
                 margin: 0, padding: '10px 12px',
-                fontSize: 11, fontFamily: 'monospace', color: '#334155',
+                fontSize: 13, fontFamily: 'monospace', color: '#334155',
                 background: '#f8fafc', maxHeight: 180, overflowY: 'auto',
                 whiteSpace: 'pre-wrap', wordBreak: 'break-word',
               }}>
@@ -645,20 +645,20 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 9, background: ACCENT + '14', color: ACCENT,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800,
             }}>{form.type === 'inbound' ? '↙' : '↗'}</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>
+              <div style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>
                 {isNew ? `Novo Webhook de ${form.type === 'inbound' ? 'Entrada' : 'Saída'}` : `Editar: ${webhook.name}`}
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>
+              <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 1 }}>
                 {form.type === 'inbound' ? 'Recebe requisições de sistemas externos' : 'CRM dispara para sua URL quando eventos ocorrem'}
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Toggle value={form.active} onChange={set('active')} />
-            <span style={{ fontSize: 12, color: form.active ? '#10b981' : '#94a3b8', minWidth: 48 }}>
+            <span style={{ fontSize: 14, color: form.active ? '#10b981' : '#94a3b8', minWidth: 48 }}>
               {form.active ? 'Ativo' : 'Inativo'}
             </span>
             <button className="icon-btn" onClick={onClose}><IconX /></button>
@@ -673,7 +673,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
 
             {/* Identificação */}
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Identificação</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Identificação</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Nome *</label>
@@ -698,7 +698,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
             {/* URL destino (outbound) */}
             {form.type === 'outbound' && (
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Destino</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Destino</div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">URL de destino *</label>
                   <input className="form-input" placeholder="https://meu-servidor.com/webhook"
@@ -710,20 +710,20 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
             {/* Token de entrada */}
             {form.type === 'inbound' && webhook?.token && (
               <div style={{ background: '#0f172a', borderRadius: 8, padding: 14 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>URL Base de Entrada</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>URL Base de Entrada</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <code style={{ flex: 1, fontSize: 11, color: '#a5f3fc', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  <code style={{ flex: 1, fontSize: 13, color: '#a5f3fc', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                     {inboundBaseUrl}/<span style={{ color: '#fde68a' }}>{'{entity}'}</span>
                   </code>
                   <button onClick={copyToken} style={{
                     background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)',
-                    borderRadius: 5, padding: '4px 10px', cursor: 'pointer', color: '#94a3b8', fontSize: 11, flexShrink: 0,
+                    borderRadius: 5, padding: '4px 10px', cursor: 'pointer', color: '#94a3b8', fontSize: 13, flexShrink: 0,
                     display: 'flex', alignItems: 'center', gap: 4,
                   }}>
                     <IconCopy /> {copied ? 'Copiado!' : 'Copiar'}
                   </button>
                 </div>
-                <div style={{ fontSize: 10, color: '#475569', marginTop: 8 }}>
+                <div style={{ fontSize: 12, color: '#475569', marginTop: 8 }}>
                   Header: <code style={{ color: '#7dd3fc' }}>X-Webhook-Token: {webhook.token.slice(0, 16)}…</code>
                 </div>
               </div>
@@ -731,10 +731,10 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
 
             {/* Entidades */}
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
                 Entidades com acesso
               </div>
-              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>
+              <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 10 }}>
                 {form.type === 'inbound' ? 'Quais entidades este token pode acessar' : 'Quais entidades disparam este webhook'}
               </div>
               <MultiCheckbox
@@ -748,7 +748,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
             {/* Métodos permitidos (inbound) */}
             {form.type === 'inbound' && form.allowed_entities.length > 0 && (
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Métodos HTTP permitidos</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Métodos HTTP permitidos</div>
                 <MultiCheckbox options={ALL_METHODS} value={form.allowed_methods} onChange={set('allowed_methods')} />
               </div>
             )}
@@ -757,7 +757,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
             {form.type === 'outbound' && (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.08em' }}>
                     Eventos que disparam este webhook
                   </div>
                   {filteredEvents.length > 0 && (
@@ -768,17 +768,17 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
                         const allSelected = allKeys.every(k => form.events.includes(k));
                         set('events')(allSelected ? form.events.filter(e => !allKeys.includes(e)) : [...new Set([...form.events, ...allKeys])]);
                       }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: ACCENT, fontWeight: 600, padding: 0 }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: ACCENT, fontWeight: 600, padding: 0 }}
                     >
                       {filteredEvents.every(e => form.events.includes(e.key)) ? 'Desmarcar todos' : 'Selecionar todos'}
                     </button>
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>
+                <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 10 }}>
                   Se nenhum for selecionado, todos os eventos das entidades serão disparados.
                 </div>
                 {filteredEvents.length === 0 ? (
-                  <div style={{ fontSize: 12, color: '#cbd5e1', fontStyle: 'italic' }}>Selecione ao menos uma entidade.</div>
+                  <div style={{ fontSize: 14, color: '#cbd5e1', fontStyle: 'italic' }}>Selecione ao menos uma entidade.</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {ALL_ENTITIES
@@ -793,7 +793,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: ENTITY_LABELS[entity].color, display: 'inline-block' }} />
-                                <span style={{ fontSize: 11, color: ENTITY_LABELS[entity].color, fontWeight: 700 }}>
+                                <span style={{ fontSize: 13, color: ENTITY_LABELS[entity].color, fontWeight: 700 }}>
                                   {ENTITY_LABELS[entity].label}
                                 </span>
                               </div>
@@ -811,12 +811,12 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
                                   }}
                                   style={{ accentColor: ACCENT, width: 13, height: 13 }}
                                 />
-                                <span style={{ fontSize: 11, color: '#64748b' }}>Todos</span>
+                                <span style={{ fontSize: 13, color: '#64748b' }}>Todos</span>
                               </label>
                             </div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px' }}>
                               {entityEvents.map(ev => (
-                                <label key={ev.key} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12 }}>
+                                <label key={ev.key} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 14 }}>
                                   <input
                                     type="checkbox"
                                     checked={form.events.includes(ev.key)}
@@ -828,7 +828,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
                                     style={{ accentColor: ACCENT, width: 13, height: 13 }}
                                   />
                                   <span>{ev.label}</span>
-                                  <code style={{ fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }}>{ev.key}</code>
+                                  <code style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'monospace' }}>{ev.key}</code>
                                 </label>
                               ))}
                             </div>
@@ -848,7 +848,7 @@ function WebhookFormModal({ webhook, defaultType, onClose, onSaved }) {
           }}>
             <div style={{
               padding: '10px 16px', background: '#fafafa', borderBottom: '1px solid #f1f5f9',
-              fontSize: 11, fontWeight: 700, color: '#475569',
+              fontSize: 13, fontWeight: 700, color: '#475569',
               textTransform: 'uppercase', letterSpacing: '.08em',
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -938,23 +938,23 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
           width: 38, height: 38, borderRadius: 9, flexShrink: 0,
           background: ACCENT + '14', color: ACCENT,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, fontWeight: 800,
+          fontSize: 20, fontWeight: 800,
         }}>{isOut ? '↗' : '↙'}</div>
 
         {/* Meta */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>#{wh.id}</span>
-            <span style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{wh.name}</span>
+            <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: 'monospace' }}>#{wh.id}</span>
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>{wh.name}</span>
             {!wh.active && (
               <span style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                fontSize: 12, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
                 background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0',
               }}>INATIVO</span>
             )}
           </div>
           {wh.description && (
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>{wh.description}</div>
+            <div style={{ fontSize: 14, color: '#64748b', marginTop: 3 }}>{wh.description}</div>
           )}
         </div>
 
@@ -970,7 +970,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
                 background: testing ? '#f8fafc' : 'none',
                 border: '1px solid #e2e8f0',
                 borderRadius: 6, padding: '5px 10px', cursor: testing ? 'not-allowed' : 'pointer',
-                color: '#475569', fontSize: 12, fontWeight: 500,
+                color: '#475569', fontSize: 14, fontWeight: 500,
               }}
             >
               {testing ? '⏳' : '▶'} {testing ? 'Testando...' : 'Testar'}
@@ -983,7 +983,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
               display: 'flex', alignItems: 'center', gap: 5,
               background: 'none', border: '1px solid #e2e8f0',
               borderRadius: 6, padding: '5px 10px', cursor: 'pointer',
-              color: '#475569', fontSize: 12, fontWeight: 500,
+              color: '#475569', fontSize: 14, fontWeight: 500,
             }}
           >
             <IconEdit /> Editar
@@ -995,11 +995,11 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
               style={{
                 background: 'none', border: '1px solid #fde68a',
                 borderRadius: 6, padding: '5px 10px', cursor: 'pointer',
-                color: '#92400e', fontSize: 11, fontWeight: 600,
+                color: '#92400e', fontSize: 13, fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 5,
               }}
             >
-              <span style={{ fontSize: 13 }}>&#x1F511;</span> Novo token
+              <span style={{ fontSize: 15 }}>&#x1F511;</span> Novo token
             </button>
           )}
           {confirmRegen && (
@@ -1010,22 +1010,22 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
                 boxShadow: '0 24px 64px rgba(0,0,0,.22)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
                     &#x26A0;&#xFE0F;
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>Regenerar token de acesso?</div>
-                    <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Esta ação não pode ser desfeita</div>
+                    <div style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>Regenerar token de acesso?</div>
+                    <div style={{ fontSize: 14, color: '#94a3b8', marginTop: 2 }}>Esta ação não pode ser desfeita</div>
                   </div>
                 </div>
-                <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 8, padding: '12px 14px', fontSize: 13, color: '#78350f', lineHeight: 1.6, marginBottom: 20 }}>
+                <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 8, padding: '12px 14px', fontSize: 15, color: '#78350f', lineHeight: 1.6, marginBottom: 20 }}>
                   <strong>Atenção:</strong> ao gerar um novo token, a URL atual deste webhook será <strong>invalidada imediatamente</strong>.<br /><br />
                   Todos os sistemas externos, automações (como n8n, Zapier ou Make) e integrações que usam essa URL <strong>vão parar de funcionar</strong> até que a nova URL seja configurada nesses sistemas.
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                   <button className="btn btn-ghost" onClick={() => setConfirmRegen(false)}>Cancelar</button>
                   <button
-                    style={{ background: '#d97706', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                    style={{ background: '#d97706', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}
                     onClick={() => { setConfirmRegen(false); onRegenToken(wh.id); }}
                   >
                     Sim, gerar novo token
@@ -1041,7 +1041,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
                 style={{
                   background: '#fee2e2', border: '1px solid #fca5a5',
                   borderRadius: 6, padding: '5px 10px', cursor: 'pointer',
-                  color: '#dc2626', fontSize: 11, fontWeight: 600,
+                  color: '#dc2626', fontSize: 13, fontWeight: 600,
                 }}
               >Confirmar</button>
               <button
@@ -1049,7 +1049,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
                 style={{
                   background: 'none', border: '1px solid #e2e8f0',
                   borderRadius: 6, padding: '5px 10px', cursor: 'pointer',
-                  color: '#64748b', fontSize: 11,
+                  color: '#64748b', fontSize: 13,
                 }}
               >Não</button>
             </>
@@ -1074,7 +1074,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
         <div style={{
           marginTop: 10,
           border: `1px solid ${testResult.success ? '#bbf7d0' : '#fecaca'}`,
-          borderRadius: 6, fontSize: 12,
+          borderRadius: 6, fontSize: 14,
         }}>
           <div style={{
             padding: '8px 12px',
@@ -1087,19 +1087,19 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
             </span>
             {testResult.status_code && <span style={{ color: '#475569' }}>HTTP {testResult.status_code}</span>}
             {testResult.latency_ms && <span style={{ color: '#94a3b8' }}>{testResult.latency_ms}ms</span>}
-            <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>×</button>
+            <button onClick={() => setTestResult(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}>×</button>
           </div>
           {!testResult.success && (
-            <div style={{ padding: '5px 12px', fontSize: 11, color: '#991b1b', background: '#fef2f2' }}>
+            <div style={{ padding: '5px 12px', fontSize: 13, color: '#991b1b', background: '#fef2f2' }}>
               {testResult.status_code === 404
                 ? '⚠️ 404 — se usar n8n, clique "Listen for test event" no nó Webhook antes de testar.'
                 : testResult.error || 'Não foi possível entregar o payload.'}
             </div>
           )}
           {testResult.response_body && (
-            <details style={{ marginTop: 6, fontSize: 11, padding: '0 12px 8px' }}>
+            <details style={{ marginTop: 6, fontSize: 13, padding: '0 12px 8px' }}>
               <summary style={{ cursor: 'pointer', color: '#475569', fontWeight: 600 }}>Ver resposta recebida</summary>
-              <pre style={{ marginTop: 4, padding: '6px 8px', background: '#f8fafc', borderRadius: 4, fontSize: 10, fontFamily: 'monospace', overflowX: 'auto', whiteSpace: 'pre-wrap', color: '#334155' }}>{testResult.response_body}</pre>
+              <pre style={{ marginTop: 4, padding: '6px 8px', background: '#f8fafc', borderRadius: 4, fontSize: 12, fontFamily: 'monospace', overflowX: 'auto', whiteSpace: 'pre-wrap', color: '#334155' }}>{testResult.response_body}</pre>
             </details>
           )}
         </div>
@@ -1108,7 +1108,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
       {/* Entities */}
       {entities.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 12 }}>
-          <span style={{ fontSize: 11, color: '#94a3b8', alignSelf: 'center', marginRight: 2 }}>Entidades:</span>
+          <span style={{ fontSize: 13, color: '#94a3b8', alignSelf: 'center', marginRight: 2 }}>Entidades:</span>
           {entities.map(e => (
             <TagBadge key={e} label={ENTITY_LABELS[e]?.label || e} color={ENTITY_LABELS[e]?.color || '#94a3b8'} />
           ))}
@@ -1120,19 +1120,19 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
         <div style={{ marginTop: 10 }}>
           {events.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#94a3b8', marginRight: 2 }}>Eventos:</span>
+              <span style={{ fontSize: 13, color: '#94a3b8', marginRight: 2 }}>Eventos:</span>
               {events.map(ev => {
                 const meta = ALL_EVENTS.find(e => e.key === ev);
                 return (
                   <span key={ev} style={{
-                    fontSize: 10, background: '#f8fafc', border: '1px solid #e2e8f0',
+                    fontSize: 12, background: '#f8fafc', border: '1px solid #e2e8f0',
                     borderRadius: 4, padding: '2px 6px', color: '#475569', fontFamily: 'monospace',
                   }}>{meta?.label || ev}</span>
                 );
               })}
             </div>
           ) : (
-            <span style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
+            <span style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic' }}>
               Todos os eventos das entidades permitidas
             </span>
           )}
@@ -1142,8 +1142,8 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
               background: '#f8fafc', border: '1px solid #e2e8f0',
               borderRadius: 6, padding: '6px 10px',
             }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', flexShrink: 0 }}>DESTINO</span>
-              <span style={{ fontSize: 11, color: '#334155', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', flexShrink: 0 }}>DESTINO</span>
+              <span style={{ fontSize: 13, color: '#334155', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                 {wh.url}
               </span>
             </div>
@@ -1156,15 +1156,15 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
         <div style={{ marginTop: 10 }}>
           {endpoints.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 11, color: '#94a3b8', marginRight: 2 }}>Endpoints:</span>
+              <span style={{ fontSize: 13, color: '#94a3b8', marginRight: 2 }}>Endpoints:</span>
               {endpoints.slice(0, 8).map(({ ent, ep }) => (
                 <code key={ent + ep} style={{
-                  fontSize: 10, background: '#f8fafc', border: '1px solid #e2e8f0',
+                  fontSize: 12, background: '#f8fafc', border: '1px solid #e2e8f0',
                   borderRadius: 4, padding: '2px 6px', color: '#475569',
                 }}>{ep}</code>
               ))}
               {endpoints.length > 8 && (
-                <span style={{ fontSize: 11, color: '#94a3b8' }}>+{endpoints.length - 8} mais</span>
+                <span style={{ fontSize: 13, color: '#94a3b8' }}>+{endpoints.length - 8} mais</span>
               )}
             </div>
           )}
@@ -1173,9 +1173,9 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
               display: 'flex', alignItems: 'center', gap: 8,
               background: '#0f172a', borderRadius: 6, padding: '7px 10px',
             }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>URL</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', flexShrink: 0 }}>URL</span>
               <code style={{
-                flex: 1, fontSize: 11, color: '#a5f3fc', fontFamily: 'monospace',
+                flex: 1, fontSize: 13, color: '#a5f3fc', fontFamily: 'monospace',
                 wordBreak: 'break-all',
               }}>{inboundUrl}</code>
               <button
@@ -1185,7 +1185,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
                   display: 'flex', alignItems: 'center', gap: 4,
                   background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)',
                   borderRadius: 5, padding: '4px 8px', cursor: 'pointer',
-                  color: '#94a3b8', fontSize: 11, flexShrink: 0,
+                  color: '#94a3b8', fontSize: 13, flexShrink: 0,
                 }}
               >
                 <IconCopy /> {copiedUrl ? 'Copiado!' : 'Copiar'}
@@ -1207,7 +1207,7 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
           }}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4,
+            fontSize: 14, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4,
           }}
         >
           <span style={{ transform: showLogs ? 'rotate(90deg)' : 'none', display: 'inline-block', transition: 'transform .15s' }}>▶</span>
@@ -1217,9 +1217,9 @@ function WebhookCard({ wh, onEdit, onDelete, onToggleActive, onRegenToken, delet
         {showLogs && (
           <div style={{ marginTop: 8 }}>
             {logs.length === 0 ? (
-              <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 0' }}>Nenhum disparo registrado</div>
+              <div style={{ fontSize: 14, color: '#94a3b8', padding: '8px 0' }}>Nenhum disparo registrado</div>
             ) : (
-              <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ color: '#94a3b8', textAlign: 'left' }}>
                     <th style={{ padding: '4px 8px', fontWeight: 600 }}>Data</th>
@@ -1261,7 +1261,7 @@ const CODE_STYLE = {
   borderRadius: 8,
   padding: '14px 16px',
   fontFamily: 'monospace',
-  fontSize: 12,
+  fontSize: 14,
   color: '#e2e8f0',
   overflowX: 'auto',
   whiteSpace: 'pre',
@@ -1270,7 +1270,7 @@ const CODE_STYLE = {
 };
 
 const SECTION_TITLE = {
-  fontSize: 15,
+  fontSize: 17,
   fontWeight: 700,
   color: '#0f172a',
   marginBottom: 6,
@@ -1278,7 +1278,7 @@ const SECTION_TITLE = {
 };
 
 const SECTION_DESC = {
-  fontSize: 13,
+  fontSize: 15,
   color: '#64748b',
   marginBottom: 12,
   lineHeight: 1.6,
@@ -1287,7 +1287,7 @@ const SECTION_DESC = {
 function MethodBadge({ method }) {
   return (
     <span style={{
-      fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+      fontSize: 12, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
       background: (METHOD_COLORS[method] || '#94a3b8') + '18',
       color: METHOD_COLORS[method] || '#94a3b8',
       border: `1px solid ${(METHOD_COLORS[method] || '#94a3b8')}40`,
@@ -1411,7 +1411,7 @@ function ApiGuide() {
   }
 }`}
       </div>
-      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>
+      <div style={{ fontSize: 14, color: '#94a3b8', marginBottom: 16 }}>
         Sua URL deve responder com status <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: 3 }}>2xx</code> em até 10 segundos. Respostas fora do prazo ou com erro serão registradas mas não retentadas.
       </div>
 
@@ -1460,8 +1460,8 @@ curl "${API}/webhook/in/cards?token=abc123..."`}
             <span style={{
               width: 8, height: 8, borderRadius: '50%', background: doc.color, display: 'inline-block',
             }} />
-            <span style={{ fontWeight: 700, fontSize: 13, color: doc.color }}>{doc.label}</span>
-            <code style={{ fontSize: 11, color: '#94a3b8', marginLeft: 4 }}>/{doc.entity}</code>
+            <span style={{ fontWeight: 700, fontSize: 15, color: doc.color }}>{doc.label}</span>
+            <code style={{ fontSize: 13, color: '#94a3b8', marginLeft: 4 }}>/{doc.entity}</code>
           </div>
 
           {/* Endpoint table */}
@@ -1473,17 +1473,17 @@ curl "${API}/webhook/in/cards?token=abc123..."`}
                 borderBottom: '1px solid #f8fafc',
               }}>
                 <MethodBadge method={ep.method} />
-                <code style={{ fontSize: 12, color: '#334155', minWidth: 260, fontFamily: 'monospace' }}>
+                <code style={{ fontSize: 14, color: '#334155', minWidth: 260, fontFamily: 'monospace' }}>
                   {API}{ep.path}
                 </code>
-                <span style={{ fontSize: 12, color: '#94a3b8' }}>{ep.desc}</span>
+                <span style={{ fontSize: 14, color: '#94a3b8' }}>{ep.desc}</span>
               </div>
             ))}
           </div>
 
           {/* curl example */}
           <div style={{ padding: '0 16px 14px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8',
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8',
               textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
               Exemplo curl
             </div>
@@ -1596,7 +1596,7 @@ export default function WebhooksView() {
                   padding: '12px 16px',
                   cursor: 'pointer',
                   fontWeight: isActive ? 700 : 500,
-                  fontSize: 13,
+                  fontSize: 15,
                   color: isActive ? ACCENT : '#64748b',
                   display: 'flex',
                   alignItems: 'center',
@@ -1612,7 +1612,7 @@ export default function WebhooksView() {
                     color: isActive ? 'white' : '#64748b',
                     borderRadius: 10,
                     padding: '1px 7px',
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: 700,
                     minWidth: 20,
                     textAlign: 'center',
@@ -1635,7 +1635,7 @@ export default function WebhooksView() {
               padding: '7px 14px',
               cursor: 'pointer',
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: 15,
               display: 'flex',
               alignItems: 'center',
               gap: 5,

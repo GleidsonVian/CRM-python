@@ -52,7 +52,12 @@ export default function WorkflowsView() {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `HTTP ${res.status}`);
     }
+    const saved = await res.json().catch(() => null);
+    // O editor continua aberto quando o usuario usa "Salvar" (sem sair). Sem
+    // guardar o id recem-criado, o proximo save faria outro POST e duplicaria.
+    if (saved?.id) setBuilder(prev => (prev ? { ...prev, workflow: saved } : prev));
     await load();
+    return saved;
   };
 
   const handleDelete = async (wf) => {
@@ -74,12 +79,12 @@ export default function WorkflowsView() {
       {/* Header */}
       <div style={{ padding: '16px 28px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>⚡ Fluxos de trabalho</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 19, color: '#0f172a' }}>⚡ Fluxos de trabalho</div>
+          <div style={{ fontSize: 14, color: '#64748b', marginTop: 1 }}>
             Automações visuais executadas manualmente em um card
           </div>
         </div>
-        <button onClick={() => setBuilder({ workflow: null })} className="btn btn-primary" style={{ marginLeft: 'auto', fontSize: 13 }}>
+        <button onClick={() => setBuilder({ workflow: null })} className="btn btn-primary" style={{ marginLeft: 'auto', fontSize: 15 }}>
           + Novo fluxo
         </button>
       </div>
@@ -90,10 +95,10 @@ export default function WorkflowsView() {
           <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>Carregando…</div>
         ) : workflows.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
-            <div style={{ fontWeight: 600, fontSize: 15 }}>Nenhum fluxo de trabalho</div>
-            <div style={{ fontSize: 13, marginTop: 4 }}>Crie fluxos visuais para executar ações em cards com um clique</div>
-            <button onClick={() => setBuilder({ workflow: null })} className="btn btn-primary" style={{ marginTop: 16, fontSize: 13 }}>
+            <div style={{ fontSize: 42, marginBottom: 12 }}>⚡</div>
+            <div style={{ fontWeight: 600, fontSize: 17 }}>Nenhum fluxo de trabalho</div>
+            <div style={{ fontSize: 15, marginTop: 4 }}>Crie fluxos visuais para executar ações em cards com um clique</div>
+            <button onClick={() => setBuilder({ workflow: null })} className="btn btn-primary" style={{ marginTop: 16, fontSize: 15 }}>
               + Criar primeiro fluxo
             </button>
           </div>
@@ -113,31 +118,31 @@ export default function WorkflowsView() {
                     background: ENTITY_COLORS[wf.entity_type] + '18',
                     color: ENTITY_COLORS[wf.entity_type],
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 20, flexShrink: 0,
+                    fontSize: 22, flexShrink: 0,
                   }}>⚡</div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: '#0f172a' }}>{wf.name}</div>
-                    {wf.description && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{wf.description}</div>}
+                    <div style={{ fontWeight: 600, fontSize: 16, color: '#0f172a' }}>{wf.name}</div>
+                    {wf.description && <div style={{ fontSize: 14, color: '#64748b', marginTop: 2 }}>{wf.description}</div>}
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{
-                        fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
+                        fontSize: 13, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
                         background: ENTITY_COLORS[wf.entity_type] + '18',
                         color: ENTITY_COLORS[wf.entity_type],
                       }}>{ENTITY_LABELS[wf.entity_type] || wf.entity_type}</span>
 
-                      <span style={{ fontSize: 11, color: '#64748b', padding: '2px 6px', background: '#f1f5f9', borderRadius: 8 }}>
+                      <span style={{ fontSize: 13, color: '#64748b', padding: '2px 6px', background: '#f1f5f9', borderRadius: 8 }}>
                         {nodeCount} {nodeCount === 1 ? 'bloco' : 'blocos'}
                       </span>
 
                       {wf.pipeline_id && (
-                        <span style={{ fontSize: 11, color: '#64748b', padding: '2px 6px', background: '#f1f5f9', borderRadius: 8 }}>
+                        <span style={{ fontSize: 13, color: '#64748b', padding: '2px 6px', background: '#f1f5f9', borderRadius: 8 }}>
                           {pipelines.find(p => p.id === wf.pipeline_id)?.name || `Pipeline #${wf.pipeline_id}`}
                         </span>
                       )}
 
                       <span style={{
-                        fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
+                        fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
                         background: wf.is_active ? '#dcfce7' : '#f1f5f9',
                         color: wf.is_active ? '#16a34a' : '#94a3b8',
                       }}>{wf.is_active ? 'Ativo' : 'Inativo'}</span>
@@ -158,13 +163,13 @@ export default function WorkflowsView() {
                     <button
                       onClick={() => setBuilder({ workflow: wf })}
                       className="btn btn-ghost"
-                      style={{ fontSize: 12, padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 5 }}
+                      style={{ fontSize: 14, padding: '5px 12px', display: 'flex', alignItems: 'center', gap: 5 }}
                     >
-                      <span style={{ fontSize: 14 }}>✏️</span> Editar no Builder
+                      <span style={{ fontSize: 16 }}>✏️</span> Editar no Builder
                     </button>
 
                     <button onClick={() => handleDelete(wf)} style={{
-                      background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 18, padding: '2px 4px',
+                      background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 20, padding: '2px 4px',
                     }} title="Excluir">×</button>
                   </div>
                 </div>

@@ -47,16 +47,16 @@ function UidBadge({ field, showIds }) {
   return (
     <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
       {showIds ? (
-        <code style={{ fontSize: 9, background: '#1e293b', color: '#f59e0b', padding: '1px 5px', borderRadius: 3, cursor: 'default', marginLeft: 4 }}>
+        <code style={{ fontSize: 11, background: '#1e293b', color: '#f59e0b', padding: '1px 5px', borderRadius: 3, cursor: 'default', marginLeft: 4 }}>
           {field.uid}
         </code>
       ) : (
         <button onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 11, padding: '0 2px', lineHeight: 1 }}>ⓘ</button>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, padding: '0 2px', lineHeight: 1 }}>ⓘ</button>
       )}
       {tip && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 9999, background: '#1e293b', color: '#e2e8f0', borderRadius: 8, padding: '10px 12px', fontSize: 11, width: 240, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', lineHeight: 1.9, pointerEvents: 'none' }}>
-          <div style={{ fontWeight: 700, color: '#10b981', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Campo Personalizado</div>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 9999, background: '#1e293b', color: '#e2e8f0', borderRadius: 8, padding: '10px 12px', fontSize: 13, width: 240, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', lineHeight: 1.9, pointerEvents: 'none' }}>
+          <div style={{ fontWeight: 700, color: '#10b981', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Campo Personalizado</div>
           <div><span style={{ color: '#94a3b8' }}>UID:</span>{'  '}<code style={{ color: '#f59e0b', fontWeight: 700 }}>{field.uid}</code></div>
           <div><span style={{ color: '#94a3b8' }}>Chave:</span>{'  '}<code style={{ color: '#38bdf8' }}>{field.key}</code></div>
         </div>
@@ -100,12 +100,12 @@ function AttachmentField({ fieldId, value, entityId, entity, disabled }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {attachments.map((a, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7, padding: '6px 10px' }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>{fileIcon(a.type)}</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>{fileIcon(a.type)}</span>
           <a href={`${API}${a.url}`} target="_blank" rel="noreferrer"
-            style={{ flex: 1, fontSize: 12, color: '#0369a1', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</a>
-          <span style={{ fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{formatBytes(a.size)}</span>
+            style={{ flex: 1, fontSize: 14, color: '#0369a1', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</a>
+          <span style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }}>{formatBytes(a.size)}</span>
           {!disabled && (
-            <button onClick={() => remove(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14, padding: 0, lineHeight: 1 }}
+            <button onClick={() => remove(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16, padding: 0, lineHeight: 1 }}
               onMouseEnter={e => e.currentTarget.style.color = '#ef4444'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>×</button>
           )}
         </div>
@@ -114,7 +114,7 @@ function AttachmentField({ fieldId, value, entityId, entity, disabled }) {
         <>
           <input ref={inputRef} type="file" style={{ display: 'none' }} onChange={handleUpload} />
           <button onClick={() => inputRef.current?.click()} disabled={uploading}
-            style={{ padding: '6px 10px', borderRadius: 7, cursor: uploading ? 'default' : 'pointer', border: '1.5px dashed #e2e8f0', background: 'transparent', fontSize: 12, color: uploading ? '#94a3b8' : '#64748b', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ padding: '6px 10px', borderRadius: 7, cursor: uploading ? 'default' : 'pointer', border: '1.5px dashed #e2e8f0', background: 'transparent', fontSize: 14, color: uploading ? '#94a3b8' : '#64748b', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
             onMouseEnter={e => !uploading && (e.currentTarget.style.borderColor = '#10b981', e.currentTarget.style.color = '#10b981')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = '#e2e8f0', e.currentTarget.style.color = '#64748b')}>
             {uploading ? '⏳ Enviando...' : '📎 Adicionar arquivo'}
@@ -162,13 +162,13 @@ function FieldPicker({ fields, nativeFields = [], secName, getSection, getNative
       {/* Search */}
       <div style={{ padding: '0 10px 8px', borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7, padding: '5px 10px' }}>
-          <span style={{ color: '#94a3b8', fontSize: 12 }}>🔍</span>
+          <span style={{ color: '#94a3b8', fontSize: 14 }}>🔍</span>
           <input
             ref={inputRef}
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Encontrar campo..."
-            style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: 13.5, fontFamily: 'inherit', color: '#1e293b' }}
+            style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: 15.5, fontFamily: 'inherit', color: '#1e293b' }}
           />
         </div>
       </div>
@@ -176,7 +176,7 @@ function FieldPicker({ fields, nativeFields = [], secName, getSection, getNative
       {/* Field list */}
       <div style={{ maxHeight: 260, overflowY: 'auto', padding: '6px 0' }}>
         {rows.length === 0 && (
-          <div style={{ padding: '12px 14px', fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+          <div style={{ padding: '12px 14px', fontSize: 14, color: '#94a3b8', textAlign: 'center' }}>
             Nenhum campo encontrado
           </div>
         )}
@@ -199,14 +199,14 @@ function FieldPicker({ fields, nativeFields = [], secName, getSection, getNative
                 onChange={() => onToggle(r, isHere)}
                 style={{ accentColor: '#6366f1', width: 14, height: 14, flexShrink: 0, cursor: 'pointer' }}
               />
-              {r._isNative && <span style={{ fontSize: 9, color: '#0ea5e9', flexShrink: 0 }}>◆</span>}
-              <span style={{ fontSize: 13.5, color: r._hidden ? '#94a3b8' : '#1e293b', flex: 1 }}>
+              {r._isNative && <span style={{ fontSize: 11, color: '#0ea5e9', flexShrink: 0 }}>◆</span>}
+              <span style={{ fontSize: 15.5, color: r._hidden ? '#94a3b8' : '#1e293b', flex: 1 }}>
                 {r.name}
-                {r._hidden && <span style={{ fontSize: 9, color: '#cbd5e1', marginLeft: 5 }}>(oculto)</span>}
+                {r._hidden && <span style={{ fontSize: 11, color: '#cbd5e1', marginLeft: 5 }}>(oculto)</span>}
               </span>
-              <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>{typeLabel}</span>
+              <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>{typeLabel}</span>
               {elsewhere && (
-                <span style={{ fontSize: 9, color: '#a78bfa', background: '#f5f3ff', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>
+                <span style={{ fontSize: 11, color: '#a78bfa', background: '#f5f3ff', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>
                   {elsewhere}
                 </span>
               )}
@@ -218,7 +218,7 @@ function FieldPicker({ fields, nativeFields = [], secName, getSection, getNative
       {/* Close */}
       <div style={{ padding: '6px 10px 0', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
         <button onClick={onClose} style={{
-          fontSize: 11, color: '#64748b', background: 'none', border: '1px solid #e2e8f0',
+          fontSize: 13, color: '#64748b', background: 'none', border: '1px solid #e2e8f0',
           borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontFamily: 'inherit',
         }}>Fechar</button>
       </div>
@@ -664,29 +664,29 @@ export default function CustomFieldValues({
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
         <input type="checkbox" checked={val === 'true'} disabled={readOnly || !entityId}
           onChange={e => check(field.id, e.target.checked)} style={{ width: 15, height: 15, accentColor: '#10b981' }} />
-        <span style={{ fontSize: 12, color: '#475569' }}>{val === 'true' ? 'Sim' : 'Não'}</span>
+        <span style={{ fontSize: 14, color: '#475569' }}>{val === 'true' ? 'Sim' : 'Não'}</span>
       </label>
     );
     if (field.field_type === 'select') return (
-      <select className="form-select" style={{ fontSize: 14 }} value={val}
+      <select className="form-select" style={{ fontSize: 16 }} value={val}
         disabled={readOnly || !entityId} onChange={e => select(field.id, e.target.value)}>
         <option value="">Selecionar...</option>
         {opts.map(o => <option key={o.id} value={String(o.id)}>{o.label}</option>)}
       </select>
     );
     if (field.field_type === 'textarea') return (
-      <textarea className="form-textarea" style={{ fontSize: 14, minHeight: 60 }} value={val}
+      <textarea className="form-textarea" style={{ fontSize: 16, minHeight: 60 }} value={val}
         readOnly={readOnly || !entityId} onChange={e => change(field.id, e.target.value)}
         onBlur={() => blur(field.id)} placeholder={readOnly ? '—' : `Inserir ${field.name.toLowerCase()}...`} />
     );
     return (
       <div style={{ position: 'relative' }}>
         {field.field_type === 'currency' && (
-          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#94a3b8', pointerEvents: 'none' }}>R$</span>
+          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#94a3b8', pointerEvents: 'none' }}>R$</span>
         )}
         <input
           type={field.field_type === 'number' || field.field_type === 'currency' ? 'number' : field.field_type === 'date' ? 'date' : field.field_type === 'email' ? 'email' : 'text'}
-          className="form-input" style={{ fontSize: 14, paddingLeft: field.field_type === 'currency' ? 30 : undefined }}
+          className="form-input" style={{ fontSize: 16, paddingLeft: field.field_type === 'currency' ? 30 : undefined }}
           value={val} readOnly={readOnly || !entityId}
           onChange={e => change(field.id, e.target.value)} onBlur={() => blur(field.id)}
           placeholder={readOnly ? '—' : `Inserir ${field.name.toLowerCase()}...`}
@@ -717,24 +717,24 @@ export default function CustomFieldValues({
           }}
         >
           {/* Drag handle */}
-          <span style={{ color: '#d1d5db', fontSize: 11, flexShrink: 0, cursor: 'grab' }}>⋮⋮</span>
+          <span style={{ color: '#d1d5db', fontSize: 13, flexShrink: 0, cursor: 'grab' }}>⋮⋮</span>
 
           {/* Type chip — subtle */}
           <span style={{
-            fontSize: 9, color: '#cbd5e1',
+            fontSize: 11, color: '#cbd5e1',
             flexShrink: 0,
           }}>{tm?.icon}</span>
 
           {/* Name */}
-          <label style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', flex: 1 }}>
+          <label style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', flex: 1 }}>
             {field.name}
-            {field.required && <span style={{ color: '#ef4444', fontSize: 10, marginLeft: 2 }}>*</span>}
+            {field.required && <span style={{ color: '#ef4444', fontSize: 12, marginLeft: 2 }}>*</span>}
             <UidBadge field={field} showIds={showIds} />
           </label>
 
           {/* Save indicators */}
-          {saving[field.id] && <span style={{ fontSize: 9, color: '#94a3b8' }}>⏳</span>}
-          {saved[field.id]  && <span style={{ fontSize: 9, color: '#10b981' }}>✓</span>}
+          {saving[field.id] && <span style={{ fontSize: 11, color: '#94a3b8' }}>⏳</span>}
+          {saved[field.id]  && <span style={{ fontSize: 11, color: '#10b981' }}>✓</span>}
 
           {/* Stage gate toggle */}
           {stages.length > 0 && pipelineId && (
@@ -746,7 +746,7 @@ export default function CustomFieldValues({
                 background: isGateOpen ? '#fef3c7' : (reqCount > 0 ? '#fefce8' : 'none'),
                 border: `1px solid ${isGateOpen ? '#f59e0b' : (reqCount > 0 ? '#fde68a' : '#e2e8f0')}`,
                 borderRadius: 4, cursor: 'pointer', padding: '1px 5px',
-                fontSize: 9, color: isGateOpen ? '#92400e' : (reqCount > 0 ? '#b45309' : '#94a3b8'),
+                fontSize: 11, color: isGateOpen ? '#92400e' : (reqCount > 0 ? '#b45309' : '#94a3b8'),
                 fontWeight: 700, flexShrink: 0,
               }}
             >🔒{reqCount > 0 ? ` ${reqCount}` : ''}</button>
@@ -761,7 +761,7 @@ export default function CustomFieldValues({
               className="field-vis-btn"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: '1px 5px',
-                fontSize: 10, color: '#94a3b8', flexShrink: 0,
+                fontSize: 12, color: '#94a3b8', flexShrink: 0,
                 opacity: getVisible(field) ? 0 : 1,  // always visible when hidden; only on hover when visible
               }}
             >{getVisible(field) ? '🙈' : '👁'}</button>
@@ -775,12 +775,12 @@ export default function CustomFieldValues({
             padding: '8px 10px', marginBottom: 6,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 🔒 Obrigatório nas etapas
               </span>
               <div style={{ display: 'flex', gap: 4 }}>
                 <button onClick={() => allSel ? clearAllStages(field) : setAllStages(field)} style={{
-                  fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
+                  fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
                   border: `1px solid ${allSel ? '#fca5a5' : '#86efac'}`,
                   background: allSel ? '#fef2f2' : '#dcfce7',
                   color: allSel ? '#b91c1c' : '#15803d', fontFamily: 'inherit',
@@ -797,7 +797,7 @@ export default function CustomFieldValues({
                     border: `1.5px solid ${isReq ? col : '#e2e8f0'}`,
                     background: isReq ? col + '18' : 'white',
                     color: isReq ? col : '#64748b',
-                    fontSize: 10, fontWeight: isReq ? 700 : 500, cursor: 'pointer', fontFamily: 'inherit',
+                    fontSize: 12, fontWeight: isReq ? 700 : 500, cursor: 'pointer', fontFamily: 'inherit',
                     display: 'flex', alignItems: 'center', gap: 3,
                   }}>
                     {stage.type === 'won' ? '🏆' : stage.type === 'lost' ? '❌' : '▸'}
@@ -827,8 +827,8 @@ export default function CustomFieldValues({
           onDragEnd={onDragEnd}
           style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, cursor: 'grab', userSelect: 'none' }}
         >
-          <span style={{ color: '#cbd5e1', fontSize: 10, flexShrink: 0 }}>⋮⋮</span>
-          <label style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', flex: 1 }}>{nf.name}</label>
+          <span style={{ color: '#cbd5e1', fontSize: 12, flexShrink: 0 }}>⋮⋮</span>
+          <label style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', flex: 1 }}>{nf.name}</label>
         </div>
         {/* Content rendered by caller */}
         {nf.renderContent()}
@@ -882,17 +882,17 @@ export default function CustomFieldValues({
                 onChange={e => setRenameDraft(e.target.value)}
                 onBlur={applyRename}
                 onKeyDown={e => { if (e.key === 'Enter') applyRename(); if (e.key === 'Escape') setRenamingSec(null); }}
-                style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: '#4f46e5', border: '1.5px solid #6366f1', borderRadius: 5, padding: '3px 8px', outline: 'none', fontFamily: 'inherit', background: '#eef2ff', textTransform: 'uppercase', letterSpacing: '0.07em' }}
+                style={{ flex: 1, fontSize: 14.5, fontWeight: 800, color: '#4f46e5', border: '1.5px solid #6366f1', borderRadius: 5, padding: '3px 8px', outline: 'none', fontFamily: 'inherit', background: '#eef2ff', textTransform: 'uppercase', letterSpacing: '0.07em' }}
               />
             ) : (
-              <span style={{ flex: 1, fontSize: 12, fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 {secName}
               </span>
             )}
             {!readOnly && renamingSec !== secName && (
               <button
                 onClick={() => { setRenamingSec(secName); setRenameDraft(secName); }}
-                style={{ fontSize: 12.5, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', fontFamily: 'inherit' }}
+                style={{ fontSize: 14.5, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', fontFamily: 'inherit' }}
                 onMouseEnter={e => e.currentTarget.style.color = '#6366f1'}
                 onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
               >editar</button>
@@ -914,7 +914,7 @@ export default function CustomFieldValues({
           }}
         >
           {totalInSec === 0 && !isUngroup && !isOver && !pickerOpen && !isCreating && (
-            <div style={{ color: '#cbd5e1', fontSize: 12, padding: '10px 0', fontStyle: 'italic', textAlign: 'center' }}>
+            <div style={{ color: '#cbd5e1', fontSize: 14, padding: '10px 0', fontStyle: 'italic', textAlign: 'center' }}>
               Arraste campos aqui ou use "Selecionar campo"
             </div>
           )}
@@ -982,7 +982,7 @@ export default function CustomFieldValues({
         {/* ── Create field inline form ── */}
         {isCreating && (
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 12px', marginTop: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
               Novo campo {secName ? `→ ${secName}` : ''}
             </div>
             <input
@@ -991,13 +991,13 @@ export default function CustomFieldValues({
               onChange={e => setNewFieldName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCreateField()}
               placeholder="Nome do campo..."
-              style={{ width: '100%', padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13.5, fontFamily: 'inherit', outline: 'none', marginBottom: 8, boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 15.5, fontFamily: 'inherit', outline: 'none', marginBottom: 8, boxSizing: 'border-box' }}
             />
             {/* Type selector */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
               {Object.entries(TYPE_META).map(([k, v]) => (
                 <button key={k} onClick={() => setNewFieldType(k)} style={{
-                  padding: '3px 8px', borderRadius: 16, fontSize: 10, fontWeight: newFieldType === k ? 700 : 400,
+                  padding: '3px 8px', borderRadius: 16, fontSize: 12, fontWeight: newFieldType === k ? 700 : 400,
                   border: `1.5px solid ${newFieldType === k ? '#6366f1' : '#e2e8f0'}`,
                   background: newFieldType === k ? '#eef2ff' : 'white',
                   color: newFieldType === k ? '#4338ca' : '#64748b', cursor: 'pointer', fontFamily: 'inherit',
@@ -1008,11 +1008,11 @@ export default function CustomFieldValues({
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => { setAddingField(false); setNewFieldName(''); setNewFieldType('text'); setCreateInSec(''); }}
-                style={{ flex: 1, padding: '6px', border: '1px solid #e2e8f0', borderRadius: 6, background: 'white', color: '#64748b', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ flex: 1, padding: '6px', border: '1px solid #e2e8f0', borderRadius: 6, background: 'white', color: '#64748b', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 Cancelar
               </button>
               <button onClick={handleCreateField} disabled={!newFieldName.trim() || creatingField}
-                style={{ flex: 2, padding: '6px', border: 'none', borderRadius: 6, background: newFieldName.trim() ? '#10b981' : '#e2e8f0', color: newFieldName.trim() ? 'white' : '#94a3b8', fontSize: 13, fontWeight: 700, cursor: newFieldName.trim() ? 'pointer' : 'default', fontFamily: 'inherit' }}>
+                style={{ flex: 2, padding: '6px', border: 'none', borderRadius: 6, background: newFieldName.trim() ? '#10b981' : '#e2e8f0', color: newFieldName.trim() ? 'white' : '#94a3b8', fontSize: 15, fontWeight: 700, cursor: newFieldName.trim() ? 'pointer' : 'default', fontFamily: 'inherit' }}>
                 {creatingField ? 'Criando...' : '＋ Criar campo'}
               </button>
             </div>
@@ -1027,7 +1027,7 @@ export default function CustomFieldValues({
                 setPickerOpenSec(pickerOpen ? null : secName);
                 if (isCreating) { setAddingField(false); setNewFieldName(''); setNewFieldType('text'); setCreateInSec(''); }
               }}
-              style={{ fontSize: 12.5, color: '#6366f1', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
+              style={{ fontSize: 14.5, color: '#6366f1', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
               onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
               onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
             >{pickerOpen ? 'Fechar seleção' : 'Selecionar campo'}</button>
@@ -1042,7 +1042,7 @@ export default function CustomFieldValues({
                 setNewFieldName('');
                 setNewFieldType('text');
               }}
-              style={{ fontSize: 12.5, color: '#6366f1', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
+              style={{ fontSize: 14.5, color: '#6366f1', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
               onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
               onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
             >Criar campo</button>
@@ -1052,7 +1052,7 @@ export default function CustomFieldValues({
                 <span style={{ flex: 1 }} />
                 <button
                   onClick={() => deleteSection(secName)}
-                  style={{ fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
+                  style={{ fontSize: 13, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
                   onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                   onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
                 >Excluir seção</button>
@@ -1081,15 +1081,15 @@ export default function CustomFieldValues({
                 onChange={e => setAddingSectionName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') createSection(); if (e.key === 'Escape') { setAddingSection(false); setAddingSectionName(''); } }}
                 placeholder="Nome da seção..."
-                style={{ flex: 1, padding: '6px 10px', border: '1.5px solid #6366f1', borderRadius: 6, fontSize: 12, fontFamily: 'inherit', outline: 'none', color: '#1e293b' }}
+                style={{ flex: 1, padding: '6px 10px', border: '1.5px solid #6366f1', borderRadius: 6, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#1e293b' }}
               />
-              <button onClick={createSection} style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Criar</button>
-              <button onClick={() => { setAddingSection(false); setAddingSectionName(''); }} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 10px', fontSize: 11, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>cancelar</button>
+              <button onClick={createSection} style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Criar</button>
+              <button onClick={() => { setAddingSection(false); setAddingSectionName(''); }} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 10px', fontSize: 13, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}>cancelar</button>
             </div>
           ) : (
             <button
               onClick={() => setAddingSection(true)}
-              style={{ fontSize: 11, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
+              style={{ fontSize: 13, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontFamily: 'inherit', fontWeight: 500 }}
               onMouseEnter={e => { e.currentTarget.style.color = '#6366f1'; }}
               onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; }}
             >Adicionar seção</button>

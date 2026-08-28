@@ -1,4 +1,4 @@
-﻿import json
+﻿import json, re
 from fastapi import APIRouter, Depends, HTTPException, Header, Body, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -9,7 +9,8 @@ import models, schemas
 from database import get_db
 from services.auth import log_audit
 from services.automation import (
-    _build_vars, _execute_flow_steps, _execute_workflow_step, _execute_rule
+    _build_vars, _execute_flow_steps, _execute_workflow_step, _execute_rule,
+    _render_vars, call_webhook, flatten_json, url_is_safe
 )
 from services.auth import jwt_decode
 
@@ -265,3 +266,131 @@ def execute_workflow(
     log_audit(db, "workflow_executed", "card", card_id, card.title, exec_name, details={"workflow_name": tpl.name, "status": status})
     db.commit()
     return {"status": status, "steps": result_log}
+
+
+# ── Catálogo de variáveis e teste de webhook (Editor de Fluxo) ────────────────
+
+_NATIVE_VARS = [
+    {"key": "deal.title",       "label": "Título do negócio", "group": "Negócio"},
+    {"key": "deal.price",       "label": "Valor",             "group": "Negócio"},
+    {"key": "deal.id",          "label": "ID do negócio",     "group": "Negócio"},
+    {"key": "deal.description", "label": "Descrição",         "group": "Negócio"},
+    {"key": "stage.name",       "label": "Etapa atual",       "group": "Negócio"},
+    {"key": "pipeline.name",    "label": "Funil",             "group": "Negócio"},
+    {"key": "contact.name",     "label": "Nome do contato",   "group": "Contato"},
+    {"key": "contact.email",    "label": "E-mail do contato", "group": "Contato"},
+    {"key": "contact.phone",    "label": "Telefone do contato", "group": "Contato"},
+]
+
+# Campos que o mapeamento da resposta pode preencher (além dos personalizados)
+_WRITABLE_NATIVE = [
+    {"value": "deal.title",       "label": "Título do negócio", "group": "Negócio"},
+    {"value": "deal.price",       "label": "Valor (R$)",        "group": "Negócio"},
+    {"value": "deal.description", "label": "Descrição",         "group": "Negócio"},
+    {"value": "contact.name",     "label": "Nome do contato",   "group": "Contato"},
+    {"value": "contact.email",    "label": "E-mail do contato", "group": "Contato"},
+    {"value": "contact.phone",    "label": "Telefone do contato", "group": "Contato"},
+]
+
+
+def _sample_card(db, card_id=None):
+    q = db.query(models.Card).filter(models.Card.deleted_at == None)
+    if card_id:
+        return q.filter(models.Card.id == card_id).first()
+    return q.order_by(models.Card.id.desc()).first()
+
+
+@router.get("/automations/field-catalog")
+def get_field_catalog(entity: str = "deal", card_id: int = None, db: Session = Depends(get_db)):
+    """Fonte única de verdade do editor de fluxo: quais variáveis existem (com um
+    valor de exemplo de um negócio real) e em quais campos a resposta de um
+    webhook pode ser gravada. Evita que a UI invente chaves que o runner não
+    conhece."""
+    card = _sample_card(db, card_id)
+    vars_map = _build_vars(card, db) if card else {}
+
+    readable = [dict(v, sample=vars_map.get(v["key"], "")) for v in _NATIVE_VARS]
+
+    deal_cfs = (db.query(models.CustomField)
+                  .filter(models.CustomField.entity == entity)
+                  .order_by(models.CustomField.order).all())
+    contact_cfs = (db.query(models.CustomField)
+                     .filter(models.CustomField.entity == 'contact')
+                     .order_by(models.CustomField.order).all())
+
+    writable = list(_WRITABLE_NATIVE)
+    for cf in deal_cfs:
+        key = f"cf.{cf.key}"
+        readable.append({"key": key, "label": cf.name, "group": "Campos personalizados",
+                         "sample": vars_map.get(key, ""), "field_type": cf.field_type})
+        writable.append({"value": key, "label": cf.name, "group": "Campos personalizados",
+                         "field_type": cf.field_type})
+    for cf in contact_cfs:
+        key = f"contact_cf.{cf.key}"
+        readable.append({"key": key, "label": cf.name, "group": "Personalizados do contato",
+                         "sample": vars_map.get(key, ""), "field_type": cf.field_type})
+        writable.append({"value": key, "label": cf.name, "group": "Personalizados do contato",
+                         "field_type": cf.field_type})
+
+    return {
+        "sample_card": {"id": card.id, "title": card.title} if card else None,
+        "variables": readable,
+        "writable_fields": writable,
+    }
+
+
+@router.post("/automations/test-webhook")
+def test_webhook(body: dict = Body(...), db: Session = Depends(get_db)):
+    """Dispara o webhook exatamente como a automação faria, usando as variáveis
+    de um negócio real, e devolve a resposta já achatada para o mapeamento.
+    Não grava nada — é só um ensaio."""
+    url_tpl = (body.get("url") or "").strip()
+    if not url_tpl:
+        raise HTTPException(status_code=400, detail="Informe a URL do webhook")
+
+    card = _sample_card(db, body.get("card_id"))
+    vars_map = _build_vars(card, db) if card else {}
+    # valores digitados à mão no painel de teste sobrescrevem os do negócio
+    for k, v in (body.get("overrides") or {}).items():
+        vars_map[k] = str(v)
+
+    method = (body.get("method") or "POST").upper()
+    url = _render_vars(url_tpl, vars_map)
+    payload = _render_vars(body.get("payload") or "", vars_map)
+    headers = {k: _render_vars(str(v), vars_map)
+               for k, v in (body.get("headers") or {}).items() if k}
+
+    tpl_all = url_tpl + " " + (body.get("payload") or "")
+    used = sorted({m.strip() for m in re.findall(r"\{\{\s*([^}]+?)\s*\}\}", tpl_all)})
+    request_preview = {
+        "method": method, "url": url, "payload": payload, "headers": headers,
+        "resolved_vars": [{"key": k, "value": vars_map.get(k, ""),
+                           "found": k in vars_map} for k in used],
+    }
+
+    safe, reason = url_is_safe(url)
+    if not safe:
+        return {"ok": False, "request": request_preview, "error": reason,
+                "status": None, "body": "", "json": None, "fields": []}
+
+    status, res_body, error = call_webhook(method, url, payload, headers, timeout=15)
+
+    parsed = None
+    fields = []
+    try:
+        parsed = json.loads(res_body) if res_body else None
+        if parsed is not None:
+            fields = flatten_json(parsed)
+    except Exception:
+        parsed = None
+
+    return {
+        "ok": bool(status and 200 <= status < 300),
+        "request": request_preview,
+        "status": status,
+        "error": error,
+        "body": res_body[:20000],
+        "json": parsed,
+        "fields": fields,
+        "sample_card": {"id": card.id, "title": card.title} if card else None,
+    }

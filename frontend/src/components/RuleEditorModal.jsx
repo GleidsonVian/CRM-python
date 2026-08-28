@@ -93,16 +93,16 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#0f172a' }}>
               {isNew ? '⚡ Nova regra de automação' : '⚡ Editar regra'}
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+            <div style={{ fontSize: 14, color: '#64748b', marginTop: 2 }}>
               Dispara automaticamente quando um negócio entra nesta etapa.
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, lineHeight: 1 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1 }}
           >×</button>
         </div>
 
@@ -111,7 +111,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
 
           {/* Rule name */}
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
               Nome da regra
             </label>
             <input
@@ -124,7 +124,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
 
           {/* Action type */}
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
               Ação a executar
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -141,8 +141,8 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
                     display: 'flex', alignItems: 'center', gap: 10,
                   }}
                 >
-                  <span style={{ fontSize: 20 }}>{at.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{at.label}</span>
+                  <span style={{ fontSize: 22 }}>{at.icon}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{at.label}</span>
                 </button>
               ))}
             </div>
@@ -150,7 +150,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
 
           {/* Dynamic config */}
           <div style={{ background: '#f8fafc', borderRadius: 10, padding: '16px 18px', border: '1px solid #e2e8f0' }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
               Configuração da ação
             </label>
 
@@ -158,26 +158,26 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 8 }}>
                   <div>
-                    <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>Método</label>
-                    <select className="form-select" style={{ fontSize: 12 }} value={config.method || 'POST'} onChange={e => setCfg('method', e.target.value)}>
+                    <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>Método</label>
+                    <select className="form-select" style={{ fontSize: 14 }} value={config.method || 'POST'} onChange={e => setCfg('method', e.target.value)}>
                       {['POST', 'GET', 'PUT', 'PATCH'].map(m => <option key={m}>{m}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>URL do Webhook</label>
+                    <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>URL do Webhook</label>
                     <input
                       className="form-input"
                       value={config.url || ''}
                       onChange={e => setCfg('url', e.target.value)}
                       placeholder="https://hooks.exemplo.com/..."
-                      style={{ fontFamily: 'monospace', fontSize: 12 }}
+                      style={{ fontFamily: 'monospace', fontSize: 14 }}
                     />
                   </div>
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Payload (JSON)</label>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#10b981', fontFamily: 'inherit' }} onClick={() => setShowVars(v => !v)}>
+                    <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Payload (JSON)</label>
+                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#10b981', fontFamily: 'inherit' }} onClick={() => setShowVars(v => !v)}>
                       {showVars ? '▴ Ocultar variáveis' : '▾ Inserir variável'}
                     </button>
                   </div>
@@ -186,7 +186,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
                     value={config.payload || ''}
                     onChange={e => setCfg('payload', e.target.value)}
                     rows={5}
-                    style={{ fontFamily: 'monospace', fontSize: 12 }}
+                    style={{ fontFamily: 'monospace', fontSize: 14 }}
                   />
                 </div>
                 {showVars && <VarPanel vars={VARIABLES} onInsert={k => insertVar(k, 'payload')} />}
@@ -195,7 +195,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
 
             {actionType === 'assign_user' && (
               <div>
-                <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Responsável a atribuir</label>
+                <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Responsável a atribuir</label>
                 <select className="form-select" value={config.user_id || ''} onChange={e => setCfg('user_id', e.target.value)}>
                   <option value="">Selecionar usuário...</option>
                   {users.map(u => <option key={u.id} value={u.id}>{u.name} — {u.role}</option>)}
@@ -206,8 +206,8 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
             {actionType === 'add_note' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Conteúdo da nota</label>
-                  <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#10b981', fontFamily: 'inherit' }} onClick={() => setShowVars(v => !v)}>
+                  <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Conteúdo da nota</label>
+                  <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#10b981', fontFamily: 'inherit' }} onClick={() => setShowVars(v => !v)}>
                     {showVars ? '▴ Ocultar variáveis' : '▾ Inserir variável'}
                   </button>
                 </div>
@@ -224,7 +224,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
 
             {actionType === 'set_price' && (
               <div>
-                <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Novo valor (R$)</label>
+                <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Novo valor (R$)</label>
                 <input
                   type="number"
                   className="form-input"
@@ -232,7 +232,7 @@ export default function RuleEditorModal({ rule, stageId, pipelineId, users, onSa
                   onChange={e => setCfg('price', e.target.value)}
                   placeholder="0.00"
                 />
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>
                   Substitui o valor atual do negócio quando mover para esta etapa.
                 </div>
               </div>
@@ -261,7 +261,7 @@ function VarPanel({ vars, onInsert }) {
       background: '#1e293b', borderRadius: 8, padding: '10px 12px',
       display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4,
     }}>
-      <div style={{ width: '100%', fontSize: 10, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+      <div style={{ width: '100%', fontSize: 12, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
         Clique para inserir
       </div>
       {vars.map(v => (
@@ -272,7 +272,7 @@ function VarPanel({ vars, onInsert }) {
           style={{
             background: '#334155', border: '1px solid #475569',
             color: '#10b981', borderRadius: 5, padding: '3px 8px',
-            fontSize: 11, fontFamily: 'monospace', cursor: 'pointer',
+            fontSize: 13, fontFamily: 'monospace', cursor: 'pointer',
             transition: 'background 0.1s',
           }}
           onMouseEnter={e => e.currentTarget.style.background = '#10b981'}

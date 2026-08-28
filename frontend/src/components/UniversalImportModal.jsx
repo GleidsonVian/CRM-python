@@ -217,7 +217,7 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
 
   const renderStep1 = () => (
     <div style={{ textAlign: 'center', padding: '20px 0' }}>
-      <p style={{ color: '#64748b', fontSize: 13, marginBottom: 20 }}>
+      <p style={{ color: '#64748b', fontSize: 15, marginBottom: 20 }}>
         Para garantir que a importação funcione perfeitamente, utilize nosso arquivo de modelo.
         <br/><br/>
         <a href={`/templates/${config.templateName}`} download className="btn btn-secondary" style={{ textDecoration: 'none' }}>
@@ -233,25 +233,25 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
         onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
       >
-        <div style={{ fontSize: 32, marginBottom: 12 }}>{file ? '📄' : '📁'}</div>
+        <div style={{ fontSize: 34, marginBottom: 12 }}>{file ? '📄' : '📁'}</div>
         <div style={{ fontWeight: 600, color: '#334155' }}>
           {file ? file.name : 'Arraste seu arquivo Excel ou CSV aqui'}
         </div>
-        {!file && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>Ou clique para selecionar</div>}
+        {!file && <div style={{ fontSize: 14, color: '#94a3b8', marginTop: 8 }}>Ou clique para selecionar</div>}
       </div>
       <input type="file" accept=".csv, .xlsx, .xls" ref={fileInputRef} style={{ display: 'none' }} onChange={e => processFile(e.target.files[0])} />
-      {error && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 12 }}>{error}</div>}
+      {error && <div style={{ color: '#ef4444', fontSize: 14, marginTop: 12 }}>{error}</div>}
     </div>
   );
 
   const renderStep2 = () => {
     return (
       <div>
-        <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
+        <p style={{ fontSize: 15, color: '#64748b', marginBottom: 16 }}>
           Confirme como as colunas do seu arquivo correspondem aos campos do sistema.
         </p>
         <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 15 }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569' }}>Coluna do Arquivo</th>
@@ -269,7 +269,7 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
                       className="form-input"
                       value={columnMapping[i] || '(skip)'}
                       onChange={e => setColumnMapping({ ...columnMapping, [i]: e.target.value })}
-                      style={{ padding: '6px 12px', fontSize: 13 }}
+                      style={{ padding: '6px 12px', fontSize: 15 }}
                     >
                       {config.fields.map(f => (
                         <option key={f.key} value={f.key}>{f.label} {f.required ? '*' : ''}</option>
@@ -353,17 +353,17 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: 15, color: '#64748b', margin: 0 }}>
             Revise os dados. Células com erros estão <strong style={{ color: '#ef4444' }}>marcadas em vermelho</strong>. Edite clicando sobre elas.
           </p>
           {hasValidationErrors && (
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', background: '#fef2f2', padding: '4px 8px', borderRadius: 4 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#ef4444', background: '#fef2f2', padding: '4px 8px', borderRadius: 4 }}>
               Existem erros a serem corrigidos
             </span>
           )}
         </div>
         <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflowX: 'auto', maxHeight: '50vh', overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13, minWidth: mappedFields.length * 150 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 15, minWidth: mappedFields.length * 150 }}>
             <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 {mappedFields.map(f => (
@@ -386,7 +386,7 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
                           onChange={e => handleCellChange(rowIndex, f.key, e.target.value)}
                           title={errorMsg || ''}
                           style={{
-                            width: '100%', padding: '6px 8px', fontSize: 13,
+                            width: '100%', padding: '6px 8px', fontSize: 15,
                             border: errorMsg ? '1px solid #ef4444' : '1px solid transparent',
                             background: errorMsg ? '#fef2f2' : 'transparent',
                             borderRadius: 4, outline: 'none', transition: 'all 0.2s',
@@ -414,8 +414,8 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
     <div className="modal-backdrop fade-in" style={{ zIndex: 1200, justifyContent: 'center', alignItems: 'center', display: 'flex' }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', maxWidth: step === 3 ? 1000 : 700, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', transition: 'max-width 0.3s' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#1e293b' }}>{config.title}</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: 20, cursor: 'pointer', color: '#64748b' }}>✕</button>
+          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: '#1e293b' }}>{config.title}</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#64748b' }}>✕</button>
         </div>
         <div style={{ padding: '24px', overflowY: 'auto', flex: 1, minHeight: 300 }}>
           {step === 1 && renderStep1()}
@@ -423,7 +423,7 @@ export default function UniversalImportModal({ entityType, pipelineId, onClose, 
           {step === 3 && !done && renderStep3()}
           {done && (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+              <div style={{ fontSize: 50, marginBottom: 16 }}>🎉</div>
               <h3 style={{ margin: '0 0 8px 0', color: '#1e293b' }}>Importação Concluída!</h3>
               <p style={{ color: '#64748b' }}>Seus dados foram processados com sucesso.</p>
             </div>

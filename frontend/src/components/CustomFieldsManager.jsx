@@ -60,37 +60,37 @@ function OptionsEditor({ value, onChange }) {
 
   return (
     <div style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 12px', border: '1px solid #e2e8f0' }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
         Opções da lista
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
         {opts.map(o => (
           <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <code style={{
-              fontSize: 9, background: '#e2e8f0', color: '#6366f1',
+              fontSize: 11, background: '#e2e8f0', color: '#6366f1',
               padding: '2px 5px', borderRadius: 3, flexShrink: 0, minWidth: 28, textAlign: 'center',
             }}>#{o.id}</code>
             <input
               className="form-input"
-              style={{ fontSize: 12, flex: 1 }}
+              style={{ fontSize: 14, flex: 1 }}
               value={o.label}
               onChange={e => updateLabel(o.id, e.target.value)}
               placeholder="Label..."
             />
             <button
               onClick={() => removeOpt(o.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 14, padding: '0 2px', lineHeight: 1 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 16, padding: '0 2px', lineHeight: 1 }}
             >×</button>
           </div>
         ))}
         {opts.length === 0 && (
-          <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Nenhuma opção ainda</div>
+          <div style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>Nenhuma opção ainda</div>
         )}
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
         <input
           className="form-input"
-          style={{ fontSize: 12, flex: 1 }}
+          style={{ fontSize: 14, flex: 1 }}
           value={newLabel}
           onChange={e => setNewLabel(e.target.value)}
           placeholder="Nova opção..."
@@ -99,7 +99,7 @@ function OptionsEditor({ value, onChange }) {
         <button
           onClick={addOpt}
           className="btn btn-primary"
-          style={{ fontSize: 12, padding: '0 12px' }}
+          style={{ fontSize: 14, padding: '0 12px' }}
           disabled={!newLabel.trim()}
         >+ Adicionar</button>
       </div>
@@ -141,10 +141,10 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: '#f8fafc',
       }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a' }}>
+        <span style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>
           {isNew ? '+ Novo campo' : 'Editar campo'}
         </span>
-        <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 18, lineHeight: 1 }}>×</button>
+        <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, lineHeight: 1 }}>×</button>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -152,26 +152,26 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
         {/* ID display (for existing) */}
         {!isNew && field.id && (
           <div style={{ background: '#0f172a', borderRadius: 8, padding: '12px 14px' }}>
-            <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
               Identificadores do campo
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '5px 12px', alignItems: 'center' }}>
-              <span style={{ fontSize: 9, color: '#64748b' }}>UID</span>
-              <code style={{ fontSize: 14, color: '#f59e0b', fontWeight: 800, letterSpacing: '0.04em' }}>{field.uid}</code>
-              <span style={{ fontSize: 9, color: '#64748b' }}>ID</span>
-              <code style={{ fontSize: 11, color: '#a78bfa' }}>#{field.id}</code>
-              <span style={{ fontSize: 9, color: '#64748b' }}>Chave</span>
-              <code style={{ fontSize: 11, color: '#38bdf8' }}>{field.key}</code>
+              <span style={{ fontSize: 11, color: '#64748b' }}>UID</span>
+              <code style={{ fontSize: 16, color: '#f59e0b', fontWeight: 800, letterSpacing: '0.04em' }}>{field.uid}</code>
+              <span style={{ fontSize: 11, color: '#64748b' }}>ID</span>
+              <code style={{ fontSize: 13, color: '#a78bfa' }}>#{field.id}</code>
+              <span style={{ fontSize: 11, color: '#64748b' }}>Chave</span>
+              <code style={{ fontSize: 13, color: '#38bdf8' }}>{field.key}</code>
             </div>
-            <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid #1e293b', fontSize: 10, color: '#475569' }}>
-              Webhook: <code style={{ color: '#f59e0b', fontSize: 10, background: '#1e293b', padding: '1px 5px', borderRadius: 3 }}>{'{{cf.' + field.uid + '}}'}</code>
+            <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid #1e293b', fontSize: 12, color: '#475569' }}>
+              Webhook: <code style={{ color: '#f59e0b', fontSize: 12, background: '#1e293b', padding: '1px 5px', borderRadius: 3 }}>{'{{cf.' + field.uid + '}}'}</code>
             </div>
           </div>
         )}
 
         {/* Name */}
         <div>
-          <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
             Nome do campo *
           </label>
           <input
@@ -185,24 +185,24 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
 
         {/* Key */}
         <div>
-          <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
             Chave (machine key)
           </label>
           <input
             className="form-input"
-            style={{ fontFamily: 'monospace', fontSize: 12 }}
+            style={{ fontFamily: 'monospace', fontSize: 14 }}
             value={form.key}
             onChange={e => set('key', slugify(e.target.value))}
             placeholder="ex: cnpj_empresa"
           />
-          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
-            Usada em webhooks como <code style={{ fontSize: 9 }}>{'{{cf.' + (form.key || 'chave') + '}}'}</code>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
+            Usada em webhooks como <code style={{ fontSize: 11 }}>{'{{cf.' + (form.key || 'chave') + '}}'}</code>
           </div>
         </div>
 
         {/* Type */}
         <div>
-          <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
             Tipo do campo
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
@@ -224,9 +224,9 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
                   background: form.field_type === t.value ? '#6366f1' : '#f1f5f9',
                   color: form.field_type === t.value ? 'white' : '#64748b',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, fontWeight: 700,
+                  fontSize: 12, fontWeight: 700,
                 }}>{t.icon}</span>
-                <span style={{ fontSize: 11, fontWeight: form.field_type === t.value ? 700 : 500, color: form.field_type === t.value ? '#4338ca' : '#475569' }}>
+                <span style={{ fontSize: 13, fontWeight: form.field_type === t.value ? 700 : 500, color: form.field_type === t.value ? '#4338ca' : '#475569' }}>
                   {t.label}
                 </span>
               </button>
@@ -263,8 +263,8 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
             }} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>Campo obrigatório</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>Destaca visualmente quando vazio</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>Campo obrigatório</div>
+            <div style={{ fontSize: 13, color: '#94a3b8' }}>Destaca visualmente quando vazio</div>
           </div>
         </label>
 
@@ -287,22 +287,22 @@ function FieldEditor({ field, entity, onSave, onCancel, isNew }) {
             }} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>Mostrar no card do Kanban</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>Exibe o valor na visualização do pipeline</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>Mostrar no card do Kanban</div>
+            <div style={{ fontSize: 13, color: '#94a3b8' }}>Exibe o valor na visualização do pipeline</div>
           </div>
         </label>
       </div>
 
       {/* Footer */}
       <div style={{ padding: '12px 16px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 8 }}>
-        <button onClick={onCancel} className="btn" style={{ flex: 1, fontSize: 12, color: '#64748b', border: '1px solid #e2e8f0' }}>
+        <button onClick={onCancel} className="btn" style={{ flex: 1, fontSize: 14, color: '#64748b', border: '1px solid #e2e8f0' }}>
           Cancelar
         </button>
         <button
           onClick={handleSave}
           disabled={saving || !form.name.trim()}
           className="btn btn-primary"
-          style={{ flex: 2, fontSize: 12 }}
+          style={{ flex: 2, fontSize: 14 }}
         >
           {saving ? 'Salvando...' : isNew ? 'Criar campo' : 'Salvar alterações'}
         </button>
@@ -391,12 +391,12 @@ function SmartProcessFieldsPanel() {
 
         {/* Process selector */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
             Selecione o Smart Process
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {processes.length === 0 && (
-              <div style={{ fontSize: 13, color: '#94a3b8' }}>Nenhum processo criado ainda.</div>
+              <div style={{ fontSize: 15, color: '#94a3b8' }}>Nenhum processo criado ainda.</div>
             )}
             {processes.map(p => (
               <button
@@ -406,14 +406,14 @@ function SmartProcessFieldsPanel() {
                   display: 'flex', alignItems: 'center', gap: 7, padding: '7px 14px',
                   border: `2px solid ${selectedId === p.id ? (p.color || '#6366f1') : '#e2e8f0'}`,
                   background: selectedId === p.id ? (p.color || '#6366f1') + '15' : 'white',
-                  borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13,
+                  borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15,
                   fontWeight: selectedId === p.id ? 700 : 500,
                   color: selectedId === p.id ? (p.color || '#6366f1') : '#475569',
                   transition: 'all 0.15s',
                 }}
               >
-                <span style={{ fontSize: 16 }}>{p.icon}</span> {p.name}
-                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400 }}>({p.fields_config?.length || 0} campos)</span>
+                <span style={{ fontSize: 18 }}>{p.icon}</span> {p.name}
+                <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 400 }}>({p.fields_config?.length || 0} campos)</span>
               </button>
             ))}
           </div>
@@ -423,19 +423,19 @@ function SmartProcessFieldsPanel() {
           <>
             <div style={{
               background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10,
-              padding: '10px 14px', marginBottom: 20, fontSize: 12, color: '#0369a1',
+              padding: '10px 14px', marginBottom: 20, fontSize: 14, color: '#0369a1',
               display: 'flex', gap: 8, alignItems: 'center',
             }}>
-              <span style={{ fontSize: 16 }}>{proc.icon}</span>
+              <span style={{ fontSize: 18 }}>{proc.icon}</span>
               <span>Campos do processo <strong>{proc.name}</strong> — aparecem no painel de detalhe de cada registro deste SPA</span>
             </div>
 
             {fields.length === 0 && editingIdx === null ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: 13 }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: 15 }}>
+                <div style={{ fontSize: 34, marginBottom: 12 }}>📝</div>
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>Nenhum campo neste processo</div>
-                <div style={{ fontSize: 12 }}>Crie campos personalizados para registrar informações específicas</div>
-                <button onClick={addField} className="btn btn-primary" style={{ marginTop: 16, fontSize: 13 }}>+ Criar primeiro campo</button>
+                <div style={{ fontSize: 14 }}>Crie campos personalizados para registrar informações específicas</div>
+                <button onClick={addField} className="btn btn-primary" style={{ marginTop: 16, fontSize: 15 }}>+ Criar primeiro campo</button>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -455,25 +455,25 @@ function SmartProcessFieldsPanel() {
                         onClick={() => setEditingIdx(isEdit ? null : idx)}
                         style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
                       >
-                        <div style={{ width: 34, height: 34, borderRadius: 8, background: '#6366f110', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#6366f1', flexShrink: 0 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 8, background: '#6366f110', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: '#6366f1', flexShrink: 0 }}>
                           {SP_TYPE_ICONS[field.type] || 'T'}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontWeight: 600, fontSize: 13, color: '#0f172a' }}>{field.label || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sem nome</span>}</span>
-                            {field.required && <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>obrigatório</span>}
+                            <span style={{ fontWeight: 600, fontSize: 15, color: '#0f172a' }}>{field.label || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sem nome</span>}</span>
+                            {field.required && <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>obrigatório</span>}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>{SP_TYPE_LABELS[field.type] || field.type}</span>
-                            <code style={{ fontSize: 10, color: '#94a3b8' }}>{field.key}</code>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>{SP_TYPE_LABELS[field.type] || field.type}</span>
+                            <code style={{ fontSize: 12, color: '#94a3b8' }}>{field.key}</code>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                          <button onClick={() => moveField(idx, -1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, padding: '2px 4px' }} title="Mover para cima">↑</button>
-                          <button onClick={() => moveField(idx, 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, padding: '2px 4px' }} title="Mover para baixo">↓</button>
+                          <button onClick={() => moveField(idx, -1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 15, padding: '2px 4px' }} title="Mover para cima">↑</button>
+                          <button onClick={() => moveField(idx, 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 15, padding: '2px 4px' }} title="Mover para baixo">↓</button>
                           <button
                             onClick={() => removeField(idx)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14, padding: 4, borderRadius: 4, transition: 'color 0.12s' }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16, padding: 4, borderRadius: 4, transition: 'color 0.12s' }}
                             onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
                             onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                             title="Excluir campo"
@@ -486,7 +486,7 @@ function SmartProcessFieldsPanel() {
                         <div style={{ padding: '0 14px 14px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
                           <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                             <div style={{ flex: 2 }}>
-                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Label *</label>
+                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Label *</label>
                               <input
                                 className="form-input"
                                 value={field.label}
@@ -495,16 +495,16 @@ function SmartProcessFieldsPanel() {
                               />
                             </div>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Tipo</label>
+                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Tipo</label>
                               <select className="form-input" value={field.type} onChange={e => updateField(idx, { type: e.target.value })}>
                                 {SP_FIELD_TYPES.map(t => <option key={t} value={t}>{SP_TYPE_LABELS[t] || t}</option>)}
                               </select>
                             </div>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Key</label>
+                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Key</label>
                               <input
                                 className="form-input"
-                                style={{ fontFamily: 'monospace', fontSize: 11 }}
+                                style={{ fontFamily: 'monospace', fontSize: 13 }}
                                 value={field.key}
                                 onChange={e => updateField(idx, { key: e.target.value })}
                                 placeholder="auto"
@@ -513,7 +513,7 @@ function SmartProcessFieldsPanel() {
                           </div>
                           {field.type === 'select' && (
                             <div style={{ marginTop: 10 }}>
-                              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Opções (separadas por vírgula)</label>
+                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Opções (separadas por vírgula)</label>
                               <input
                                 className="form-input"
                                 value={Array.isArray(field.options) ? field.options.join(', ') : ''}
@@ -531,13 +531,13 @@ function SmartProcessFieldsPanel() {
                             </div>
                           )}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', cursor: 'pointer' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#64748b', cursor: 'pointer' }}>
                               <input type="checkbox" checked={!!field.required} onChange={e => updateField(idx, { required: e.target.checked })} />
                               Obrigatório
                             </label>
                             <div style={{ display: 'flex', gap: 8 }}>
-                              <button onClick={() => setEditingIdx(null)} className="btn btn-ghost" style={{ fontSize: 12 }}>Cancelar</button>
-                              <button onClick={() => saveFields(fields)} disabled={saving} className="btn btn-primary" style={{ fontSize: 12 }}>
+                              <button onClick={() => setEditingIdx(null)} className="btn btn-ghost" style={{ fontSize: 14 }}>Cancelar</button>
+                              <button onClick={() => saveFields(fields)} disabled={saving} className="btn btn-primary" style={{ fontSize: 14 }}>
                                 {saving ? 'Salvando...' : 'Salvar campo'}
                               </button>
                             </div>
@@ -547,7 +547,7 @@ function SmartProcessFieldsPanel() {
                     </div>
                   );
                 })}
-                <button onClick={addField} style={{ marginTop: 4, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1.5px dashed #e2e8f0', borderRadius: 8, background: 'transparent', color: '#64748b', fontFamily: 'inherit', transition: 'all 0.15s', textAlign: 'left' }}>
+                <button onClick={addField} style={{ marginTop: 4, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', border: '1.5px dashed #e2e8f0', borderRadius: 8, background: 'transparent', color: '#64748b', fontFamily: 'inherit', transition: 'all 0.15s', textAlign: 'left' }}>
                   + Adicionar campo
                 </button>
               </div>
@@ -609,8 +609,8 @@ export default function CustomFieldsManager() {
         display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
       }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>⚙️ Campos personalizados</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 18, color: '#0f172a' }}>⚙️ Campos personalizados</div>
+          <div style={{ fontSize: 14, color: '#64748b', marginTop: 1 }}>
             Crie campos extras para cada entidade do CRM
           </div>
         </div>
@@ -619,7 +619,7 @@ export default function CustomFieldsManager() {
             <button
               onClick={() => setEditor({ field: { ...EMPTY_FIELD, entity }, isNew: true })}
               className="btn btn-primary"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 15 }}
             >
               + Novo campo
             </button>
@@ -635,7 +635,7 @@ export default function CustomFieldsManager() {
             onClick={() => { setEntity(e.value); setEditor(null); }}
             style={{
               padding: '11px 16px', border: 'none', background: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+              fontFamily: 'inherit', fontSize: 15, fontWeight: 600,
               color: entity === e.value ? '#10b981' : '#64748b',
               borderBottom: `2px solid ${entity === e.value ? '#10b981' : 'transparent'}`,
               display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.12s',
@@ -658,10 +658,10 @@ export default function CustomFieldsManager() {
           {/* Info banner */}
           <div style={{
             background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: 10,
-            padding: '10px 14px', marginBottom: 20, fontSize: 12, color: '#065f46',
+            padding: '10px 14px', marginBottom: 20, fontSize: 14, color: '#065f46',
             display: 'flex', gap: 8, alignItems: 'center',
           }}>
-            <span style={{ fontSize: 14 }}>{activeEntity?.icon}</span>
+            <span style={{ fontSize: 16 }}>{activeEntity?.icon}</span>
             <span>{activeEntity?.desc}</span>
           </div>
 
@@ -669,15 +669,15 @@ export default function CustomFieldsManager() {
           {fields.length === 0 ? (
             <div style={{
               textAlign: 'center', padding: '40px 20px',
-              color: '#94a3b8', fontSize: 13,
+              color: '#94a3b8', fontSize: 15,
             }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🗂️</div>
+              <div style={{ fontSize: 34, marginBottom: 12 }}>🗂️</div>
               <div style={{ fontWeight: 600, marginBottom: 4 }}>Nenhum campo personalizado</div>
-              <div style={{ fontSize: 12 }}>Crie campos para capturar informações específicas do seu negócio</div>
+              <div style={{ fontSize: 14 }}>Crie campos para capturar informações específicas do seu negócio</div>
               <button
                 onClick={() => setEditor({ field: { ...EMPTY_FIELD, entity }, isNew: true })}
                 className="btn btn-primary"
-                style={{ marginTop: 16, fontSize: 13 }}
+                style={{ marginTop: 16, fontSize: 15 }}
               >+ Criar primeiro campo</button>
             </div>
           ) : (
@@ -707,26 +707,26 @@ export default function CustomFieldsManager() {
                       width: 34, height: 34, borderRadius: 8, flexShrink: 0,
                       background: '#6366f110',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontWeight: 800, color: '#6366f1',
+                      fontSize: 15, fontWeight: 800, color: '#6366f1',
                     }}>{typeMeta?.icon}</div>
 
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontWeight: 600, fontSize: 13, color: '#0f172a' }}>{field.name}</span>
+                        <span style={{ fontWeight: 600, fontSize: 15, color: '#0f172a' }}>{field.name}</span>
                         {field.required && (
-                          <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>
                             obrigatório
                           </span>
                         )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '1px 5px', borderRadius: 3, textTransform: 'uppercase' }}>
                           {typeMeta?.label}
                         </span>
-                        <code style={{ fontSize: 10, color: '#94a3b8' }}>{field.key}</code>
+                        <code style={{ fontSize: 12, color: '#94a3b8' }}>{field.key}</code>
                         {field.field_type === 'select' && opts.length > 0 && (
-                          <span style={{ fontSize: 10, color: '#94a3b8' }}>{opts.length} opção{opts.length !== 1 ? 'ões' : ''}</span>
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>{opts.length} opção{opts.length !== 1 ? 'ões' : ''}</span>
                         )}
                       </div>
                     </div>
@@ -735,13 +735,13 @@ export default function CustomFieldsManager() {
                     {field.uid && (
                       <div style={{
                         background: '#1e293b', color: '#f59e0b',
-                        borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700,
+                        borderRadius: 6, padding: '3px 8px', fontSize: 13, fontWeight: 700,
                         flexShrink: 0, letterSpacing: '0.04em', fontFamily: 'monospace',
                       }}>{field.uid}</div>
                     )}
                     {/* show_on_card indicator */}
                     {field.show_on_card && (
-                      <div title="Visível no card do Kanban" style={{ fontSize: 13, flexShrink: 0 }}>🃏</div>
+                      <div title="Visível no card do Kanban" style={{ fontSize: 15, flexShrink: 0 }}>🃏</div>
                     )}
 
                     {/* Delete */}
@@ -750,7 +750,7 @@ export default function CustomFieldsManager() {
                       disabled={deleting === field.id}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
-                        fontSize: 14, padding: 4, borderRadius: 4, transition: 'all 0.12s', flexShrink: 0,
+                        fontSize: 16, padding: 4, borderRadius: 4, transition: 'all 0.12s', flexShrink: 0,
                       }}
                       onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
                       onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}

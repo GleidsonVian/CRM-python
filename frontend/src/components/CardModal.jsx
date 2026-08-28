@@ -77,18 +77,18 @@ function ChipList({ items, getName, onRemove, onViewProfile, color }) {
             display: 'flex', alignItems: 'center', gap: 6,
             background: '#f1f5f9', border: '1px solid #e2e8f0',
             borderRadius: 20, padding: '3px 8px 3px 4px',
-            fontSize: 12, color: '#0f172a'
+            fontSize: 14, color: '#0f172a'
           }}>
             <div style={{
               width: 20, height: 20, borderRadius: '50%',
               background: bg, color: 'white',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 9, fontWeight: 700, flexShrink: 0
+              fontSize: 11, fontWeight: 700, flexShrink: 0
             }}>{initials}</div>
             <span style={{ fontWeight: 500 }}>{name}</span>
             <button
               onClick={() => onViewProfile(item)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981', padding: 0, fontSize: 11, fontWeight: 600, fontFamily: 'inherit' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981', padding: 0, fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}
               title="Ver perfil"
             >
               →
@@ -126,7 +126,7 @@ function SearchDropdown({ placeholder, items, getName, onSelect, selectedIds }) 
         onChange={e => { setTerm(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        style={{ fontSize: 12 }}
+        style={{ fontSize: 14 }}
       />
       {open && (
         <div className="contact-dropdown">
@@ -152,7 +152,7 @@ function FieldRef({ variable, showIds }) {
   if (!showIds) return null;
   return (
     <code style={{
-      fontSize: 9, background: '#1e293b', color: '#f59e0b',
+      fontSize: 11, background: '#1e293b', color: '#f59e0b',
       padding: '1px 5px', borderRadius: 3, marginLeft: 5,
       fontFamily: 'monospace', letterSpacing: '0.03em',
       fontWeight: 700, verticalAlign: 'middle',
@@ -581,14 +581,14 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     background: showIds ? '#1e293b' : 'none',
                     border: `1px solid ${showIds ? '#334155' : '#e2e8f0'}`,
                     borderRadius: 6, cursor: 'pointer', color: showIds ? '#f59e0b' : '#94a3b8',
-                    fontSize: 10, fontWeight: 700, padding: '4px 8px', fontFamily: 'monospace',
+                    fontSize: 12, fontWeight: 700, padding: '4px 8px', fontFamily: 'monospace',
                     transition: 'all 0.12s',
                   }}
                 >F12</button>
                 {isLead && !card.converted && onConvert && (
                   <button
                     className="btn btn-primary"
-                    style={{ fontSize: 12, background: '#7c3aed', borderColor: '#7c3aed' }}
+                    style={{ fontSize: 14, background: '#7c3aed', borderColor: '#7c3aed' }}
                     onClick={async () => {
                       if (await confirm('Converter este lead em negócio?', '', 'Converter', false)) onConvert(card.id);
                     }}
@@ -597,7 +597,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                   </button>
                 )}
                 {isLead && card.converted && (
-                  <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, padding: '4px 8px',
+                  <span style={{ fontSize: 13, color: '#10b981', fontWeight: 600, padding: '4px 8px',
                     background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6 }}>
                     ✓ Convertido
                   </span>
@@ -605,13 +605,13 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                 {!isLead && (
                   <>
                     {dupError && (
-                      <span style={{ fontSize: 11, color: '#ef4444', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: 13, color: '#ef4444', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {dupError}
                       </span>
                     )}
                     <button
                       className="btn btn-ghost"
-                      style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, opacity: duplicating ? 0.6 : 1 }}
+                      style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, opacity: duplicating ? 0.6 : 1 }}
                       onClick={handleDuplicate}
                       disabled={duplicating}
                       title="Duplicar este negócio"
@@ -626,13 +626,13 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                 )}
                 <button
                   className="btn btn-danger"
-                  style={{ fontSize: 12 }}
+                  style={{ fontSize: 14 }}
                   onClick={async () => { if (await confirm(isLead ? 'Excluir este lead?' : 'Excluir este negócio?', 'Esta ação não pode ser desfeita.')) onDelete(card.id); }}
                 >
                   Excluir
                 </button>
-                {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
-                {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                {saveStatus === 'saving' && <span style={{ fontSize: 13, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                {saveStatus === 'saved' && <span style={{ fontSize: 13, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
                 <button className="icon-btn" onClick={handleClose}><IconX /></button>
               </div>
             </div>
@@ -669,7 +669,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
               background: '#0f172a', borderBottom: '1px solid #1e293b',
               padding: '10px 20px', display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center',
             }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 2, flexShrink: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: 2, flexShrink: 0 }}>
                 🔍 Nativos
               </span>
               {NATIVE_FIELDS.map(f => (
@@ -678,13 +678,13 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                   title={f.label}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#1e293b', borderRadius: 4, border: '1px solid #334155', padding: '2px 7px', flexShrink: 0 }}
                 >
-                  <span style={{ fontSize: 9, color: '#64748b' }}>{f.label}</span>
-                  <code style={{ fontSize: 10, color: '#38bdf8' }}>{`{{${f.uid}}}`}</code>
+                  <span style={{ fontSize: 11, color: '#64748b' }}>{f.label}</span>
+                  <code style={{ fontSize: 12, color: '#38bdf8' }}>{`{{${f.uid}}}`}</code>
                 </div>
               ))}
               {customFields.length > 0 && (
                 <>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 2px', flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 2px', flexShrink: 0 }}>
                     · Personalizados
                   </span>
                   {customFields.map(f => (
@@ -693,13 +693,13 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                       title={`${f.name} · chave: ${f.key}`}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#1e293b', borderRadius: 4, border: '1px solid #334155', padding: '2px 7px', flexShrink: 0 }}
                     >
-                      <span style={{ fontSize: 9, color: '#64748b' }}>{f.name}</span>
-                      <code style={{ fontSize: 10, color: '#f59e0b' }}>{`{{cf.${f.uid}}}`}</code>
+                      <span style={{ fontSize: 11, color: '#64748b' }}>{f.name}</span>
+                      <code style={{ fontSize: 12, color: '#f59e0b' }}>{`{{cf.${f.uid}}}`}</code>
                     </div>
                   ))}
                 </>
               )}
-              <span style={{ fontSize: 9, color: '#334155', marginLeft: 4, flexShrink: 0 }}>· F12 fecha</span>
+              <span style={{ fontSize: 11, color: '#334155', marginLeft: 4, flexShrink: 0 }}>· F12 fecha</span>
             </div>
           )}
 
@@ -834,7 +834,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                               transition: 'left 0.2s', left: availableToAll ? 19 : 3,
                             }} />
                           </button>
-                          <span style={{ fontSize: 13, color: availableToAll ? '#10b981' : '#94a3b8' }}>
+                          <span style={{ fontSize: 15, color: availableToAll ? '#10b981' : '#94a3b8' }}>
                             {availableToAll ? 'Sim' : 'Não'}
                           </span>
                         </div>
@@ -855,7 +855,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     {
                       id: 'deal.utm', name: 'Parâmetros UTM',
                       renderContent: () => (
-                        <div style={{ fontSize: 13, color: '#64748b' }}>
+                        <div style={{ fontSize: 15, color: '#64748b' }}>
                           {(card.utm_source || card.utm_medium || card.utm_campaign) ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                               {card.utm_source   && <span>utm_source: <b>{card.utm_source}</b></span>}
@@ -869,32 +869,32 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     {
                       id: 'deal.id', name: 'ID',
                       renderContent: () => (
-                        <span style={{ fontSize: 14, color: '#64748b', fontFamily: 'monospace' }}>#{card.id}</span>
+                        <span style={{ fontSize: 16, color: '#64748b', fontFamily: 'monospace' }}>#{card.id}</span>
                       ),
                     },
                     {
                       id: 'deal.stage', name: 'Etapa',
                       renderContent: () => {
                         const s = stages?.find(st => st.id === stageId);
-                        return <span style={{ fontSize: 14, color: '#334155' }}>{s?.name ?? '—'}</span>;
+                        return <span style={{ fontSize: 16, color: '#334155' }}>{s?.name ?? '—'}</span>;
                       },
                     },
                     {
                       id: 'deal.created_at', name: 'Criado em',
                       renderContent: () => (
-                        <span style={{ fontSize: 14, color: '#64748b' }}>{fmtDate(card.created_at)}</span>
+                        <span style={{ fontSize: 16, color: '#64748b' }}>{fmtDate(card.created_at)}</span>
                       ),
                     },
                     {
                       id: 'deal.updated_at', name: 'Modificada em',
                       renderContent: () => (
-                        <span style={{ fontSize: 14, color: '#64748b' }}>{card.updated_at ? fmtDate(card.updated_at) : '—'}</span>
+                        <span style={{ fontSize: 16, color: '#64748b' }}>{card.updated_at ? fmtDate(card.updated_at) : '—'}</span>
                       ),
                     },
                     {
                       id: 'deal.stage_changed_by', name: 'Etapa alterada por',
                       renderContent: () => (
-                        <span style={{ fontSize: 14, color: '#64748b' }}>{card.stage_changed_by ?? '—'}</span>
+                        <span style={{ fontSize: 16, color: '#64748b' }}>{card.stage_changed_by ?? '—'}</span>
                       ),
                     },
                   ]}
@@ -919,7 +919,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     style={{
                       flex: 1, background: 'none', border: 'none', borderBottom: `2px solid ${rightTab === t.key ? '#6366f1' : 'transparent'}`,
                       color: rightTab === t.key ? '#6366f1' : '#64748b', fontWeight: rightTab === t.key ? 700 : 500,
-                      fontSize: 11, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+                      fontSize: 13, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
                     }}
                   >{t.label}</button>
                 ))}
@@ -929,9 +929,9 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
               {rightTab === 'timeline' && (
                 <div style={{ overflowY: 'auto', flex: 1, padding: '8px 0' }}>
                   {timelineLoading ? (
-                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '24px 0' }}>Carregando…</div>
+                    <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '24px 0' }}>Carregando…</div>
                   ) : timelineItems.length === 0 ? (
-                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>Nenhum evento registrado</div>
+                    <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>Nenhum evento registrado</div>
                   ) : timelineItems.map((item, idx) => {
                     /* ── activity ── */
                     if (item._type === 'activity') {
@@ -939,12 +939,12 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                       const isAuto = item.actor === 'Automação';
                       return (
                         <div key={`act-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: meta.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: `1.5px solid ${meta.color}30` }}>{meta.icon}</div>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: meta.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: `1.5px solid ${meta.color}30` }}>{meta.icon}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>{item.content}</div>
+                            <div style={{ fontSize: 15, color: '#1e293b', lineHeight: 1.4 }}>{item.content}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                              <span style={{ fontSize: 10, fontWeight: 600, color: isAuto ? '#0ea5e9' : '#64748b', background: isAuto ? '#f0f9ff' : '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>{isAuto ? '🤖 Automação' : '👤 ' + (item.actor || 'Usuário')}</span>
-                              <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(item.ts)}</span>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: isAuto ? '#0ea5e9' : '#64748b', background: isAuto ? '#f0f9ff' : '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>{isAuto ? '🤖 Automação' : '👤 ' + (item.actor || 'Usuário')}</span>
+                              <span style={{ fontSize: 12, color: '#94a3b8' }}>{relTime(item.ts)}</span>
                             </div>
                           </div>
                         </div>
@@ -954,16 +954,16 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     if (item._type === 'comment') {
                       return (
                         <div key={`cmt-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: avatarColor(item.author), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: avatarColor(item.author), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>
                             {(item.author || 'U').slice(0, 2).toUpperCase()}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, background: '#fef9c3', color: '#854d0e', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>💬 Comentário</span>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: '#0f172a' }}>{item.author}</span>
-                              <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(item.ts)}</span>
+                              <span style={{ fontSize: 13, background: '#fef9c3', color: '#854d0e', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>💬 Comentário</span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{item.author}</span>
+                              <span style={{ fontSize: 12, color: '#94a3b8' }}>{relTime(item.ts)}</span>
                             </div>
-                            <div style={{ fontSize: 13, color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{item.content}</div>
+                            <div style={{ fontSize: 15, color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{item.content}</div>
                           </div>
                         </div>
                       );
@@ -972,19 +972,19 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     if (item._type === 'task') {
                       return (
                         <div key={`task-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: item.done ? '#f0fdf4' : '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: `1.5px solid ${item.done ? '#bbf7d0' : '#bfdbfe'}` }}>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: item.done ? '#f0fdf4' : '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, border: `1.5px solid ${item.done ? '#bbf7d0' : '#bfdbfe'}` }}>
                             {item.done ? '✅' : '📋'}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, background: item.done ? '#f0fdf4' : '#eff6ff', color: item.done ? '#16a34a' : '#2563eb', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>
+                              <span style={{ fontSize: 13, background: item.done ? '#f0fdf4' : '#eff6ff', color: item.done ? '#16a34a' : '#2563eb', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>
                                 {item.done ? '✓ Tarefa concluída' : '📋 Tarefa criada'}
                               </span>
-                              <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(item.ts)}</span>
+                              <span style={{ fontSize: 12, color: '#94a3b8' }}>{relTime(item.ts)}</span>
                             </div>
-                            <div style={{ fontSize: 13, color: item.done ? '#94a3b8' : '#0f172a', textDecoration: item.done ? 'line-through' : 'none', fontWeight: 500 }}>{item.title}</div>
+                            <div style={{ fontSize: 15, color: item.done ? '#94a3b8' : '#0f172a', textDecoration: item.done ? 'line-through' : 'none', fontWeight: 500 }}>{item.title}</div>
                             {(item.due_date || item.assigned_to) && (
-                              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, display: 'flex', gap: 8 }}>
+                              <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2, display: 'flex', gap: 8 }}>
                                 {item.due_date && <span>📅 {item.due_date}</span>}
                                 {item.assigned_to && <span>👤 {item.assigned_to}</span>}
                               </div>
@@ -1010,14 +1010,14 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                       } catch {}
                       return (
                         <div key={`hist-${item.id ?? idx}`} style={{ display: 'flex', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f8fafc' }}>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: `1.5px solid ${color}30` }}>{icon}</div>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: `1.5px solid ${color}30` }}>{icon}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>
+                            <div style={{ fontSize: 15, color: '#1e293b', lineHeight: 1.4 }}>
                               <span style={{ fontWeight: 600 }}>{item.actor} </span>
                               <span style={{ color }}>{label}</span>
                               {detail && <span style={{ fontWeight: 600, color }}> {detail}</span>}
                             </div>
-                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{relTime(item.ts)}</div>
+                            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{relTime(item.ts)}</div>
                           </div>
                         </div>
                       );
@@ -1048,18 +1048,18 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         {mentionUsers.map((u, i) => (
                           <div key={u.id} onClick={() => insertMention(u)}
                             style={{
-                              padding: '7px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                              padding: '7px 12px', fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
                               background: i === mentionIndex ? '#eef2ff' : 'white',
                               color: i === mentionIndex ? '#4338ca' : '#0f172a',
                             }}
                             onMouseEnter={() => setMentionIndex(i)}
                           >
                             <div style={{ width: 22, height: 22, borderRadius: '50%', background: avatarColor(u.name), color: '#fff',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                               {u.name.slice(0,2).toUpperCase()}
                             </div>
                             <span>{u.name}</span>
-                            <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto' }}>{u.role}</span>
+                            <span style={{ fontSize: 13, color: '#94a3b8', marginLeft: 'auto' }}>{u.role}</span>
                           </div>
                         ))}
                       </div>
@@ -1068,7 +1068,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
 
                   <div className="timeline-events">
                     {activities.length === 0 && (
-                      <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                         Nenhuma atividade registrada
                       </div>
                     )}
@@ -1081,18 +1081,18 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                             width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                             background: meta.color + '18',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 13, border: `1.5px solid ${meta.color}30`,
+                            fontSize: 15, border: `1.5px solid ${meta.color}30`,
                           }}>{meta.icon}</div>
                           <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                             <div className="event-content">{act.content}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                               <span style={{
-                                fontSize: 10, fontWeight: 600, color: isAuto ? '#0ea5e9' : '#64748b',
+                                fontSize: 12, fontWeight: 600, color: isAuto ? '#0ea5e9' : '#64748b',
                                 background: isAuto ? '#f0f9ff' : '#f1f5f9',
                                 padding: '1px 5px', borderRadius: 4,
                               }}>{isAuto ? '🤖 Automação' : '👤 ' + (act.actor || 'Usuário')}</span>
-                              <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                              <span className="event-time" style={{ fontSize: 10 }}>{relTime(act.created_at)}</span>
+                              <span style={{ fontSize: 12, color: '#94a3b8' }}>·</span>
+                              <span className="event-time" style={{ fontSize: 12 }}>{relTime(act.created_at)}</span>
                             </div>
                           </div>
                         </div>
@@ -1118,25 +1118,25 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                   </div>
                   <div style={{ overflowY: 'auto', flex: 1 }}>
                     {comments.length === 0 ? (
-                      <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                         Nenhum comentário
                       </div>
                     ) : comments.map(c => (
                       <div key={c.id} style={{ padding: '10px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: 10 }}>
                         <div style={{ width: 28, height: 28, borderRadius: '50%', background: avatarColor(c.author), color: '#fff',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                           {(c.author || 'U').slice(0, 2).toUpperCase()}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{c.author}</span>
-                            <span style={{ fontSize: 10, color: '#94a3b8' }}>{relTime(c.created_at)}</span>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{c.author}</span>
+                            <span style={{ fontSize: 12, color: '#94a3b8' }}>{relTime(c.created_at)}</span>
                             <button onClick={() => handleDeleteComment(c.id)} style={{
                               marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
-                              color: '#cbd5e1', fontSize: 13, padding: 0,
+                              color: '#cbd5e1', fontSize: 15, padding: 0,
                             }} onMouseEnter={e => e.target.style.color='#ef4444'} onMouseLeave={e => e.target.style.color='#cbd5e1'}>×</button>
                           </div>
-                          <div style={{ fontSize: 13, color: '#334155', marginTop: 2, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{c.content}</div>
+                          <div style={{ fontSize: 15, color: '#334155', marginTop: 2, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{c.content}</div>
                         </div>
                       </div>
                     ))}
@@ -1151,29 +1151,29 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                     {!addingTask ? (
                       <button onClick={() => setAddingTask(true)} style={{
                         background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 6, padding: '6px 12px',
-                        fontSize: 12, color: '#64748b', cursor: 'pointer', width: '100%', textAlign: 'left',
+                        fontSize: 14, color: '#64748b', cursor: 'pointer', width: '100%', textAlign: 'left',
                       }}>+ Nova tarefa</button>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <input className="form-input" style={{ fontSize: 12 }} placeholder="Título da tarefa" autoFocus
+                        <input className="form-input" style={{ fontSize: 14 }} placeholder="Título da tarefa" autoFocus
                           value={newTask.title} onChange={e => setNewTask(t => ({ ...t, title: e.target.value }))}
                           onKeyDown={e => { if (e.key === 'Enter') handleCreateTask(); if (e.key === 'Escape') setAddingTask(false); }} />
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <input className="form-input" type="date" style={{ fontSize: 12, flex: 1 }}
+                          <input className="form-input" type="date" style={{ fontSize: 14, flex: 1 }}
                             value={newTask.due_date} onChange={e => setNewTask(t => ({ ...t, due_date: e.target.value }))} />
-                          <input className="form-input" style={{ fontSize: 12, flex: 1 }} placeholder="Responsável"
+                          <input className="form-input" style={{ fontSize: 14, flex: 1 }} placeholder="Responsável"
                             value={newTask.assigned_to} onChange={e => setNewTask(t => ({ ...t, assigned_to: e.target.value }))} />
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn btn-primary" style={{ fontSize: 11, flex: 1 }} onClick={handleCreateTask}>Salvar</button>
-                          <button className="btn btn-ghost" style={{ fontSize: 11, flex: 1 }} onClick={() => setAddingTask(false)}>Cancelar</button>
+                          <button className="btn btn-primary" style={{ fontSize: 13, flex: 1 }} onClick={handleCreateTask}>Salvar</button>
+                          <button className="btn btn-ghost" style={{ fontSize: 13, flex: 1 }} onClick={() => setAddingTask(false)}>Cancelar</button>
                         </div>
                       </div>
                     )}
                   </div>
                   <div style={{ overflowY: 'auto', flex: 1 }}>
                     {tasks.length === 0 ? (
-                      <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                         Nenhuma tarefa
                       </div>
                     ) : tasks.map(t => (
@@ -1181,19 +1181,19 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         <input type="checkbox" checked={t.done} onChange={() => handleToggleTask(t.id)}
                           style={{ marginTop: 2, accentColor: '#6366f1', cursor: 'pointer', flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setOpenTask(t)}>
-                          <div style={{ fontSize: 13, color: t.done ? '#94a3b8' : '#0f172a', textDecoration: t.done ? 'line-through' : 'none', fontWeight: 500 }}>{t.title}</div>
+                          <div style={{ fontSize: 15, color: t.done ? '#94a3b8' : '#0f172a', textDecoration: t.done ? 'line-through' : 'none', fontWeight: 500 }}>{t.title}</div>
                           {(t.due_date || t.assigned_to) && (
-                            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, display: 'flex', gap: 8 }}>
+                            <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2, display: 'flex', gap: 8 }}>
                               {t.due_date && <span>📅 {t.due_date}</span>}
                               {t.assigned_to && <span>👤 {t.assigned_to}</span>}
                             </div>
                           )}
                         </div>
                         <button onClick={() => setOpenTask(t)} title="Abrir tarefa" style={{
-                          background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', fontSize: 11, padding: '0 4px', flexShrink: 0, opacity: 0.6,
+                          background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', fontSize: 13, padding: '0 4px', flexShrink: 0, opacity: 0.6,
                         }}>↗</button>
                         <button onClick={() => handleDeleteTask(t.id)} style={{
-                          background: 'none', border: 'none', cursor: 'pointer', color: '#cbd5e1', fontSize: 14, padding: 0, flexShrink: 0,
+                          background: 'none', border: 'none', cursor: 'pointer', color: '#cbd5e1', fontSize: 16, padding: 0, flexShrink: 0,
                         }} onMouseEnter={e => e.target.style.color='#ef4444'} onMouseLeave={e => e.target.style.color='#cbd5e1'}>×</button>
                       </div>
                     ))}
@@ -1205,7 +1205,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
               {rightTab === 'workflows' && (
                 <div style={{ overflowY: 'auto', flex: 1, padding: '12px 16px' }}>
                   {workflows.length === 0 ? (
-                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>
                       Nenhum fluxo disponível para este tipo de card.
                     </div>
                   ) : workflows.map(wf => {
@@ -1215,20 +1215,20 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 12px', marginBottom: 8,
                         background: '#fafafa',
                       }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: '#1e293b', marginBottom: 2 }}>{wf.name}</div>
-                        {wf.description && <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>{wf.description}</div>}
-                        <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>{wf.steps?.length || 0} etapa(s)</div>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: '#1e293b', marginBottom: 2 }}>{wf.name}</div>
+                        {wf.description && <div style={{ fontSize: 13, color: '#64748b', marginBottom: 6 }}>{wf.description}</div>}
+                        <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>{wf.steps?.length || 0} etapa(s)</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <button
                             className="btn btn-primary"
-                            style={{ fontSize: 11, padding: '4px 12px' }}
+                            style={{ fontSize: 13, padding: '4px 12px' }}
                             disabled={msg?.status === 'loading'}
                             onClick={() => executeWorkflow(wf.id)}
                           >
                             ▶ Executar
                           </button>
                           {msg && (
-                            <span style={{ fontSize: 11, color: msg.status === 'ok' ? '#10b981' : msg.status === 'error' ? '#ef4444' : '#94a3b8' }}>
+                            <span style={{ fontSize: 13, color: msg.status === 'ok' ? '#10b981' : msg.status === 'error' ? '#ef4444' : '#94a3b8' }}>
                               {msg.text}
                             </span>
                           )}
@@ -1243,7 +1243,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
               {rightTab === 'history' && (
                 <div style={{ overflowY: 'auto', flex: 1 }}>
                   {historyItems.length === 0 ? (
-                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '24px 16px', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '24px 16px', fontStyle: 'italic' }}>
                       Nenhuma alteração registrada. As ações (criar, editar, mover) aparecem aqui automaticamente.
                     </div>
                   ) : historyItems.map(item => {
@@ -1274,7 +1274,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                       <div key={item.id} style={{ padding: '10px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 5 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.4 }}>
+                          <div style={{ fontSize: 15, color: '#1e293b', lineHeight: 1.4 }}>
                             <span style={{ fontWeight: 600 }}>{item.actor}</span>
                             {item.action === 'workflow_executed' ? (
                               <> <span style={{ color }}>executou o fluxo</span>{' '}
@@ -1288,7 +1288,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                               {details && <span style={{ color: '#64748b' }}> {details}</span>}</>
                             )}
                           </div>
-                          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>
+                          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
                             {item.created_at ? relTime(item.created_at) : ''}
                           </div>
                         </div>
@@ -1302,10 +1302,10 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
               {rightTab === 'budget' && !isLead && (
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: 13, color: '#334155' }}>Adicionar Item</h4>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: 15, color: '#334155' }}>Adicionar Item</h4>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                       <div style={{ flex: 2, minWidth: 150 }}>
-                        <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Produto / Serviço</label>
+                        <label style={{ fontSize: 13, color: '#64748b', display: 'block', marginBottom: 4 }}>Produto / Serviço</label>
                         <select className="form-input" value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
                           <option value="">Selecione...</option>
                           {(availableProducts || []).filter(p => p.is_active).map(p => (
@@ -1314,11 +1314,11 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         </select>
                       </div>
                       <div style={{ flex: 1, minWidth: 70 }}>
-                        <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Qtd</label>
+                        <label style={{ fontSize: 13, color: '#64748b', display: 'block', marginBottom: 4 }}>Qtd</label>
                         <input type="number" min="1" className="form-input" value={productQuantity} onChange={e => setProductQuantity(e.target.value)} />
                       </div>
                       <div style={{ flex: 1, minWidth: 70 }}>
-                        <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Desc (R$)</label>
+                        <label style={{ fontSize: 13, color: '#64748b', display: 'block', marginBottom: 4 }}>Desc (R$)</label>
                         <input type="number" min="0" step="0.01" className="form-input" value={productDiscount} onChange={e => setProductDiscount(e.target.value)} />
                       </div>
                       <button 
@@ -1344,7 +1344,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
 
                   {cardProducts.length > 0 ? (
                     <>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
                             <th style={{ padding: '8px 4px' }}>Item</th>
@@ -1381,7 +1381,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                         <tfoot>
                           <tr>
                             <td colSpan="4" style={{ textAlign: 'right', padding: '12px 8px', fontWeight: 600 }}>Total Final:</td>
-                            <td colSpan="2" style={{ padding: '12px 4px', fontWeight: 700, color: '#10b981', fontSize: 14 }}>R$ {(cardProducts || []).reduce((sum, item) => sum + item.total_price, 0).toFixed(2)}</td>
+                            <td colSpan="2" style={{ padding: '12px 4px', fontWeight: 700, color: '#10b981', fontSize: 16 }}>R$ {(cardProducts || []).reduce((sum, item) => sum + item.total_price, 0).toFixed(2)}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -1423,7 +1423,7 @@ export default function CardModal({ card, stages, onClose, onSave, onDelete, isL
                       >📄 Baixar PDF do Orçamento</button>
                     </>
                   ) : (
-                    <div style={{ textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: 12 }}>
+                    <div style={{ textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: 14 }}>
                       Nenhum produto ou serviço adicionado ao orçamento deste negócio.
                     </div>
                   )}

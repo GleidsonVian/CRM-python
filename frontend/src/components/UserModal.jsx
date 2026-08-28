@@ -69,14 +69,14 @@ export default function UserModal({ user, onClose, onUpdate, nested = false }) {
                 width: 40, height: 40, borderRadius: '50%',
                 background: color, color: 'white',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 15, fontWeight: 700, flexShrink: 0
+                fontSize: 17, fontWeight: 700, flexShrink: 0
               }}>
                 {initials}
               </div>
               <div>
                 <input
                   className="modal-title-input"
-                  style={{ fontSize: 17 }}
+                  style={{ fontSize: 19 }}
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="Nome completo"
@@ -90,7 +90,7 @@ export default function UserModal({ user, onClose, onUpdate, nested = false }) {
             <div className="modal-header-actions">
               <button
                 className="btn btn-primary"
-                style={{ fontSize: 12 }}
+                style={{ fontSize: 14 }}
                 onClick={handleSave}
                 disabled={saving}
               >
@@ -151,10 +151,10 @@ export default function UserModal({ user, onClose, onUpdate, nested = false }) {
               borderRadius: 'var(--r)',
               border: '1px solid var(--border)',
             }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+              <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                 Resumo
               </div>
-              <div style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+              <div style={{ fontSize: 15.5, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
                 <div>📋 {deals.length} negócio{deals.length !== 1 ? 's' : ''} atribuído{deals.length !== 1 ? 's' : ''}</div>
                 <div>💰 {fmtCurrency(deals.reduce((acc, d) => acc + (d.price || 0), 0))} em pipeline</div>
               </div>
@@ -169,7 +169,7 @@ export default function UserModal({ user, onClose, onUpdate, nested = false }) {
 
             <div className="timeline-events" style={{ padding: 14 }}>
               {deals.length === 0 ? (
-                <div style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', paddingTop: 24 }}>
+                <div style={{ color: 'var(--text-muted)', fontSize: 15, textAlign: 'center', paddingTop: 24 }}>
                   Nenhum negócio atribuído.
                 </div>
               ) : deals.map(d => (
@@ -188,8 +188,8 @@ export default function UserModal({ user, onClose, onUpdate, nested = false }) {
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
                 >
-                  <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{d.title}</div>
-                  <div style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600, marginTop: 4 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)' }}>{d.title}</div>
+                  <div style={{ fontSize: 14, color: 'var(--accent)', fontWeight: 600, marginTop: 4 }}>
                     {fmtCurrency(d.price)}
                   </div>
                 </div>

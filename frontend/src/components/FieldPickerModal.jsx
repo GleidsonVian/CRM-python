@@ -280,26 +280,26 @@ export default function FieldPickerModal({
         }}
       >
         {/* Drag handle */}
-        <div style={{ color: '#cbd5e1', fontSize: 12, flexShrink: 0, cursor: 'grab' }}>⋮⋮</div>
+        <div style={{ color: '#cbd5e1', fontSize: 14, flexShrink: 0, cursor: 'grab' }}>⋮⋮</div>
 
         {/* Type icon */}
         <div style={{
           width: 24, height: 24, borderRadius: 5, flexShrink: 0,
           background: showInModal ? '#eef2ff' : '#f1f5f9',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 9, fontWeight: 800, color: showInModal ? '#6366f1' : '#94a3b8',
+          fontSize: 11, fontWeight: 800, color: showInModal ? '#6366f1' : '#94a3b8',
         }}>{typeMeta?.icon}</div>
 
         {/* Name + badges */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: showInModal ? '#0f172a' : '#94a3b8',
+          <div style={{ fontSize: 14, fontWeight: 600, color: showInModal ? '#0f172a' : '#94a3b8',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {field.name}
           </div>
           <div style={{ display: 'flex', gap: 3, marginTop: 1, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 9, color: '#94a3b8' }}>{typeMeta?.label}</span>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>{typeMeta?.label}</span>
             {reqCount > 0 && (
-              <span style={{ fontSize: 8, fontWeight: 700, color: '#f59e0b', background: '#fef3c7', padding: '0 4px', borderRadius: 3 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b', background: '#fef3c7', padding: '0 4px', borderRadius: 3 }}>
                 🔒 {reqCount} etapa{reqCount !== 1 ? 's' : ''}
               </span>
             )}
@@ -313,7 +313,7 @@ export default function FieldPickerModal({
             style={{
               background: isExp ? '#dcfce7' : 'none', border: `1px solid ${isExp ? '#86efac' : '#e2e8f0'}`,
               borderRadius: 5, cursor: 'pointer', padding: '2px 6px',
-              fontSize: 9, color: isExp ? '#15803d' : '#94a3b8', fontWeight: 700,
+              fontSize: 11, color: isExp ? '#15803d' : '#94a3b8', fontWeight: 700,
               flexShrink: 0, transition: 'all 0.1s',
             }}
           >🔒</button>
@@ -321,7 +321,7 @@ export default function FieldPickerModal({
 
         {/* Visibility toggle */}
         {saving[field.id]
-          ? <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>⏳</span>
+          ? <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>⏳</span>
           : <Toggle on={showInModal} onToggle={() => toggleModal(field)} />
         }
       </div>
@@ -338,14 +338,14 @@ export default function FieldPickerModal({
         border: '1px solid #bbf7d0', padding: '10px 12px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             🔒 Obrigatório nas etapas
           </div>
           <div style={{ display: 'flex', gap: 5 }}>
             <button
               onClick={() => allSelected ? clearAllStages(field) : setAllStages(field)}
               style={{
-                fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 4, cursor: 'pointer',
+                fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, cursor: 'pointer',
                 border: `1px solid ${allSelected ? '#fca5a5' : '#86efac'}`,
                 background: allSelected ? '#fef2f2' : '#dcfce7',
                 color: allSelected ? '#b91c1c' : '#15803d', fontFamily: 'inherit',
@@ -353,7 +353,7 @@ export default function FieldPickerModal({
             >{allSelected ? '✗ Desmarcar todas' : '✓ Marcar todas'}</button>
           </div>
         </div>
-        <div style={{ fontSize: 10, color: '#4b7a5a', marginBottom: 8 }}>
+        <div style={{ fontSize: 12, color: '#4b7a5a', marginBottom: 8 }}>
           O card só entra nestas etapas se o campo estiver preenchido.
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -369,7 +369,7 @@ export default function FieldPickerModal({
                   border: `1.5px solid ${isReq ? col : '#e2e8f0'}`,
                   background: isReq ? col + '18' : 'white',
                   color: isReq ? col : '#64748b',
-                  fontSize: 11, fontWeight: isReq ? 700 : 500,
+                  fontSize: 13, fontWeight: isReq ? 700 : 500,
                   cursor: 'pointer', fontFamily: 'inherit',
                   display: 'flex', alignItems: 'center', gap: 4,
                   transition: 'all 0.12s',
@@ -377,7 +377,7 @@ export default function FieldPickerModal({
               >
                 {stage.type === 'won' ? '🏆' : stage.type === 'lost' ? '❌' : '▸'}
                 {stage.name}
-                {isReq && <span style={{ fontSize: 10 }}>✓</span>}
+                {isReq && <span style={{ fontSize: 12 }}>✓</span>}
               </button>
             );
           })}
@@ -397,13 +397,13 @@ export default function FieldPickerModal({
         {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
           {isUngroup ? (
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8',
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8',
               textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1 }}>
               Sem seção ({secFields.length})
             </div>
           ) : (
             <>
-              <span style={{ fontSize: 13 }}>📁</span>
+              <span style={{ fontSize: 15 }}>📁</span>
               {renamingSection === secName ? (
                 <input
                   autoFocus
@@ -411,13 +411,13 @@ export default function FieldPickerModal({
                   onChange={e => setRenameDraft(e.target.value)}
                   onBlur={applyRename}
                   onKeyDown={e => { if (e.key === 'Enter') applyRename(); if (e.key === 'Escape') setRenamingSection(null); }}
-                  style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#4f46e5',
+                  style={{ flex: 1, fontSize: 14, fontWeight: 700, color: '#4f46e5',
                     border: '1.5px solid #6366f1', borderRadius: 5, padding: '2px 6px',
                     outline: 'none', fontFamily: 'inherit', background: '#eef2ff' }}
                 />
               ) : (
                 <div
-                  style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#4f46e5',
+                  style={{ flex: 1, fontSize: 14, fontWeight: 700, color: '#4f46e5',
                     cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                   title="Clique duplo para renomear"
                   onDoubleClick={() => { setRenamingSection(secName); setRenameDraft(secName); }}
@@ -427,13 +427,13 @@ export default function FieldPickerModal({
                 title="Renomear seção"
                 onClick={() => { setRenamingSection(secName); setRenameDraft(secName); }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#94a3b8', fontSize: 11, padding: '1px 4px', borderRadius: 3 }}
+                  color: '#94a3b8', fontSize: 13, padding: '1px 4px', borderRadius: 3 }}
               >✏️</button>
               <button
                 title="Excluir seção (campos voltam para Sem seção)"
                 onClick={() => deleteSection(secName)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#94a3b8', fontSize: 12, padding: '1px 4px', borderRadius: 3 }}
+                  color: '#94a3b8', fontSize: 14, padding: '1px 4px', borderRadius: 3 }}
                 onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
                 onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
               >✕</button>
@@ -457,7 +457,7 @@ export default function FieldPickerModal({
         >
           {secFields.length === 0 ? (
             <div style={{ textAlign: 'center', color: isOver ? '#6366f1' : '#cbd5e1',
-              fontSize: 11, fontWeight: isOver ? 700 : 400 }}>
+              fontSize: 13, fontWeight: isOver ? 700 : 400 }}>
               {isOver ? '↓ Soltar aqui' : 'Arraste campos aqui'}
             </div>
           ) : (
@@ -500,14 +500,14 @@ export default function FieldPickerModal({
         <div style={{ padding: '16px 20px 0', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>Campos do card</div>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>Campos do card</div>
+              <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 1 }}>
                 Organize campos em seções e configure obrigatoriedade
               </div>
             </div>
             <button onClick={onClose} style={{
               marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
-              color: '#94a3b8', fontSize: 20, lineHeight: 1, padding: 4,
+              color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: 4,
             }}>×</button>
           </div>
 
@@ -519,7 +519,7 @@ export default function FieldPickerModal({
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
                 padding: '8px 14px', border: 'none', background: 'none',
-                cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
                 color: tab === t.id ? '#10b981' : '#64748b',
                 borderBottom: `2px solid ${tab === t.id ? '#10b981' : 'transparent'}`,
                 transition: 'all 0.12s',
@@ -534,20 +534,20 @@ export default function FieldPickerModal({
             <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px 8px' }}>
               {fields.length === 0 ? (
                 <div style={{ padding: '32px 20px', textAlign: 'center', color: '#94a3b8' }}>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>🗂️</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+                  <div style={{ fontSize: 30, marginBottom: 8 }}>🗂️</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
                     Nenhum campo criado ainda
                   </div>
                   <button onClick={() => setTab('create')} style={{
                     marginTop: 8, background: '#10b981', color: 'white', border: 'none',
-                    borderRadius: 8, padding: '7px 16px', fontSize: 12, fontWeight: 600,
+                    borderRadius: 8, padding: '7px 16px', fontSize: 14, fontWeight: 600,
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}>＋ Criar primeiro campo</button>
                 </div>
               ) : (
                 <>
                   {/* Hint */}
-                  <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <span>⋮⋮</span>
                     <span>Arraste campos entre seções — o toggle controla a visibilidade — 🔒 define obrigatoriedade por etapa</span>
                   </div>
@@ -560,7 +560,7 @@ export default function FieldPickerModal({
                   {/* Add section */}
                   {addingSection ? (
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
-                      <span style={{ fontSize: 14 }}>📁</span>
+                      <span style={{ fontSize: 16 }}>📁</span>
                       <input
                         ref={addSecRef}
                         value={addingSectionName}
@@ -569,18 +569,18 @@ export default function FieldPickerModal({
                         placeholder="Nome da seção..."
                         style={{
                           flex: 1, padding: '6px 10px', border: '1.5px solid #6366f1',
-                          borderRadius: 7, fontSize: 12, fontFamily: 'inherit',
+                          borderRadius: 7, fontSize: 14, fontFamily: 'inherit',
                           outline: 'none', color: '#1e293b', background: '#eef2ff',
                         }}
                       />
                       <button onClick={createSection} style={{
                         background: '#6366f1', color: 'white', border: 'none', borderRadius: 7,
-                        padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                        padding: '6px 12px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
                         fontFamily: 'inherit',
                       }}>Criar</button>
                       <button onClick={() => { setAddingSection(false); setAddingSectionName(''); }} style={{
                         background: 'none', border: '1px solid #e2e8f0', borderRadius: 7,
-                        padding: '6px 10px', fontSize: 12, color: '#64748b', cursor: 'pointer',
+                        padding: '6px 10px', fontSize: 14, color: '#64748b', cursor: 'pointer',
                         fontFamily: 'inherit',
                       }}>✕</button>
                     </div>
@@ -589,7 +589,7 @@ export default function FieldPickerModal({
                       onClick={() => setAddingSection(true)}
                       style={{
                         marginTop: 6, width: '100%', padding: '8px', border: '1.5px dashed #c7d2fe',
-                        borderRadius: 8, background: 'none', color: '#6366f1', fontSize: 12,
+                        borderRadius: 8, background: 'none', color: '#6366f1', fontSize: 14,
                         fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         transition: 'all 0.12s',
@@ -605,7 +605,7 @@ export default function FieldPickerModal({
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '8px 16px', borderTop: '1px solid #f1f5f9', fontSize: 10, color: '#94a3b8' }}>
+            <div style={{ padding: '8px 16px', borderTop: '1px solid #f1f5f9', fontSize: 12, color: '#94a3b8' }}>
               {fields.length > 0 && `${fields.filter(f => getShowInModal(f)).length} de ${fields.length} campos visíveis`}
             </div>
           </>
@@ -616,7 +616,7 @@ export default function FieldPickerModal({
           <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             <div>
-              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
                 Nome do campo *
               </label>
               <input
@@ -625,12 +625,12 @@ export default function FieldPickerModal({
                 onChange={e => setNewName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCreate()}
                 placeholder="Ex: CNPJ, Temperatura do lead..."
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#0f172a', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 15, fontFamily: 'inherit', outline: 'none', color: '#0f172a', boxSizing: 'border-box' }}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
                 Tipo do campo
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
@@ -639,7 +639,7 @@ export default function FieldPickerModal({
                     display: 'flex', alignItems: 'center', gap: 6, padding: '7px 8px', borderRadius: 7,
                     cursor: 'pointer', border: `1.5px solid ${newType === t.value ? '#6366f1' : '#e2e8f0'}`,
                     background: newType === t.value ? '#eef2ff' : 'white', fontFamily: 'inherit',
-                    fontSize: 11, fontWeight: newType === t.value ? 700 : 500,
+                    fontSize: 13, fontWeight: newType === t.value ? 700 : 500,
                     color: newType === t.value ? '#4338ca' : '#475569', transition: 'all 0.1s',
                   }}>
                     <span style={{
@@ -647,7 +647,7 @@ export default function FieldPickerModal({
                       background: newType === t.value ? '#6366f1' : '#f1f5f9',
                       color: newType === t.value ? 'white' : '#94a3b8',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 9, fontWeight: 800,
+                      fontSize: 11, fontWeight: 800,
                     }}>{t.icon}</span>
                     {t.label}
                   </button>
@@ -656,7 +656,7 @@ export default function FieldPickerModal({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
                 Seção <span style={{ fontWeight: 400, textTransform: 'none', color: '#94a3b8' }}>(opcional)</span>
               </label>
               {sectionNames.length > 0 && (
@@ -667,7 +667,7 @@ export default function FieldPickerModal({
                       border: `1.5px solid ${newSection === s ? '#8b5cf6' : '#e2e8f0'}`,
                       background: newSection === s ? '#f3e8ff' : 'white',
                       color: newSection === s ? '#7c3aed' : '#64748b',
-                      fontSize: 11, fontWeight: newSection === s ? 700 : 500,
+                      fontSize: 13, fontWeight: newSection === s ? 700 : 500,
                       cursor: 'pointer', fontFamily: 'inherit',
                     }}>📁 {s}</button>
                   ))}
@@ -677,11 +677,11 @@ export default function FieldPickerModal({
                 value={newSection}
                 onChange={e => setNewSection(e.target.value)}
                 placeholder="Ex: Cliente, Contrato, Financeiro…"
-                style={{ width: '100%', padding: '7px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12, fontFamily: 'inherit', outline: 'none', color: '#0f172a', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '7px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#0f172a', boxSizing: 'border-box' }}
               />
             </div>
 
-            <div style={{ background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: '#065f46', display: 'flex', gap: 6 }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: '#065f46', display: 'flex', gap: 6 }}>
               <span>✓</span>
               <span>O campo será criado e ficará visível neste card</span>
             </div>
@@ -689,14 +689,14 @@ export default function FieldPickerModal({
             <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
               <button onClick={() => setTab('manage')} style={{
                 flex: 1, padding: '9px', border: '1px solid #e2e8f0', borderRadius: 8,
-                background: 'white', color: '#64748b', fontSize: 13, fontWeight: 600,
+                background: 'white', color: '#64748b', fontSize: 15, fontWeight: 600,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Cancelar</button>
               <button onClick={handleCreate} disabled={!newName.trim() || creating} style={{
                 flex: 2, padding: '9px', border: 'none', borderRadius: 8,
                 background: newName.trim() ? '#10b981' : '#e2e8f0',
                 color: newName.trim() ? 'white' : '#94a3b8',
-                fontSize: 13, fontWeight: 700, cursor: newName.trim() ? 'pointer' : 'default',
+                fontSize: 15, fontWeight: 700, cursor: newName.trim() ? 'pointer' : 'default',
                 fontFamily: 'inherit', transition: 'all 0.12s',
               }}>{creating ? 'Criando...' : '＋ Criar campo'}</button>
             </div>

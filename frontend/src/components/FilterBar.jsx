@@ -25,7 +25,7 @@ const AMOUNT_OPS = [
 const SOURCES = ['Site', 'Indicação', 'Cold call', 'Email', 'Redes sociais', 'Evento', 'Outro'];
 
 const INPUT = {
-  width: '100%', padding: '12px 14px', fontSize: 14,
+  width: '100%', padding: '12px 14px', fontSize: 16,
   border: '1px solid #e2e8f0', borderRadius: 8, outline: 'none',
   fontFamily: 'inherit', background: '#f8fafc', boxSizing: 'border-box',
   transition: 'border-color 0.15s, box-shadow 0.15s',
@@ -43,12 +43,12 @@ function FilterChip({ label, onRemove }) {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
       background: '#e0f2fe', color: '#0369a1', borderRadius: 20,
-      padding: '4px 12px 4px 10px', fontSize: 13, fontWeight: 500,
+      padding: '4px 12px 4px 10px', fontSize: 15, fontWeight: 500,
     }}>
       {label}
       <button onClick={onRemove} style={{
         background: 'none', border: 'none', cursor: 'pointer', color: '#0369a1',
-        padding: 0, lineHeight: 1, fontSize: 16, display: 'flex', alignItems: 'center',
+        padding: 0, lineHeight: 1, fontSize: 18, display: 'flex', alignItems: 'center',
       }}>×</button>
     </span>
   );
@@ -57,7 +57,7 @@ function FilterChip({ label, onRemove }) {
 function FilterField({ label, children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <label style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+      <label style={{ fontSize: 14, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.6 }}>
         {label}
       </label>
       {children}
@@ -138,7 +138,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
             borderRadius: 8,
             background: hasFilters ? '#f0f9ff' : 'white',
             color: hasFilters ? '#0369a1' : '#64748b',
-            cursor: 'pointer', fontSize: 13, fontWeight: 500, fontFamily: 'inherit',
+            cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit',
             boxShadow: open ? '0 0 0 3px rgba(14,165,233,0.15)' : 'none',
             transition: 'all 0.15s',
           }}
@@ -150,7 +150,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
           {hasFilters && (
             <span style={{
               background: '#0ea5e9', color: 'white', borderRadius: 12,
-              padding: '1px 7px', fontSize: 11, fontWeight: 700,
+              padding: '1px 7px', fontSize: 13, fontWeight: 700,
             }}>{chips.length}</span>
           )}
         </button>
@@ -162,7 +162,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
         {hasFilters && (
           <button onClick={reset} style={{
             background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', fontSize: 12, padding: '2px 6px',
+            cursor: 'pointer', fontSize: 14, padding: '2px 6px',
           }}>
             Limpar filtros
           </button>
@@ -189,7 +189,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
             padding: '22px 0',
             display: 'flex', flexDirection: 'column', gap: 2,
           }}>
-            <div style={{ padding: '0 22px 12px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            <div style={{ padding: '0 22px 12px', fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
               Filtros rápidos
             </div>
             {PRESET_FILTERS.map(p => (
@@ -201,7 +201,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
                   padding: '11px 22px', border: 'none',
                   background: activePreset === p.id ? '#e0f2fe' : 'transparent',
                   color: activePreset === p.id ? '#0369a1' : '#334155',
-                  cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', textAlign: 'left',
+                  cursor: 'pointer', fontSize: 16, fontFamily: 'inherit', textAlign: 'left',
                   fontWeight: activePreset === p.id ? 600 : 400,
                   borderRadius: 0,
                   transition: 'background 0.1s',
@@ -209,14 +209,14 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
                 onMouseEnter={e => { if (activePreset !== p.id) e.currentTarget.style.background = '#f1f5f9'; }}
                 onMouseLeave={e => { if (activePreset !== p.id) e.currentTarget.style.background = 'transparent'; }}
               >
-                <span style={{ fontSize: 12, width: 18, textAlign: 'center', opacity: 0.55 }}>{p.icon}</span>
+                <span style={{ fontSize: 14, width: 18, textAlign: 'center', opacity: 0.55 }}>{p.icon}</span>
                 {p.label}
               </button>
             ))}
 
             <div style={{ borderTop: '1px solid #e2e8f0', margin: '14px 0' }} />
 
-            <div style={{ padding: '0 22px 12px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            <div style={{ padding: '0 22px 12px', fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
               Por etapa
             </div>
             {stages.map(s => (
@@ -228,7 +228,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
                   padding: '10px 22px', border: 'none',
                   background: draft.stage_id === s.id ? '#e0f2fe' : 'transparent',
                   color: draft.stage_id === s.id ? '#0369a1' : '#334155',
-                  cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textAlign: 'left',
+                  cursor: 'pointer', fontSize: 15, fontFamily: 'inherit', textAlign: 'left',
                   fontWeight: draft.stage_id === s.id ? 600 : 400,
                   transition: 'background 0.1s',
                 }}
@@ -243,7 +243,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
 
           {/* Right: fields */}
           <div style={{ flex: 1, padding: '28px 34px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', maxHeight: 600 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 0 }}>
               {isLead ? 'Campos do Lead' : 'Campos do Negócio'}
             </div>
 
@@ -276,7 +276,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
                 <input type="number" style={{ ...INPUT, width: 120, flex: 'none' }} placeholder="R$ 0,00" value={draft.amount_val || ''} onChange={e => set('amount_val', e.target.value)} />
                 {draft.amount_op === 'between' && (
                   <>
-                    <span style={{ color: '#94a3b8', fontSize: 13, flexShrink: 0 }}>até</span>
+                    <span style={{ color: '#94a3b8', fontSize: 15, flexShrink: 0 }}>até</span>
                     <input type="number" style={{ ...INPUT, width: 120, flex: 'none' }} placeholder="R$ 0,00" value={draft.amount_val2 || ''} onChange={e => set('amount_val2', e.target.value)} />
                   </>
                 )}
@@ -291,7 +291,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
               {draft.date_preset === 'custom' && (
                 <div style={{ display: 'flex', gap: 10, marginTop: 8, alignItems: 'center' }}>
                   <input type="date" style={{ ...INPUT, flex: 1 }} value={draft.date_from || ''} onChange={e => set('date_from', e.target.value)} />
-                  <span style={{ color: '#94a3b8', fontSize: 13, flexShrink: 0 }}>até</span>
+                  <span style={{ color: '#94a3b8', fontSize: 15, flexShrink: 0 }}>até</span>
                   <input type="date" style={{ ...INPUT, flex: 1 }} value={draft.date_to || ''} onChange={e => set('date_to', e.target.value)} />
                 </div>
               )}
@@ -323,7 +323,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
                 style={{
                   padding: '11px 26px', borderRadius: 8, border: '1px solid #e2e8f0',
                   background: 'white', color: '#64748b', cursor: 'pointer',
-                  fontSize: 14, fontFamily: 'inherit', fontWeight: 500,
+                  fontSize: 16, fontFamily: 'inherit', fontWeight: 500,
                 }}
               >Limpar</button>
               <button
@@ -331,7 +331,7 @@ export default function FilterBar({ isLead, stages, activeFilters, onApply, user
                 style={{
                   padding: '11px 34px', borderRadius: 8, border: 'none',
                   background: '#ed5418', color: 'white', cursor: 'pointer',
-                  fontSize: 14, fontFamily: 'inherit', fontWeight: 700,
+                  fontSize: 16, fontFamily: 'inherit', fontWeight: 700,
                   boxShadow: '0 2px 10px rgba(237,84,24,0.35)',
                 }}
               >Aplicar</button>

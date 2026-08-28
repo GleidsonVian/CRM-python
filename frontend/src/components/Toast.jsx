@@ -68,7 +68,7 @@ export function ToastContainer() {
               borderRadius: 10,
               boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
               minWidth: 240, maxWidth: 360,
-              fontSize: 13.5, fontWeight: 500, color: '#1e293b',
+              fontSize: 15.5, fontWeight: 500, color: '#1e293b',
               transform: t.visible ? 'translateY(0)' : 'translateY(16px)',
               opacity: t.visible ? 1 : 0,
               transition: 'opacity 0.3s ease, transform 0.3s ease',

@@ -32,15 +32,15 @@ export function LeadConvertModal({ lead, onConfirm, onClose }) {
         background: 'var(--bg-card)', borderRadius: 12, padding: 28, width: 420,
         boxShadow: '0 8px 40px rgba(0,0,0,0.22)', position: 'relative',
       }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18 }}>×</button>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 18, color: 'var(--text-primary)' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 20 }}>×</button>
+        <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 18, color: 'var(--text-primary)' }}>
           Selecione o resultado de conversão do Lead
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 22 }}>
           {CONVERT_OPTIONS.map(opt => (
             <label key={opt.id} style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px',
-              borderRadius: 8, cursor: 'pointer', fontSize: 14,
+              borderRadius: 8, cursor: 'pointer', fontSize: 16,
               background: selected === opt.id ? 'var(--accent-light, #ede9fe)' : 'transparent',
               color: selected === opt.id ? 'var(--accent, #7c3aed)' : 'var(--text-primary)',
               fontWeight: selected === opt.id ? 600 : 400,
@@ -54,8 +54,8 @@ export function LeadConvertModal({ lead, onConfirm, onClose }) {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost" onClick={onClose} style={{ fontSize: 13 }}>Cancelar</button>
-          <button className="btn btn-primary" style={{ fontSize: 13, background: '#7c3aed', borderColor: '#7c3aed', minWidth: 120 }}
+          <button className="btn btn-ghost" onClick={onClose} style={{ fontSize: 15 }}>Cancelar</button>
+          <button className="btn btn-primary" style={{ fontSize: 15, background: '#7c3aed', borderColor: '#7c3aed', minWidth: 120 }}
             onClick={handleConfirm} disabled={converting}>
             {converting ? 'Convertendo...' : 'Confirmar'}
           </button>
@@ -115,15 +115,15 @@ function ChipUser({ user, onRemove }) {
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
       background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 20,
-      padding: '3px 8px 3px 4px', fontSize: 12, marginRight: 4, marginBottom: 4 }}>
+      padding: '3px 8px 3px 4px', fontSize: 14, marginRight: 4, marginBottom: 4 }}>
       <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg, color: 'white',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
         {initials}
       </div>
       <span style={{ fontWeight: 500 }}>{user.name}</span>
       {onRemove && (
         <button onClick={() => onRemove(user.id)} style={{ background: 'none', border: 'none',
-          cursor: 'pointer', color: '#94a3b8', padding: 0, fontSize: 13, lineHeight: 1 }}>×</button>
+          cursor: 'pointer', color: '#94a3b8', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
       )}
     </div>
   );
@@ -317,7 +317,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
               <div className="modal-title-wrap">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                   <span style={{
-                    fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
                     background: isConverted ? '#f0fdf4' : '#ede9fe',
                     color: isConverted ? '#10b981' : '#7c3aed',
                     padding: '2px 7px', borderRadius: 4, flexShrink: 0,
@@ -336,17 +336,17 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
               <div className="modal-header-actions">
                 {!isConverted && onConvert && (
                   <button className="btn btn-primary"
-                    style={{ fontSize: 12, background: '#7c3aed', borderColor: '#7c3aed' }}
+                    style={{ fontSize: 14, background: '#7c3aed', borderColor: '#7c3aed' }}
                     onClick={() => setShowConvertModal(true)}>
                     ⚡ Lead convertido
                   </button>
                 )}
-                <button className="btn btn-danger" style={{ fontSize: 12 }}
+                <button className="btn btn-danger" style={{ fontSize: 14 }}
                   onClick={async () => { if (await confirm('Excluir este lead?', 'Esta ação não pode ser desfeita.')) onDelete(lead.id); }}>
                   Excluir
                 </button>
-                {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
-                {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                {saveStatus === 'saving' && <span style={{ fontSize: 13, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                {saveStatus === 'saved' && <span style={{ fontSize: 13, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
                 <button className="icon-btn" onClick={handleClose}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -476,7 +476,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                                   .map(u => (
                                     <div key={u.id} className="contact-dropdown-item" onMouseDown={() => addUser(u)}>
                                       {u.name}
-                                      <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>{u.role}</span>
+                                      <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 4 }}>{u.role}</span>
                                     </div>
                                   ))}
                               </div>
@@ -523,7 +523,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                               transition: 'left 0.2s', left: form.available_to_all ? 19 : 3,
                             }} />
                           </button>
-                          <span style={{ fontSize: 13, color: form.available_to_all ? '#10b981' : '#94a3b8' }}>
+                          <span style={{ fontSize: 15, color: form.available_to_all ? '#10b981' : '#94a3b8' }}>
                             {form.available_to_all ? 'Sim' : 'Não'}
                           </span>
                         </div>
@@ -552,7 +552,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                     {
                       id: 'lead.utm', name: 'Parâmetros UTM',
                       renderContent: () => (
-                        <div style={{ fontSize: 13, color: '#64748b' }}>
+                        <div style={{ fontSize: 15, color: '#64748b' }}>
                           {(lead.utm_source || lead.utm_medium || lead.utm_campaign) ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                               {lead.utm_source   && <span>utm_source: <b>{lead.utm_source}</b></span>}
@@ -565,18 +565,18 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                     },
                     {
                       id: 'lead.id', name: 'ID',
-                      renderContent: () => <span style={{ fontSize: 14, color: '#64748b', fontFamily: 'monospace' }}>#{lead.id}</span>,
+                      renderContent: () => <span style={{ fontSize: 16, color: '#64748b', fontFamily: 'monospace' }}>#{lead.id}</span>,
                     },
                     {
                       id: 'lead.stage', name: 'Etapa',
                       renderContent: () => {
                         const s = stages?.find(st => st.id === form.stage_id);
-                        return <span style={{ fontSize: 14, color: '#334155' }}>{s?.name ?? '—'}</span>;
+                        return <span style={{ fontSize: 16, color: '#334155' }}>{s?.name ?? '—'}</span>;
                       },
                     },
                     {
                       id: 'lead.created_at', name: 'Criado em',
-                      renderContent: () => <span style={{ fontSize: 14, color: '#64748b' }}>{fmtDate(lead.created_at)}</span>,
+                      renderContent: () => <span style={{ fontSize: 16, color: '#64748b' }}>{fmtDate(lead.created_at)}</span>,
                     },
                   ]}
                 />
@@ -597,7 +597,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                     borderBottom: `2px solid ${rightTab === t.key ? '#6366f1' : 'transparent'}`,
                     color: rightTab === t.key ? '#6366f1' : '#64748b',
                     fontWeight: rightTab === t.key ? 700 : 500,
-                    fontSize: 11, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+                    fontSize: 13, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
                   }}>{t.label}</button>
                 ))}
               </div>
@@ -616,7 +616,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                   </div>
                   <div className="timeline-events">
                     {activities.length === 0 && (
-                      <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                         Nenhuma atividade registrada
                       </div>
                     )}
@@ -629,19 +629,19 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                             width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                             background: meta.color + '18',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 13, border: `1.5px solid ${meta.color}30`,
+                            fontSize: 15, border: `1.5px solid ${meta.color}30`,
                           }}>{meta.icon}</div>
                           <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                             <div className="event-content">{act.content}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                               <span style={{
-                                fontSize: 10, fontWeight: 600,
+                                fontSize: 12, fontWeight: 600,
                                 color: isAuto ? '#0ea5e9' : '#64748b',
                                 background: isAuto ? '#f0f9ff' : '#f1f5f9',
                                 padding: '1px 5px', borderRadius: 4,
                               }}>{isAuto ? '🤖 ' + (act.actor || 'Sistema') : '👤 ' + (act.actor || 'Usuário')}</span>
-                              <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                              <span className="event-time" style={{ fontSize: 10 }}>{relTime(act.created_at)}</span>
+                              <span style={{ fontSize: 12, color: '#94a3b8' }}>·</span>
+                              <span className="event-time" style={{ fontSize: 12 }}>{relTime(act.created_at)}</span>
                             </div>
                           </div>
                         </div>
@@ -655,8 +655,8 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
               {rightTab === 'workflows' && (
                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {workflows.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '32px 16px', color: '#94a3b8', fontSize: 13 }}>
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>⚡</div>
+                    <div style={{ textAlign: 'center', padding: '32px 16px', color: '#94a3b8', fontSize: 15 }}>
+                      <div style={{ fontSize: 30, marginBottom: 8 }}>⚡</div>
                       Nenhum fluxo disponível para leads
                     </div>
                   ) : workflows.map(wf => {
@@ -668,9 +668,9 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                         display: 'flex', alignItems: 'center', gap: 10,
                       }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{wf.name}</div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: '#1e293b' }}>{wf.name}</div>
                           {msg && (
-                            <div style={{ fontSize: 11.5, marginTop: 3, color: msg.status === 'ok' ? '#16a34a' : msg.status === 'error' ? '#dc2626' : '#64748b' }}>
+                            <div style={{ fontSize: 13.5, marginTop: 3, color: msg.status === 'ok' ? '#16a34a' : msg.status === 'error' ? '#dc2626' : '#64748b' }}>
                               {msg.status === 'ok' ? '✓ ' : msg.status === 'error' ? '✕ ' : '⏳ '}{msg.text}
                             </div>
                           )}
@@ -679,7 +679,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
                           onClick={() => executeWorkflow(wf.id)}
                           disabled={msg?.status === 'loading'}
                           className="btn btn-primary"
-                          style={{ fontSize: 12, padding: '5px 12px', whiteSpace: 'nowrap' }}
+                          style={{ fontSize: 14, padding: '5px 12px', whiteSpace: 'nowrap' }}
                         >
                           {msg?.status === 'loading' ? '…' : '▶ Executar'}
                         </button>
@@ -692,7 +692,7 @@ export default function LeadModal({ lead, stages, onClose, onSave, onDelete, onC
               {/* History tab */}
               {rightTab === 'history' && (
                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-                  <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                  <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                     Histórico não disponível para leads
                   </div>
                 </div>

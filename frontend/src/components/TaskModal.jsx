@@ -126,26 +126,26 @@ function EntityPicker({ type, value, onChange, onOpen, pipelines }) {
       <div>
         {linked ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', border: '1.5px solid #6366f1', borderRadius: 8, background: '#eef2ff' }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', background: '#c7d2fe', borderRadius: 4, padding: '1px 5px' }}>#{linked.id}</span>
-            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', background: '#c7d2fe', borderRadius: 4, padding: '1px 5px' }}>#{linked.id}</span>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {getItemLabel(linked)}
             </span>
             {onOpen && (
               <button onClick={() => onOpen(linked.id)} title={`Abrir ${entityLabel}`} style={{
-                background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', fontSize: 14, padding: '0 2px', flexShrink: 0,
+                background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', fontSize: 16, padding: '0 2px', flexShrink: 0,
               }}>↗</button>
             )}
             <button onClick={() => { onChange(''); setLinked(null); }} title="Desvincular" style={{
-              background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16, padding: '0 2px', flexShrink: 0, lineHeight: 1,
+              background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 18, padding: '0 2px', flexShrink: 0, lineHeight: 1,
             }}>×</button>
             <button onClick={handleOpen} title="Trocar" style={{
-              background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 11, padding: '0 4px', flexShrink: 0, textDecoration: 'underline',
+              background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 13, padding: '0 4px', flexShrink: 0, textDecoration: 'underline',
             }}>trocar</button>
           </div>
         ) : (
           <button onClick={handleOpen} style={{
             width: '100%', textAlign: 'left', padding: '7px 10px', border: '1px dashed #cbd5e1',
-            borderRadius: 8, fontSize: 13, color: '#94a3b8', cursor: 'pointer', background: 'white', fontFamily: 'inherit',
+            borderRadius: 8, fontSize: 15, color: '#94a3b8', cursor: 'pointer', background: 'white', fontFamily: 'inherit',
           }}>
             + Vincular {entityLabel}...
           </button>
@@ -161,23 +161,23 @@ function EntityPicker({ type, value, onChange, onOpen, pipelines }) {
       <div style={{ padding: '8px 10px', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 6 }}>
         <input
           ref={inputRef}
-          style={{ flex: 1, padding: '5px 9px', border: '1px solid #e2e8f0', borderRadius: 7, fontSize: 12, fontFamily: 'inherit', outline: 'none' }}
+          style={{ flex: 1, padding: '5px 9px', border: '1px solid #e2e8f0', borderRadius: 7, fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
           placeholder={`Buscar por nome ou #ID...`}
           value={query}
           onChange={e => handleQueryChange(e.target.value)}
         />
-        <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
+        <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, padding: '0 4px', lineHeight: 1 }}>×</button>
       </div>
 
       {/* Pipeline / Stage filter */}
       <div style={{ padding: '6px 10px', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 6 }}>
-        <select style={{ flex: 1, padding: '4px 7px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 11, fontFamily: 'inherit', color: '#475569', background: 'white' }}
+        <select style={{ flex: 1, padding: '4px 7px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', color: '#475569', background: 'white' }}
           value={pipelineId} onChange={e => handlePipelineChange(e.target.value)}>
           <option value="">Todos os pipelines</option>
           {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         {stages.length > 0 && (
-          <select style={{ flex: 1, padding: '4px 7px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 11, fontFamily: 'inherit', color: '#475569', background: 'white' }}
+          <select style={{ flex: 1, padding: '4px 7px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', color: '#475569', background: 'white' }}
             value={stageId} onChange={e => handleStageChange(e.target.value)}>
             <option value="">Todas as etapas</option>
             {stages.map(s => (
@@ -190,9 +190,9 @@ function EntityPicker({ type, value, onChange, onOpen, pipelines }) {
       {/* Results */}
       <div style={{ maxHeight: 180, overflowY: 'auto' }}>
         {loading ? (
-          <div style={{ padding: '12px 10px', fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>Buscando...</div>
+          <div style={{ padding: '12px 10px', fontSize: 14, color: '#94a3b8', textAlign: 'center' }}>Buscando...</div>
         ) : results.length === 0 ? (
-          <div style={{ padding: '12px 10px', fontSize: 12, color: '#94a3b8', textAlign: 'center', fontStyle: 'italic' }}>Nenhum resultado</div>
+          <div style={{ padding: '12px 10px', fontSize: 14, color: '#94a3b8', textAlign: 'center', fontStyle: 'italic' }}>Nenhum resultado</div>
         ) : results.map(item => (
           <button key={item.id} onClick={() => handleSelect(item)} style={{
             display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
@@ -202,10 +202,10 @@ function EntityPicker({ type, value, onChange, onOpen, pipelines }) {
             onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
             onMouseLeave={e => e.currentTarget.style.background = 'white'}
           >
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>#{item.id}</span>
-            <span style={{ flex: 1, fontSize: 12, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getItemLabel(item)}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>#{item.id}</span>
+            <span style={{ flex: 1, fontSize: 14, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getItemLabel(item)}</span>
             {item.stage_id && stages.find(s => s.id === item.stage_id) && (
-              <span style={{ fontSize: 10, color: '#64748b', background: '#f1f5f9', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>
+              <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>
                 {stages.find(s => s.id === item.stage_id)?.name}
               </span>
             )}
@@ -392,7 +392,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
   const isOverdue = dueDate && status !== 'done' && new Date(dueDate) < new Date();
 
   const Lbl = ({ children }) => (
-    <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
+    <label style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
       {children}
     </label>
   );
@@ -410,37 +410,37 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
         <div style={{ padding: '16px 22px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
             {!isNew && (
-              <code style={{ fontSize: 12, background: '#1e293b', color: '#f59e0b', padding: '3px 10px', borderRadius: 5, fontWeight: 700 }}>
+              <code style={{ fontSize: 14, background: '#1e293b', color: '#f59e0b', padding: '3px 10px', borderRadius: 5, fontWeight: 700 }}>
                 {initialTask.uid || `#${initialTask.id}`}
               </code>
             )}
             <div style={{ display: 'flex', gap: 5 }}>
               {PRIORITIES.map(p => (
                 <button key={p.id} onClick={() => setPriority(p.id)} title={p.label}
-                  style={{ padding: '4px 10px', borderRadius: 6, border: `1.5px solid ${priority === p.id ? p.color : '#e2e8f0'}`, background: priority === p.id ? p.color + '15' : 'white', color: priority === p.id ? p.color : '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                  style={{ padding: '4px 10px', borderRadius: 6, border: `1.5px solid ${priority === p.id ? p.color : '#e2e8f0'}`, background: priority === p.id ? p.color + '15' : 'white', color: priority === p.id ? p.color : '#94a3b8', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s' }}>
                   {p.icon} {p.label}
                 </button>
               ))}
             </div>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-              {isOverdue && <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>⚠ Atrasado</span>}
-              {!isNew && <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 13 }}>Excluir</button>}
+              {isOverdue && <span style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', background: '#fef2f2', padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca' }}>⚠ Atrasado</span>}
+              {!isNew && <button onClick={handleDelete} className="btn btn-danger" style={{ fontSize: 15 }}>Excluir</button>}
               {isNew ? (
-                <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 13 }}>
+                <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 15 }}>
                   {saving ? 'Salvando...' : 'Criar tarefa'}
                 </button>
               ) : (
                 <>
-                  {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
-                  {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+                  {saveStatus === 'saving' && <span style={{ fontSize: 13, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+                  {saveStatus === 'saved' && <span style={{ fontSize: 13, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
                 </>
               )}
-              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>×</button>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 24, lineHeight: 1, padding: '0 4px' }}>×</button>
             </div>
           </div>
 
           <input
-            style={{ width: '100%', fontSize: 22, fontWeight: 700, color: '#0f172a', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            style={{ width: '100%', fontSize: 24, fontWeight: 700, color: '#0f172a', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', boxSizing: 'border-box' }}
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="Título da tarefa..."
@@ -450,7 +450,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
           <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
             {STATUSES.map(s => (
               <button key={s.id} onClick={() => setStatus(s.id)}
-                style={{ padding: '5px 16px', borderRadius: 20, border: `1.5px solid ${status === s.id ? s.color : '#e2e8f0'}`, background: status === s.id ? s.color : 'white', color: status === s.id ? 'white' : '#64748b', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                style={{ padding: '5px 16px', borderRadius: 20, border: `1.5px solid ${status === s.id ? s.color : '#e2e8f0'}`, background: status === s.id ? s.color : 'white', color: status === s.id ? 'white' : '#64748b', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
                 {s.label}
               </button>
             ))}
@@ -465,7 +465,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
             <div>
               <Lbl>Descrição</Lbl>
               <textarea
-                style={{ width: '100%', minHeight: 90, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' }}
+                style={{ width: '100%', minHeight: 90, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 16, color: '#334155', fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' }}
                 value={description}
                 onChange={e => setDesc(e.target.value)}
                 placeholder="Detalhes, contexto, critérios de conclusão..."
@@ -478,21 +478,21 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
               <div>
                 <Lbl>📅 Prazo</Lbl>
                 <input type="date"
-                  style={{ width: '100%', padding: '9px 12px', border: `1px solid ${isOverdue ? '#fecaca' : '#e2e8f0'}`, borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: isOverdue ? '#ef4444' : '#334155', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', border: `1px solid ${isOverdue ? '#fecaca' : '#e2e8f0'}`, borderRadius: 8, fontSize: 16, fontFamily: 'inherit', outline: 'none', color: isOverdue ? '#ef4444' : '#334155', boxSizing: 'border-box' }}
                   value={dueDate} onChange={e => setDueDate(e.target.value)}
                 />
-                {isOverdue && <div style={{ fontSize: 10, color: '#ef4444', marginTop: 2 }}>Prazo vencido</div>}
+                {isOverdue && <div style={{ fontSize: 12, color: '#ef4444', marginTop: 2 }}>Prazo vencido</div>}
               </div>
               <div>
                 <Lbl>👤 Responsável</Lbl>
                 {allUsers.length > 0 ? (
-                  <select style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
+                  <select style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
                     value={assignedTo} onChange={e => setAssigned(e.target.value)}>
                     <option value="">Sem responsável</option>
                     {allUsers.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                   </select>
                 ) : (
-                  <input style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#334155', boxSizing: 'border-box' }}
+                  <input style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#334155', boxSizing: 'border-box' }}
                     value={assignedTo} onChange={e => setAssigned(e.target.value)} placeholder="Nome do responsável..." />
                 )}
               </div>
@@ -501,7 +501,7 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
             {/* Project */}
             <div>
               <Lbl>📁 Projeto</Lbl>
-              <select style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
+              <select style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#334155', background: 'white', cursor: 'pointer', boxSizing: 'border-box' }}
                 value={projectId} onChange={e => setProjectId(e.target.value)}>
                 <option value="">Nenhum</option>
                 {allProjects.map(p => <option key={p.id} value={p.id}>{p.icon} {p.name}</option>)}
@@ -535,36 +535,36 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
             {/* Time tracking */}
             {!isNew && (
               <div style={{ background: '#0f172a', borderRadius: 10, padding: '12px 14px' }}>
-                <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
                   ⏱ Rastreamento de tempo
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <div style={{ fontFamily: 'monospace', fontSize: 22, color: timerRunning ? '#10b981' : '#f8fafc', fontWeight: 800, minWidth: 80, textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'monospace', fontSize: 24, color: timerRunning ? '#10b981' : '#f8fafc', fontWeight: 800, minWidth: 80, textAlign: 'center' }}>
                     {timerRunning ? fmtSeconds(timerDisplay) : fmtSeconds(totalTime)}
                   </div>
                   <div style={{ flex: 1 }}>
                     {timerRunning ? (
                       <button onClick={handleStopTimer}
-                        style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: '#ef4444', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: '#ef4444', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
                         ■ Pausar
                       </button>
                     ) : (
                       <button onClick={handleStartTimer}
-                        style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: '#10b981', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: '#10b981', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
                         ▶ Iniciar
                       </button>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, color: '#64748b', textAlign: 'right' }}>
+                  <div style={{ fontSize: 13, color: '#64748b', textAlign: 'right' }}>
                     Total acumulado<br />
-                    <span style={{ fontSize: 14, color: '#f8fafc', fontWeight: 700 }}>{fmtSeconds(totalTime)}</span>
+                    <span style={{ fontSize: 16, color: '#f8fafc', fontWeight: 700 }}>{fmtSeconds(totalTime)}</span>
                   </div>
                 </div>
 
                 {timeEntries.length > 0 && (
                   <div style={{ borderTop: '1px solid #1e293b', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 120, overflowY: 'auto' }}>
                     {timeEntries.slice().reverse().map((e, i) => (
-                      <div key={e.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: '#64748b' }}>
+                      <div key={e.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#64748b' }}>
                         <span style={{ color: e.ended_at ? '#94a3b8' : '#10b981', fontWeight: 700 }}>{e.ended_at ? '■' : '▶'}</span>
                         <span>{e.user_name || 'Usuário'}</span>
                         <span style={{ marginLeft: 'auto', color: '#f59e0b', fontWeight: 700 }}>{fmtSeconds(e.duration_seconds || 0)}</span>
@@ -578,12 +578,12 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
 
             {!isNew && (
               <div style={{ background: '#1e293b', borderRadius: 8, padding: '10px 14px' }}>
-                <div style={{ fontSize: 9, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Identificadores</div>
+                <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Identificadores</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px', alignItems: 'center' }}>
-                  <span style={{ fontSize: 9, color: '#64748b' }}>UID</span>
-                  <code style={{ fontSize: 14, color: '#f59e0b', fontWeight: 800 }}>{initialTask.uid || '—'}</code>
-                  <span style={{ fontSize: 9, color: '#64748b' }}>ID</span>
-                  <code style={{ fontSize: 11, color: '#a78bfa' }}>#{initialTask.id}</code>
+                  <span style={{ fontSize: 11, color: '#64748b' }}>UID</span>
+                  <code style={{ fontSize: 16, color: '#f59e0b', fontWeight: 800 }}>{initialTask.uid || '—'}</code>
+                  <span style={{ fontSize: 11, color: '#64748b' }}>ID</span>
+                  <code style={{ fontSize: 13, color: '#a78bfa' }}>#{initialTask.id}</code>
                 </div>
               </div>
             )}
@@ -591,12 +591,12 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
 
           {/* Right: notes */}
           <div style={{ width: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fafafa' }}>
-            <div style={{ padding: '12px 14px', borderBottom: '1px solid #f1f5f9', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
+            <div style={{ padding: '12px 14px', borderBottom: '1px solid #f1f5f9', fontSize: 13, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
               Notas
             </div>
             <div style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
               <input
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 15, fontFamily: 'inherit', outline: 'none', background: 'white', boxSizing: 'border-box' }}
                 placeholder="Adicionar nota... (Enter)"
                 value={newNote}
                 onChange={e => setNewNote(e.target.value)}
@@ -605,12 +605,12 @@ export default function TaskModal({ task: initialTask, onClose, onSave, onDelete
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {notes.length === 0 && (
-                <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>Sem notas</div>
+                <div style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>Sem notas</div>
               )}
               {notes.map((n, i) => (
                 <div key={n.id ?? i} style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: 8, padding: '8px 10px' }}>
-                  <div style={{ fontSize: 12, color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{n.content}</div>
-                  <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{relTime(n.created_at)}</div>
+                  <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{n.content}</div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>{relTime(n.created_at)}</div>
                 </div>
               ))}
             </div>

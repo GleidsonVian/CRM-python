@@ -189,7 +189,7 @@ export default function SearchModal({ onSelect, onClose }) {
           <input
             ref={inputRef}
             style={{
-              flex: 1, border: 'none', outline: 'none', fontSize: 18,
+              flex: 1, border: 'none', outline: 'none', fontSize: 20,
               color: '#1e293b', background: 'transparent', fontFamily: 'inherit',
             }}
             placeholder="Buscar cards, leads, contatos, empresas..."
@@ -200,10 +200,10 @@ export default function SearchModal({ onSelect, onClose }) {
           {query && (
             <button
               onClick={() => setQuery('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, lineHeight: 1, padding: 0 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: 0 }}
             >×</button>
           )}
-          <kbd style={{ fontSize: 10, color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 5, padding: '2px 6px', flexShrink: 0 }}>Esc</kbd>
+          <kbd style={{ fontSize: 12, color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 5, padding: '2px 6px', flexShrink: 0 }}>Esc</kbd>
         </div>
 
         {/* Results */}
@@ -212,10 +212,10 @@ export default function SearchModal({ onSelect, onClose }) {
           {/* Empty state */}
           {!query.trim() && (
             <div style={{ padding: '32px 20px', textAlign: 'center', color: '#94a3b8' }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: '#64748b' }}>Busca global</div>
-              <div style={{ fontSize: 12 }}>Digite pelo menos 2 caracteres para buscar</div>
-              <div style={{ fontSize: 11, marginTop: 10, color: '#cbd5e1' }}>
+              <div style={{ fontSize: 34, marginBottom: 8 }}>🔍</div>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4, color: '#64748b' }}>Busca global</div>
+              <div style={{ fontSize: 14 }}>Digite pelo menos 2 caracteres para buscar</div>
+              <div style={{ fontSize: 13, marginTop: 10, color: '#cbd5e1' }}>
                 ↑↓ para navegar · Enter para abrir · Esc para fechar
               </div>
             </div>
@@ -240,8 +240,8 @@ export default function SearchModal({ onSelect, onClose }) {
           {/* No results */}
           {noResults && !loading && (
             <div style={{ padding: '32px 20px', textAlign: 'center', color: '#94a3b8' }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>😶</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>Sem resultados para "{query}"</div>
+              <div style={{ fontSize: 30, marginBottom: 8 }}>😶</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b' }}>Sem resultados para "{query}"</div>
             </div>
           )}
 
@@ -256,7 +256,7 @@ export default function SearchModal({ onSelect, onClose }) {
                   <div key={section.key}>
                     {/* Section header */}
                     <div style={{
-                      padding: '7px 18px 5px', fontSize: 10, fontWeight: 700, color: '#94a3b8',
+                      padding: '7px 18px 5px', fontSize: 12, fontWeight: 700, color: '#94a3b8',
                       textTransform: 'uppercase', letterSpacing: '0.07em',
                       display: 'flex', alignItems: 'center', gap: 6,
                       background: '#f8fafc', borderBottom: '1px solid #e2e8f0',
@@ -264,7 +264,7 @@ export default function SearchModal({ onSelect, onClose }) {
                       <span style={{ color: section.badge.color }}>{section.label}</span>
                       <span style={{
                         marginLeft: 4, background: section.badge.bg, color: section.badge.color,
-                        borderRadius: 8, padding: '1px 7px', fontWeight: 700, fontSize: 10,
+                        borderRadius: 8, padding: '1px 7px', fontWeight: 700, fontSize: 12,
                       }}>{items.length}</span>
                     </div>
 
@@ -299,11 +299,11 @@ export default function SearchModal({ onSelect, onClose }) {
 
                           {/* Content */}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               <Highlight text={item.title || ''} query={query} />
                             </div>
                             {item.subtitle && (
-                              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontSize: 13, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 <Highlight text={item.subtitle} query={query} />
                               </div>
                             )}
@@ -311,14 +311,14 @@ export default function SearchModal({ onSelect, onClose }) {
 
                           {/* Type badge */}
                           <span style={{
-                            fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 8,
+                            fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 8,
                             background: section.badge.bg, color: section.badge.color, flexShrink: 0,
                           }}>
                             {section.label}
                           </span>
 
                           {/* Arrow */}
-                          <span style={{ color: active ? '#6366f1' : '#e2e8f0', fontSize: 14, flexShrink: 0 }}>→</span>
+                          <span style={{ color: active ? '#6366f1' : '#e2e8f0', fontSize: 16, flexShrink: 0 }}>→</span>
                         </div>
                       );
                     })}
@@ -333,7 +333,7 @@ export default function SearchModal({ onSelect, onClose }) {
           <div style={{
             padding: '8px 18px', borderTop: '1px solid #e2e8f0',
             display: 'flex', gap: 14, alignItems: 'center',
-            background: '#f8fafc', fontSize: 10, color: '#94a3b8',
+            background: '#f8fafc', fontSize: 12, color: '#94a3b8',
           }}>
             <span>↑↓ navegar</span>
             <span>Enter abrir</span>

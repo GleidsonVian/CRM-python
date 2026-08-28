@@ -40,8 +40,16 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
     const url = isNew ? `${API}/automations` : `${API}/automations/${editor.rule.id}`;
     const method = isNew ? 'POST' : 'PUT';
     const res = await authFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
     const saved = await res.json();
     setRules(prev => isNew ? [...prev, saved] : prev.map(r => r.id === saved.id ? saved : r));
+    // O editor pode continuar aberto ("Salvar" sem sair): guardar a regra criada
+    // evita que o proximo save faca outro POST e duplique.
+    if (saved?.id) setEditor(prev => (prev ? { ...prev, rule: saved } : prev));
+    return saved;
   };
 
   const handleDelete = async (ruleId) => {
@@ -114,17 +122,17 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
       }}>
         <button
           onClick={onClose}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 13, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 15, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
         >
           ← Voltar ao pipeline
         </button>
         <div style={{ width: 1, height: 20, background: '#e2e8f0' }} />
         <div>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>⚡ Automações</span>
-          <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>{pipelineName}</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#0f172a' }}>⚡ Automações</span>
+          <span style={{ fontSize: 14, color: '#64748b', marginLeft: 8 }}>{pipelineName}</span>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#94a3b8', marginRight: 4 }}>
+          <span style={{ fontSize: 14, color: '#94a3b8', marginRight: 4 }}>
             {rules.length} regra{rules.length !== 1 ? 's' : ''} configurada{rules.length !== 1 ? 's' : ''}
           </span>
 
@@ -136,7 +144,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 12px', borderRadius: 7, border: '1px solid #e2e8f0',
-              background: 'white', color: '#374151', fontSize: 12, fontWeight: 600,
+              background: 'white', color: '#374151', fontSize: 14, fontWeight: 600,
               cursor: rules.length === 0 ? 'not-allowed' : 'pointer',
               opacity: rules.length === 0 ? 0.4 : 1, fontFamily: 'inherit',
             }}
@@ -163,7 +171,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 12px', borderRadius: 7, border: '1px solid #6366f1',
-              background: '#6366f1', color: 'white', fontSize: 12, fontWeight: 600,
+              background: '#6366f1', color: 'white', fontSize: 14, fontWeight: 600,
               cursor: importing ? 'not-allowed' : 'pointer',
               opacity: importing ? 0.7 : 1, fontFamily: 'inherit',
             }}
@@ -180,7 +188,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
       {/* Info banner */}
       <div style={{
         background: '#f0fdf4', borderBottom: '1px solid #d1fae5',
-        padding: '8px 24px', fontSize: 12, color: '#065f46', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+        padding: '8px 24px', fontSize: 14, color: '#065f46', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
       }}>
         <span>💡</span>
         <span>As regras são executadas automaticamente quando um negócio é <strong>movido para</strong> a etapa correspondente.</span>
@@ -189,7 +197,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
       {/* Import/Export status banner */}
       {importStatus && (
         <div style={{
-          padding: '8px 24px', fontSize: 12, flexShrink: 0,
+          padding: '8px 24px', fontSize: 14, flexShrink: 0,
           display: 'flex', alignItems: 'center', gap: 8,
           background: importStatus.error ? '#fef2f2' : '#f0fdf4',
           borderBottom: `1px solid ${importStatus.error ? '#fca5a5' : '#bbf7d0'}`,
@@ -200,7 +208,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
             ? importStatus.error
             : `${importStatus.created} automação${importStatus.created !== 1 ? 'ões' : ''} importada${importStatus.created !== 1 ? 's' : ''} com sucesso${importStatus.skipped > 0 ? ` · ${importStatus.skipped} etapa(s) não encontrada(s): ${importStatus.skipped_stages.join(', ')}` : ''}`
           }
-          <button onClick={() => setImportStatus(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 14 }}>×</button>
+          <button onClick={() => setImportStatus(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 16 }}>×</button>
         </div>
       )}
 
@@ -226,11 +234,11 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
                   background: stage.color + '0d',
                 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: stage.color, flexShrink: 0 }} />
-                  <div style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', flex: 1 }}>{stage.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a', flex: 1 }}>{stage.name}</div>
                   <div style={{
                     background: stageRules.length > 0 ? stage.color : '#e2e8f0',
                     color: stageRules.length > 0 ? 'white' : '#94a3b8',
-                    borderRadius: 10, fontSize: 10, fontWeight: 700, padding: '2px 7px',
+                    borderRadius: 10, fontSize: 12, fontWeight: 700, padding: '2px 7px',
                   }}>
                     {stageRules.length}
                   </div>
@@ -239,7 +247,7 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
                 {/* Rules list */}
                 <div style={{ flex: 1, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {stageRules.length === 0 && (
-                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>
+                    <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>
                       Nenhuma regra configurada
                     </div>
                   )}
@@ -260,16 +268,16 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                           <span style={{
                             background: meta.color + '15', color: meta.color,
-                            borderRadius: 6, padding: '3px 6px', fontSize: 13,
+                            borderRadius: 6, padding: '3px 6px', fontSize: 15,
                           }}>{meta.icon}</span>
-                          <div style={{ flex: 1, fontWeight: 600, fontSize: 12, color: '#0f172a', lineHeight: 1.2 }}>
+                          <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: '#0f172a', lineHeight: 1.2 }}>
                             {rule.name}
                           </div>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{
-                            fontSize: 10, fontWeight: 600,
+                            fontSize: 12, fontWeight: 600,
                             background: meta.color + '15', color: meta.color,
                             borderRadius: 4, padding: '2px 6px',
                           }}>
@@ -298,13 +306,13 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
 
                             <button
                               onClick={() => setEditor({ rule, stageId: stage.id, stageName: stage.name })}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 13, padding: 2 }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 15, padding: 2 }}
                               title="Editar"
                             >✏️</button>
 
                             <button
                               onClick={() => handleDelete(rule.id)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 13, padding: 2 }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 15, padding: 2 }}
                               title="Excluir"
                             >🗑️</button>
                           </div>
@@ -321,13 +329,13 @@ export default function AutomationsView({ stages, pipelineId, pipelineName, onCl
                     style={{
                       width: '100%', padding: '8px', borderRadius: 8, cursor: 'pointer',
                       border: '1.5px dashed #e2e8f0', background: 'transparent',
-                      fontSize: 12, color: '#64748b', fontFamily: 'inherit',
+                      fontSize: 14, color: '#64748b', fontFamily: 'inherit',
                       fontWeight: 600, transition: 'all 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.color = '#10b981'; e.currentTarget.style.background = '#f0fdf4'; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Adicionar regra
+                    <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Adicionar regra
                   </button>
                 </div>
               </div>

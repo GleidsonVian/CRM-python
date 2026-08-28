@@ -14,12 +14,12 @@ function MetricCard({ label, value, sub, color = '#6366f1', icon }) {
       padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 6,
       borderLeft: `4px solid ${color}`,
     }}>
-      <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>
-        {icon && <span style={{ fontSize: 16 }}>{icon}</span>}
+      <div style={{ fontSize: 14, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>
+        {icon && <span style={{ fontSize: 18 }}>{icon}</span>}
         {label}
       </div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#64748b' }}>{sub}</div>}
+      <div style={{ fontSize: 28, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 14, color: '#64748b' }}>{sub}</div>}
     </div>
   );
 }
@@ -34,7 +34,7 @@ function HBarChart({ data, valueKey = 'value', labelKey = 'label', colorKey, max
         const color = colorKey ? d[colorKey] : ['#6366f1','#8b5cf6','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899'][i % 7];
         return (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 130, fontSize: 12, color: '#475569', textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ width: 130, fontSize: 14, color: '#475569', textAlign: 'right', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {d[labelKey]}
             </div>
             <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 4, height: 22, position: 'relative', overflow: 'hidden' }}>
@@ -43,10 +43,10 @@ function HBarChart({ data, valueKey = 'value', labelKey = 'label', colorKey, max
                 borderRadius: 4, transition: 'width 0.5s ease',
                 display: 'flex', alignItems: 'center', paddingLeft: 8,
               }}>
-                {pct > 15 && <span style={{ fontSize: 11, color: '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{formatter(d[valueKey])}</span>}
+                {pct > 15 && <span style={{ fontSize: 13, color: '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{formatter(d[valueKey])}</span>}
               </div>
               {pct <= 15 && (
-                <span style={{ position: 'absolute', left: `${pct}%`, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#475569', fontWeight: 600, paddingLeft: 6, whiteSpace: 'nowrap' }}>
+                <span style={{ position: 'absolute', left: `${pct}%`, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#475569', fontWeight: 600, paddingLeft: 6, whiteSpace: 'nowrap' }}>
                   {formatter(d[valueKey])}
                 </span>
               )}
@@ -77,7 +77,7 @@ function TimelineChart({ data }) {
           stroke="#e2e8f0" strokeWidth="1" strokeDasharray={t === 0 ? '0' : '3,3'} />
       ))}
       {yLines.slice(1).map(t => (
-        <text key={t} x={PL - 6} y={PT + cH * (1 - t) + 4} textAnchor="end" fontSize="10" fill="#94a3b8">
+        <text key={t} x={PL - 6} y={PT + cH * (1 - t) + 4} textAnchor="end" fontSize="12" fill="#94a3b8">
           {Math.round(maxVal * t)}
         </text>
       ))}
@@ -96,23 +96,23 @@ function TimelineChart({ data }) {
             <rect x={cx + 2} y={PT + cH - hCards} width={barW} height={hCards}
               rx="3" fill="#6366f1" />
             {/* X label */}
-            <text x={cx} y={H - 6} textAnchor="middle" fontSize="10" fill="#94a3b8">{d.month}</text>
+            <text x={cx} y={H - 6} textAnchor="middle" fontSize="12" fill="#94a3b8">{d.month}</text>
           </g>
         );
       })}
 
       {/* Legend */}
       <rect x={W - PR - 110} y={PT} width={10} height={10} rx="2" fill="#c7d2fe" />
-      <text x={W - PR - 96} y={PT + 9} fontSize="10" fill="#64748b">Leads</text>
+      <text x={W - PR - 96} y={PT + 9} fontSize="12" fill="#64748b">Leads</text>
       <rect x={W - PR - 60} y={PT} width={10} height={10} rx="2" fill="#6366f1" />
-      <text x={W - PR - 46} y={PT + 9} fontSize="10" fill="#64748b">Negócios</text>
+      <text x={W - PR - 46} y={PT + 9} fontSize="12" fill="#64748b">Negócios</text>
     </svg>
   );
 }
 
 // ── Funnel chart ──────────────────────────────────────────────────────────────
 function FunnelChart({ stages }) {
-  if (!stages || stages.length === 0) return <div style={{ color: '#94a3b8', fontSize: 13 }}>Sem dados</div>;
+  if (!stages || stages.length === 0) return <div style={{ color: '#94a3b8', fontSize: 15 }}>Sem dados</div>;
 
   const maxCount = Math.max(...stages.map(s => s.count), 1);
   const COLORS = ['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe'];
@@ -138,7 +138,7 @@ function FunnelChart({ stages }) {
             {dropPct !== null && dropPct > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '4px 0', marginLeft: 140 }}>
                 <div style={{ flex: 1, maxWidth: 240, height: 1, background: '#f1f5f9' }} />
-                <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 600, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '1px 7px', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '1px 7px', whiteSpace: 'nowrap' }}>
                   ↓ {dropPct}% saíram
                 </span>
                 <div style={{ flex: 1, maxWidth: 240, height: 1, background: '#f1f5f9' }} />
@@ -148,7 +148,7 @@ function FunnelChart({ stages }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '3px 0' }}>
               {/* Label */}
               <div style={{ width: 128, flexShrink: 0, textAlign: 'right' }}>
-                <span style={{ fontSize: 12, color: '#475569', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
+                <span style={{ fontSize: 14, color: '#475569', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
                   title={s.stage_name}>{s.stage_name}</span>
               </div>
               {/* Bar */}
@@ -163,11 +163,11 @@ function FunnelChart({ stages }) {
                   minWidth: s.count > 0 ? 44 : 8,
                   overflow: 'hidden',
                 }}>
-                  <span style={{ fontSize: 13, color: 'white', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 15, color: 'white', fontWeight: 700, whiteSpace: 'nowrap' }}>
                     {s.count}
                   </span>
                   {widthPct > 28 && (
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>
                       {fmt(s.value)}
                     </span>
                   )}
@@ -175,9 +175,9 @@ function FunnelChart({ stages }) {
               </div>
               {/* Right: value + conversion */}
               <div style={{ width: 110, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                <span style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>{fmt(s.value)}</span>
+                <span style={{ fontSize: 14, color: '#334155', fontWeight: 600 }}>{fmt(s.value)}</span>
                 {convPct !== null && (
-                  <span style={{ fontSize: 10, color: convPct >= 50 ? '#10b981' : convPct >= 25 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
+                  <span style={{ fontSize: 12, color: convPct >= 50 ? '#10b981' : convPct >= 25 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
                     {convPct}% conv.
                   </span>
                 )}
@@ -195,7 +195,7 @@ function Section({ title, children, action }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{title}</h3>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e293b' }}>{title}</h3>
         {action}
       </div>
       {children}
@@ -215,8 +215,8 @@ function DonutChart({ rate, label, color = '#10b981' }) {
         <circle cx={cx} cy={cy} r={R} fill="none" stroke={color} strokeWidth="14"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
           transform={`rotate(-90 ${cx} ${cy})`} />
-        <text x={cx} y={cy - 4} textAnchor="middle" fontSize="18" fontWeight="700" fill="#1e293b">{rate}%</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fontSize="10" fill="#94a3b8">{label}</text>
+        <text x={cx} y={cy - 4} textAnchor="middle" fontSize="20" fontWeight="700" fill="#1e293b">{rate}%</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fontSize="12" fill="#94a3b8">{label}</text>
       </svg>
     </div>
   );
@@ -241,9 +241,9 @@ function FieldCheckbox({ field, checked, onChange }) {
     }}>
       <input type="checkbox" checked={checked} onChange={onChange}
         style={{ accentColor: isCustom ? '#f59e0b' : '#6366f1', cursor: 'pointer', width: 13, height: 13 }} />
-      <span style={{ fontSize: 12, color: '#334155', userSelect: 'none' }}>{field.label}</span>
+      <span style={{ fontSize: 14, color: '#334155', userSelect: 'none' }}>{field.label}</span>
       {isCustom && (
-        <span style={{ fontSize: 10, color: '#92400e', background: '#fef3c7',
+        <span style={{ fontSize: 12, color: '#92400e', background: '#fef3c7',
           padding: '1px 4px', borderRadius: 3, fontWeight: 600 }}>custom</span>
       )}
     </label>
@@ -329,18 +329,18 @@ function ExportSection({ pipelines, token }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 24px' }}>
       <div style={{ marginBottom: 18 }}>
-        <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1e293b' }}>Exportar dados</h3>
-        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94a3b8' }}>Escolha as colunas, formato e baixe em CSV ou Excel</p>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Exportar dados</h3>
+        <p style={{ margin: '4px 0 0', fontSize: 14, color: '#94a3b8' }}>Escolha as colunas, formato e baixe em CSV ou Excel</p>
       </div>
 
       {/* Row 1: entity / format / pipeline / download */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', marginBottom: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>O que exportar</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>O que exportar</label>
           <div style={{ display: 'flex', gap: 4 }}>
             {EXPORT_ENTITIES.map(e => (
               <button key={e.value} onClick={() => setEntity(e.value)} style={{
-                padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit',
                 fontWeight: entity === e.value ? 700 : 400,
                 border: `1.5px solid ${entity === e.value ? '#6366f1' : '#e2e8f0'}`,
                 background: entity === e.value ? '#eef2ff' : '#fafafa',
@@ -352,11 +352,11 @@ function ExportSection({ pipelines, token }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Formato</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Formato</label>
           <div style={{ display: 'flex', gap: 4 }}>
             {[{ v: 'xlsx', l: '📊 Excel' }, { v: 'csv', l: '📄 CSV' }].map(f => (
               <button key={f.v} onClick={() => setFmt(f.v)} style={{
-                padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit',
                 fontWeight: fmt === f.v ? 700 : 400,
                 border: `1.5px solid ${fmt === f.v ? '#10b981' : '#e2e8f0'}`,
                 background: fmt === f.v ? '#f0fdf4' : '#fafafa',
@@ -369,10 +369,10 @@ function ExportSection({ pipelines, token }) {
 
         {showPipelineFilter && pipelines.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Funil</label>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Funil</label>
             <select value={pipelineId} onChange={e => setPipelineId(Number(e.target.value))} style={{
               padding: '7px 10px', borderRadius: 8, border: '1.5px solid #e2e8f0',
-              fontSize: 12, color: '#1e293b', background: '#fafafa', fontFamily: 'inherit', cursor: 'pointer',
+              fontSize: 14, color: '#1e293b', background: '#fafafa', fontFamily: 'inherit', cursor: 'pointer',
             }}>
               <option value={0}>Todos</option>
               {pipelines.map(p => <option key={p.pipeline_id} value={p.pipeline_id}>{p.pipeline_name}</option>)}
@@ -381,9 +381,9 @@ function ExportSection({ pipelines, token }) {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 11, color: 'transparent' }}>.</label>
+          <label style={{ fontSize: 13, color: 'transparent' }}>.</label>
           <button onClick={handleExport} disabled={loading || selected.size === 0} style={{
-            padding: '7px 18px', borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+            padding: '7px 18px', borderRadius: 8, fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
             background: loading || selected.size === 0 ? '#94a3b8' : '#6366f1', color: '#fff',
             border: 'none', cursor: loading || selected.size === 0 ? 'not-allowed' : 'pointer',
             transition: 'background .15s', display: 'flex', alignItems: 'center', gap: 6,
@@ -397,7 +397,7 @@ function ExportSection({ pipelines, token }) {
       <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
         <button onClick={() => setShowCols(v => !v)} style={{
           background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-          fontSize: 12, color: '#6366f1', fontWeight: 600, padding: 0,
+          fontSize: 14, color: '#6366f1', fontWeight: 600, padding: 0,
           display: 'flex', alignItems: 'center', gap: 5,
         }}>
           {showCols ? '▲' : '▼'} Configurar colunas
@@ -416,7 +416,7 @@ function ExportSection({ pipelines, token }) {
                 { label: 'Padrão', fn: selectDefault },
               ].map(({ label, fn }) => (
                 <button key={label} onClick={fn} style={{
-                  fontSize: 11, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
+                  fontSize: 13, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
                   background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569',
                   fontFamily: 'inherit',
                 }}>{label}</button>
@@ -426,7 +426,7 @@ function ExportSection({ pipelines, token }) {
             {/* Native fields */}
             {fields.native.length > 0 && (
               <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
                   letterSpacing: '0.06em', marginBottom: 8 }}>Campos nativos</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {fields.native.map(f => (
@@ -440,7 +440,7 @@ function ExportSection({ pipelines, token }) {
             {/* Custom fields */}
             {fields.custom.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
                   letterSpacing: '0.06em', marginBottom: 8 }}>Campos customizados</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {fields.custom.map(f => (
@@ -452,7 +452,7 @@ function ExportSection({ pipelines, token }) {
             )}
 
             {fields.custom.length === 0 && (
-              <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>
                 Nenhum campo customizado criado para esta entidade.
                 Crie em <b>Configurações → Campos personalizados</b>.
               </div>
@@ -463,7 +463,7 @@ function ExportSection({ pipelines, token }) {
 
       {msg && (
         <div style={{
-          marginTop: 12, padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+          marginTop: 12, padding: '8px 14px', borderRadius: 8, fontSize: 14, fontWeight: 600,
           background: msg.type === 'ok' ? '#f0fdf4' : '#fef2f2',
           color: msg.type === 'ok' ? '#059669' : '#dc2626',
           border: `1px solid ${msg.type === 'ok' ? '#bbf7d0' : '#fecaca'}`,
@@ -513,7 +513,7 @@ export default function ReportsView() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 16 }}>
         Carregando relatórios...
       </div>
     );
@@ -523,8 +523,8 @@ export default function ReportsView() {
     <div style={{ padding: '24px 28px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#1e293b' }}>Relatórios</h1>
-        <p style={{ margin: '4px 0 0', fontSize: 13, color: '#94a3b8' }}>Visão geral de vendas e desempenho do funil</p>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1e293b' }}>Relatórios</h1>
+        <p style={{ margin: '4px 0 0', fontSize: 15, color: '#94a3b8' }}>Visão geral de vendas e desempenho do funil</p>
       </div>
 
       {/* Summary metrics */}
@@ -546,7 +546,7 @@ export default function ReportsView() {
             <div style={{ display: 'flex', gap: 4 }}>
               {funnel.map(p => (
                 <button key={p.pipeline_id} onClick={() => setActivePipeline(p.pipeline_id)} style={{
-                  fontSize: 11, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 13, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit',
                   border: `1.5px solid ${activePipeline === p.pipeline_id ? '#6366f1' : '#e2e8f0'}`,
                   background: activePipeline === p.pipeline_id ? '#eef2ff' : 'white',
                   color: activePipeline === p.pipeline_id ? '#4338ca' : '#64748b',
@@ -561,7 +561,7 @@ export default function ReportsView() {
           {activeFunnelData ? (
             <FunnelChart stages={activeFunnelData.stages} />
           ) : (
-            <div style={{ color: '#94a3b8', fontSize: 13 }}>Nenhum pipeline encontrado</div>
+            <div style={{ color: '#94a3b8', fontSize: 15 }}>Nenhum pipeline encontrado</div>
           )}
         </Section>
 
@@ -569,7 +569,7 @@ export default function ReportsView() {
           {summary && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
               <DonutChart rate={summary.lead_conversion_rate} label="convertidos" color="#10b981" />
-              <div style={{ width: '100%', fontSize: 12, color: '#64748b', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ width: '100%', fontSize: 14, color: '#64748b', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Total de leads</span><b style={{ color: '#1e293b' }}>{fmtN(summary.total_leads)}</b>
                 </div>
@@ -588,7 +588,7 @@ export default function ReportsView() {
       {/* Row 2: Timeline */}
       <div style={{ marginBottom: 16 }}>
         <Section title="Novos negócios e leads — últimos 6 meses">
-          {timeline.length > 0 ? <TimelineChart data={timeline} /> : <div style={{ color: '#94a3b8', fontSize: 13 }}>Sem dados no período</div>}
+          {timeline.length > 0 ? <TimelineChart data={timeline} /> : <div style={{ color: '#94a3b8', fontSize: 15 }}>Sem dados no período</div>}
         </Section>
       </div>
 
@@ -601,7 +601,7 @@ export default function ReportsView() {
               labelKey="label" valueKey="value"
               formatter={v => `${v} neg.`}
             />
-          ) : <div style={{ color: '#94a3b8', fontSize: 13 }}>Sem dados</div>}
+          ) : <div style={{ color: '#94a3b8', fontSize: 15 }}>Sem dados</div>}
         </Section>
 
         <Section title="Receita por fonte">
@@ -611,7 +611,7 @@ export default function ReportsView() {
               labelKey="label" valueKey="value"
               formatter={fmt}
             />
-          ) : <div style={{ color: '#94a3b8', fontSize: 13 }}>Nenhum negócio com valor cadastrado por fonte</div>}
+          ) : <div style={{ color: '#94a3b8', fontSize: 15 }}>Nenhum negócio com valor cadastrado por fonte</div>}
         </Section>
       </div>
 
@@ -630,16 +630,16 @@ export default function ReportsView() {
                     width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                     background: ['#eef2ff','#fef3c7','#dcfce7','#fce7f3','#e0f2fe','#f3e8ff'][i % 6],
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: 700,
+                    fontSize: 15, fontWeight: 700,
                     color: ['#4338ca','#92400e','#166534','#9d174d','#075985','#6b21a8'][i % 6],
                   }}>
                     {r.user_name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.user_name}</div>
-                    <div style={{ fontSize: 11, color: '#64748b' }}>{r.cards} neg. · {fmt(r.value)}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.user_name}</div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>{r.cards} neg. · {fmt(r.value)}</div>
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', flexShrink: 0 }}>#{i + 1}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#6366f1', flexShrink: 0 }}>#{i + 1}</div>
                 </div>
               ))}
             </div>

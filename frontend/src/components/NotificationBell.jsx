@@ -97,7 +97,7 @@ export default function NotificationBell({ onNavigateToCard }) {
         {count > 0 && (
           <span style={{
             background: '#ef4444', color: '#fff',
-            fontSize: 10, fontWeight: 700, borderRadius: 10,
+            fontSize: 12, fontWeight: 700, borderRadius: 10,
             padding: '1px 6px', lineHeight: 1.4,
           }}>
             {count > 9 ? '9+' : count}
@@ -128,11 +128,11 @@ export default function NotificationBell({ onNavigateToCard }) {
             position: 'sticky', top: 0, background: '#fff',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>Notificações</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Notificações</span>
               {count > 0 && (
                 <span style={{
                   background: '#ef4444', color: '#fff',
-                  fontSize: 10, fontWeight: 700, borderRadius: 10, padding: '1px 7px',
+                  fontSize: 12, fontWeight: 700, borderRadius: 10, padding: '1px 7px',
                 }}>
                   {count}
                 </span>
@@ -140,7 +140,7 @@ export default function NotificationBell({ onNavigateToCard }) {
             </div>
             {count > 0 && (
               <button onClick={clearAll} style={{
-                fontSize: 12, color: '#6366f1', background: 'none', border: 'none',
+                fontSize: 14, color: '#6366f1', background: 'none', border: 'none',
                 cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500,
               }}>
                 Limpar tudo
@@ -150,14 +150,14 @@ export default function NotificationBell({ onNavigateToCard }) {
 
           {/* Body */}
           {loading && items.length === 0 ? (
-            <div style={{ padding: '32px 16px', textAlign: 'center', fontSize: 13, color: '#94a3b8' }}>
+            <div style={{ padding: '32px 16px', textAlign: 'center', fontSize: 15, color: '#94a3b8' }}>
               Carregando...
             </div>
           ) : visible.length === 0 ? (
             <div style={{ padding: '40px 16px', textAlign: 'center' }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>🔔</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b', marginBottom: 4 }}>Tudo em dia!</div>
-              <div style={{ fontSize: 13, color: '#94a3b8' }}>Nenhuma notificação pendente</div>
+              <div style={{ fontSize: 34, marginBottom: 8 }}>🔔</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', marginBottom: 4 }}>Tudo em dia!</div>
+              <div style={{ fontSize: 15, color: '#94a3b8' }}>Nenhuma notificação pendente</div>
             </div>
           ) : (
             visible.map(n => {
@@ -179,7 +179,7 @@ export default function NotificationBell({ onNavigateToCard }) {
                     width: 34, height: 34, borderRadius: 8, flexShrink: 0,
                     background: s.bg, border: `1px solid ${s.border}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16,
+                    fontSize: 18,
                   }}>
                     {n.type === 'overdue_task' ? '⏰' : n.type === 'stalled_card' ? '⚠️' : '💬'}
                   </div>
@@ -187,21 +187,21 @@ export default function NotificationBell({ onNavigateToCard }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                       <span style={{
-                        fontSize: 11, fontWeight: 700, color: s.color,
+                        fontSize: 13, fontWeight: 700, color: s.color,
                         background: s.bg, border: `1px solid ${s.border}`,
                         borderRadius: 4, padding: '1px 6px',
                       }}>
                         {TYPE_LABEL[n.type] || n.type}
                       </span>
-                      <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 13, color: '#94a3b8', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
                         {relTime(n.created_at)}
                       </span>
                     </div>
-                    <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 15, color: '#1e293b', lineHeight: 1.45 }}>
                       {n.body}
                     </div>
                     {n.card_id && (
-                      <div style={{ fontSize: 11.5, color: '#6366f1', marginTop: 3, fontWeight: 500 }}>
+                      <div style={{ fontSize: 13.5, color: '#6366f1', marginTop: 3, fontWeight: 500 }}>
                         Abrir negócio →
                       </div>
                     )}
@@ -212,7 +212,7 @@ export default function NotificationBell({ onNavigateToCard }) {
                     title="Dispensar"
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#cbd5e1', fontSize: 16, padding: '0 2px',
+                      color: '#cbd5e1', fontSize: 18, padding: '0 2px',
                       flexShrink: 0, alignSelf: 'flex-start', lineHeight: 1,
                     }}
                     onMouseEnter={e => e.currentTarget.style.color = '#64748b'}

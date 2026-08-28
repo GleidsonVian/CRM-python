@@ -1,6 +1,7 @@
-import re, json
+import re, json, socket, ipaddress
 from urllib import request as urllib_req
 from urllib.request import urlopen
+from urllib.parse import urlparse
 import models
 from database import SessionLocal
 
@@ -13,7 +14,9 @@ def _build_vars(card, db) -> dict:
     contact = card.contacts[0] if card.contacts else None
     stage = db.query(models.Stage).filter(models.Stage.id == card.stage_id).first()
     pipeline = db.query(models.Pipeline).filter(models.Pipeline.id == stage.pipeline_id).first() if stage else None
-    return {
+    
+    # Base dictionary
+    res = {
         'deal.title': card.title or '',
         'deal.price': str(card.price or 0),
         'deal.id': str(card.id),
@@ -24,6 +27,83 @@ def _build_vars(card, db) -> dict:
         'stage.name': stage.name if stage else '',
         'pipeline.name': pipeline.name if pipeline else '',
     }
+    
+    # Load custom fields
+    entity_type = "deal" if getattr(card, "__tablename__", "") == "cards" else "lead"
+    cf_values = db.query(models.CustomFieldValue, models.CustomField)\
+        .join(models.CustomField, models.CustomFieldValue.field_id == models.CustomField.id)\
+        .filter(models.CustomFieldValue.entity_id == card.id, models.CustomField.entity == entity_type)\
+        .all()
+        
+    for val, field in cf_values:
+        _register_cf_var(res, field, val.value, prefix='cf')
+
+    # Campos personalizados do contato vinculado -> contact_cf.<key>
+    if contact is not None:
+        contact_cf = db.query(models.CustomFieldValue, models.CustomField)            .join(models.CustomField, models.CustomFieldValue.field_id == models.CustomField.id)            .filter(models.CustomFieldValue.entity_id == contact.id, models.CustomField.entity == 'contact')            .all()
+        for val, field in contact_cf:
+            _register_cf_var(res, field, val.value, prefix='contact_cf')
+
+    return res
+
+
+def _register_cf_var(res: dict, field, raw_value, prefix: str = 'cf'):
+    """Registra um campo personalizado na chave canonica + aliases de compatibilidade."""
+    v_str = str(raw_value or '')
+    res[f"{prefix}.{field.key}"] = v_str          # forma canonica emitida pela UI
+    res[f"{prefix}.{field.name}"] = v_str
+    res[f"{prefix}:{field.id}"] = v_str
+    if prefix == 'cf':
+        # aliases mantidos para fluxos salvos antes da forma canonica
+        res[f"custom.{field.key}"] = v_str
+        res.setdefault(field.key, v_str)
+        res.setdefault(field.name, v_str)
+        res.setdefault(field.key.lower(), v_str)
+
+
+def url_is_safe(url: str):
+    """Bloqueia schemes fora de http(s) e hosts que resolvem para redes internas (SSRF)."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False, 'URL invalida'
+    if parsed.scheme not in ('http', 'https'):
+        return False, 'Apenas URLs http:// ou https:// sao permitidas'
+    host = parsed.hostname
+    if not host:
+        return False, 'URL sem host'
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except Exception:
+        return False, f'Nao foi possivel resolver o host "{host}"'
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            continue
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            return False, f'O host "{host}" aponta para um endereco interno ({ip}) - bloqueado por seguranca'
+    return True, ''
+
+
+def flatten_json(value, prefix: str = '', out=None, max_items: int = 5):
+    """Achata um JSON em linhas [{path, sample, type}] para a UI de mapeamento."""
+    if out is None:
+        out = []
+    if isinstance(value, dict):
+        for k, v in value.items():
+            flatten_json(v, f"{prefix}.{k}" if prefix else str(k), out, max_items)
+    elif isinstance(value, list):
+        for idx, v in enumerate(value[:max_items]):
+            flatten_json(v, f"{prefix}.{idx}" if prefix else str(idx), out, max_items)
+    else:
+        out.append({
+            'path': prefix,
+            'sample': '' if value is None else str(value),
+            'type': 'null' if value is None else type(value).__name__,
+        })
+    return out
 
 
 def _evaluate_structured_condition(cond: dict, vars: dict, card) -> bool:
@@ -92,19 +172,201 @@ def _log_activity(db, card_id: int, activity_type: str, content: str, actor: str
     db.commit()
 
 
+def _json_path_get(data, path: str):
+    """Le um caminho pontuado ("endereco.rua", "itens.0.nome") de um JSON."""
+    cur = data
+    for part in str(path).split('.'):
+        if isinstance(cur, dict):
+            cur = cur.get(part)
+        elif isinstance(cur, list):
+            try:
+                cur = cur[int(part)]
+            except (ValueError, IndexError):
+                return None
+        else:
+            return None
+    return cur
+
+
+def _find_custom_field(db, target: str, entity_type: str):
+    """Resolve um alvo de mapeamento para um CustomField (por id, key ou nome)."""
+    clean = target
+    if ':' in target:
+        try:
+            cf_id = int(target.split(':', 1)[1])
+            cf = db.query(models.CustomField).filter(
+                models.CustomField.id == cf_id,
+                models.CustomField.entity == entity_type,
+            ).first()
+            if cf:
+                return cf
+        except ValueError:
+            pass
+    if '.' in target:
+        clean = target.split('.', 1)[1]
+    return db.query(models.CustomField).filter(
+        models.CustomField.entity == entity_type,
+        (models.CustomField.key == clean.lower()) | (models.CustomField.name.ilike(clean)),
+    ).first()
+
+
+def _upsert_custom_value(db, cf, entity_id: int, val: str):
+    existing = db.query(models.CustomFieldValue).filter(
+        models.CustomFieldValue.field_id == cf.id,
+        models.CustomFieldValue.entity_id == entity_id,
+    ).first()
+    if existing:
+        existing.value = val
+    else:
+        db.add(models.CustomFieldValue(field_id=cf.id, entity_id=entity_id, value=val))
+    db.commit()
+
+
+def _set_any_field(card, target: str, val: str, db):
+    """Grava um valor em qualquer campo alcancavel a partir do card: nativo do
+    negocio, do contato vinculado, ou campo personalizado de um dos dois."""
+    contact = card.contacts[0] if getattr(card, 'contacts', None) else None
+
+    # -- Campos nativos do negocio --
+    if target == 'deal.title':
+        card.title = val
+        db.commit()
+        _log_activity(db, card.id, 'title_changed', f'Título alterado para "{val}"', actor='Automação')
+        return
+    if target == 'deal.price':
+        try:
+            old = card.price or 0
+            card.price = float(str(val).replace(',', '.'))
+            db.commit()
+            _log_activity(db, card.id, 'price_changed', f'Valor alterado de R$ {old:.2f} para R$ {card.price:.2f}', actor='Automação')
+        except (ValueError, TypeError):
+            _log_activity(db, card.id, 'webhook_mapping_error', f'"{val}" não é um número válido para o valor do negócio', actor='Automação')
+        return
+    if target == 'deal.description':
+        card.description = val
+        db.commit()
+        _log_activity(db, card.id, 'field_changed', 'Descrição atualizada', actor='Automação')
+        return
+    if target == 'deal.stage_id':
+        try:
+            stage = db.query(models.Stage).filter(models.Stage.id == int(val)).first()
+            if stage:
+                card.stage_id = stage.id
+                db.commit()
+                _log_activity(db, card.id, 'moved', f'Movido para a etapa {stage.name}', actor='Automação')
+        except (ValueError, TypeError):
+            pass
+        return
+
+    # -- Campos nativos do contato vinculado --
+    if target.startswith('contact.'):
+        if contact is None:
+            _log_activity(db, card.id, 'webhook_mapping_error', f'Não há contato vinculado para preencher "{target}"', actor='Automação')
+            return
+        attr = target.split('.', 1)[1]
+        if attr == 'name':
+            parts = val.strip().split(' ', 1)
+            contact.first_name = parts[0]
+            contact.last_name = parts[1] if len(parts) > 1 else ''
+        elif attr in ('email', 'phone'):
+            setattr(contact, attr, val)
+        else:
+            return
+        db.commit()
+        _log_activity(db, card.id, 'contact_changed', f'Contato: {attr} atualizado para "{val}"', actor='Automação')
+        return
+
+    # -- Campo personalizado do contato --
+    if target.startswith('contact_cf'):
+        if contact is None:
+            _log_activity(db, card.id, 'webhook_mapping_error', f'Não há contato vinculado para preencher "{target}"', actor='Automação')
+            return
+        cf = _find_custom_field(db, target, 'contact')
+        if cf:
+            _upsert_custom_value(db, cf, contact.id, val)
+            _log_activity(db, card.id, 'custom_field_changed', f'Campo do contato "{cf.name}" atualizado para "{val}"', actor='Automação')
+        return
+
+    # -- Campo personalizado do negocio/lead --
+    entity_type = "deal" if getattr(card, "__tablename__", "") == "cards" else "lead"
+    cf = _find_custom_field(db, target, entity_type)
+    if cf:
+        _upsert_custom_value(db, cf, card.id, val)
+        _log_activity(db, card.id, 'custom_field_changed', f'Campo "{cf.name}" atualizado para "{val}"', actor='Automação')
+    else:
+        _log_activity(db, card.id, 'webhook_mapping_error', f'Campo "{target}" não encontrado no CRM', actor='Automação')
+
+
+def apply_response_mapping(card, res_json, mapping, db):
+    """Aplica {caminho_no_json: campo_do_crm} na entidade. Devolve o que foi gravado."""
+    if isinstance(mapping, str):
+        try:
+            mapping = json.loads(mapping)
+        except Exception:
+            return []
+    if not isinstance(mapping, dict):
+        return []
+    applied = []
+    for json_path, target_field in mapping.items():
+        if not target_field:
+            continue
+        val = _json_path_get(res_json, json_path)
+        if val is None:
+            applied.append({'path': json_path, 'field': target_field, 'value': None, 'ok': False,
+                            'reason': 'caminho não encontrado na resposta'})
+            continue
+        _set_any_field(card, target_field, str(val), db)
+        applied.append({'path': json_path, 'field': target_field, 'value': str(val), 'ok': True})
+    return applied
+
+
+def call_webhook(method: str, url: str, payload: str, headers: dict = None, timeout: int = 10):
+    """Dispara a requisicao HTTP. Devolve (status, body, error). Nunca levanta."""
+    ok, reason = url_is_safe(url)
+    if not ok:
+        return None, '', reason
+    method = (method or 'POST').upper()
+    body = payload.encode('utf-8') if method in ('POST', 'PUT', 'PATCH') and payload else None
+    req_headers = {k: v for k, v in (headers or {}).items() if k and v}
+    if body and not any(h.lower() == 'content-type' for h in req_headers):
+        req_headers['Content-Type'] = 'application/json'
+    try:
+        req = urllib_req.Request(url, data=body, headers=req_headers, method=method)
+        with urllib_req.urlopen(req, timeout=timeout) as response:
+            return response.status, response.read().decode('utf-8', errors='replace'), ''
+    except Exception as e:
+        status = getattr(e, 'code', None)
+        err_body = ''
+        try:
+            err_body = e.read().decode('utf-8', errors='replace')
+        except Exception:
+            pass
+        return status, err_body, str(e)
+
+
 def _run_action(step_type: str, cfg: dict, vars: dict, card, db):
     if step_type == 'webhook':
         url = _render_vars(cfg.get('url', ''), vars)
         if url:
-            payload = _render_vars(cfg.get('payload', '{}'), vars)
-            method = cfg.get('method', 'POST').upper()
-            try:
-                body = payload.encode('utf-8') if method in ('POST', 'PUT', 'PATCH') else None
-                req = urllib_req.Request(url, data=body, headers={'Content-Type': 'application/json'}, method=method)
-                urllib_req.urlopen(req, timeout=10)
-            except Exception:
-                pass
-            _log_activity(db, card.id, 'webhook', f'Webhook {method} disparado para {url}', actor='Automação')
+            payload = _render_vars(cfg.get('payload', '') or '', vars)
+            method = (cfg.get('method') or 'POST').upper()
+            headers = {k: _render_vars(str(v), vars) for k, v in (cfg.get('headers') or {}).items()}
+
+            status, res_body, error = call_webhook(method, url, payload, headers)
+
+            if error and status is None:
+                _log_activity(db, card.id, 'webhook_error', f'Falha no webhook para {url}: {error}', actor='Automação')
+                return
+
+            _log_activity(db, card.id, 'webhook', f'Webhook {method} {url} -> HTTP {status}', actor='Automação')
+
+            mapping = cfg.get('response_mapping')
+            if mapping:
+                try:
+                    apply_response_mapping(card, json.loads(res_body), mapping, db)
+                except Exception as parse_err:
+                    _log_activity(db, card.id, 'webhook_mapping_error',
+                                  f'Resposta do webhook não é um JSON válido: {parse_err}', actor='Automação')
 
     elif step_type == 'assign_user':
         uid = cfg.get('user_id')

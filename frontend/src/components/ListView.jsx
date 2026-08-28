@@ -377,7 +377,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
           return (
             <td key="stage" style={{ padding: '6px 10px', borderBottom: '1px solid #f1f5f9', width: colWidths.stage, background: editBg }}>
               {saving ? (
-                <span style={{ opacity: 0.6, fontSize: 12 }}>Salvando…</span>
+                <span style={{ opacity: 0.6, fontSize: 14 }}>Salvando…</span>
               ) : (
                 <select
                   autoFocus
@@ -385,7 +385,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                   onChange={e => { setEditValue(e.target.value); commitEdit({ ...card }); }}
                   onBlur={() => cancelEdit()}
                   onKeyDown={e => e.key === 'Escape' && cancelEdit()}
-                  style={{ fontSize: 12, outline: editOutline, borderRadius: 4, border: 'none', background: 'transparent', width: '100%' }}
+                  style={{ fontSize: 14, outline: editOutline, borderRadius: 4, border: 'none', background: 'transparent', width: '100%' }}
                   onClick={e => e.stopPropagation()}
                 >
                   {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -406,7 +406,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 background: stage.color + '18', color: stage.color,
                 border: `1px solid ${stage.color}40`,
-                borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600, cursor: 'default'
+                borderRadius: 20, padding: '2px 8px', fontSize: 13, fontWeight: 600, cursor: 'default'
               }}>
                 {stage.name}
               </span>
@@ -420,7 +420,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
           return (
             <td key="price" style={{ padding: '6px 10px', borderBottom: '1px solid #f1f5f9', width: colWidths.price, background: editBg }}>
               {saving ? (
-                <span style={{ opacity: 0.6, fontSize: 12 }}>Salvando…</span>
+                <span style={{ opacity: 0.6, fontSize: 14 }}>Salvando…</span>
               ) : (
                 <input
                   autoFocus
@@ -434,7 +434,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                   }}
                   onClick={e => e.stopPropagation()}
                   style={{
-                    width: '100%', fontSize: 12, outline: editOutline,
+                    width: '100%', fontSize: 14, outline: editOutline,
                     border: 'none', borderRadius: 4, background: 'transparent',
                     padding: '2px 4px'
                   }}
@@ -464,12 +464,12 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                 display: 'inline-flex', alignItems: 'center',
                 background: sc.bg, color: sc.color,
                 border: `1px solid ${sc.border}`,
-                borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600
+                borderRadius: 20, padding: '2px 8px', fontSize: 13, fontWeight: 600
               }}>
                 {card.source}
               </span>
             ) : (
-              <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>—</span>
             )}
           </td>
         );
@@ -480,16 +480,16 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
         return (
           <td key="contacts" style={{ padding: '10px 14px', borderBottom: '1px solid #f1f5f9', width: colWidths.contacts }}>
             {contacts.length === 0 ? (
-              <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>—</span>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {contacts.slice(0, 2).map(c => (
-                  <span key={c.id} style={{ fontSize: 12, color: 'var(--text-primary)' }}>
+                  <span key={c.id} style={{ fontSize: 14, color: 'var(--text-primary)' }}>
                     {c.first_name} {c.last_name || ''}
                   </span>
                 ))}
                 {contacts.length > 2 && (
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{contacts.length - 2} mais</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>+{contacts.length - 2} mais</span>
                 )}
               </div>
             )}
@@ -502,7 +502,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
         return (
           <td key="users" style={{ padding: '10px 14px', borderBottom: '1px solid #f1f5f9', width: colWidths.users }}>
             {users.length === 0 ? (
-              <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>—</span>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 {users.slice(0, 4).map(u => {
@@ -515,7 +515,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                         width: 24, height: 24, borderRadius: '50%',
                         background: avatarColor(u.name), color: 'white',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 9, fontWeight: 700, flexShrink: 0,
+                        fontSize: 11, fontWeight: 700, flexShrink: 0,
                         marginLeft: -4, border: '2px solid white'
                       }}
                     >
@@ -524,9 +524,9 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                   );
                 })}
                 {users.length > 4 && (
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>+{users.length - 4}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 4 }}>+{users.length - 4}</span>
                 )}
-                <span style={{ fontSize: 12, color: 'var(--text-secondary)', marginLeft: 6 }}>
+                <span style={{ fontSize: 14, color: 'var(--text-secondary)', marginLeft: 6 }}>
                   {users[0]?.name}{users.length > 1 ? ` +${users.length - 1}` : ''}
                 </span>
               </div>
@@ -537,14 +537,14 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
 
       case 'created_at':
         return (
-          <td key="created_at" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: 12, borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap', width: colWidths.created_at }}>
+          <td key="created_at" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: 14, borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap', width: colWidths.created_at }}>
             {fmtDate(card.created_at)}
           </td>
         );
 
       case 'updated_at':
         return (
-          <td key="updated_at" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: 12, borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap', width: colWidths.updated_at }}>
+          <td key="updated_at" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: 14, borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap', width: colWidths.updated_at }}>
             {fmtDate(card.updated_at)}
           </td>
         );
@@ -573,7 +573,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
 
         <button
           className={`btn ${showFilters ? 'btn-primary' : 'btn-ghost'}`}
-          style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}
+          style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5 }}
           onClick={() => setShowFilters(v => !v)}
         >
           <IconFilter />
@@ -583,7 +583,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
         {activeFilterCount > 0 && (
           <button
             className="btn btn-ghost"
-            style={{ fontSize: 12, color: '#ef4444' }}
+            style={{ fontSize: 14, color: '#ef4444' }}
             onClick={() => {
               setFilterStage(''); setFilterUser(''); setFilterMinVal('');
               setFilterMaxVal(''); setFilterDateFrom(''); setFilterDateTo('');
@@ -597,7 +597,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
         <div style={{ position: 'relative' }} ref={colPanelRef}>
           <button
             className={`btn ${showColPanel ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5 }}
             onClick={() => setShowColPanel(v => !v)}
           >
             <IconColumns />
@@ -611,7 +611,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
               borderRadius: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
               minWidth: 220, padding: '8px 0', userSelect: 'none'
             }}>
-              <div style={{ padding: '4px 14px 8px', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ padding: '4px 14px 8px', fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Visibilidade e ordem
               </div>
               {colConfig.order.map(key => {
@@ -648,11 +648,11 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                       onChange={() => !col.fixed && toggleHidden(key)}
                       style={{ cursor: col.fixed ? 'not-allowed' : 'pointer', accentColor: 'var(--accent)', flexShrink: 0 }}
                     />
-                    <span style={{ fontSize: 13, color: col.fixed ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                    <span style={{ fontSize: 15, color: col.fixed ? 'var(--text-muted)' : 'var(--text-primary)' }}>
                       {col.label}
                     </span>
                     {col.fixed && (
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto' }}>fixo</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 'auto' }}>fixo</span>
                     )}
                   </div>
                 );
@@ -662,12 +662,12 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>
             {filtered.length} negócio{filtered.length !== 1 ? 's' : ''} · <strong style={{ color: 'var(--accent)' }}>{fmt(totalValue)}</strong>
           </span>
           <button
             className="btn btn-ghost"
-            style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5 }}
             onClick={handleExportCSV}
           >
             <IconDownload /> Exportar CSV
@@ -682,53 +682,53 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
           borderBottom: '1px solid var(--border)', background: '#f8fafc', flexShrink: 0
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Etapa</label>
-            <select className="form-select" style={{ fontSize: 12, height: 30, padding: '0 8px', minWidth: 140 }} value={filterStage} onChange={e => setFilterStage(e.target.value)}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Etapa</label>
+            <select className="form-select" style={{ fontSize: 14, height: 30, padding: '0 8px', minWidth: 140 }} value={filterStage} onChange={e => setFilterStage(e.target.value)}>
               <option value="">Todas</option>
               {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Responsável</label>
-            <select className="form-select" style={{ fontSize: 12, height: 30, padding: '0 8px', minWidth: 150 }} value={filterUser} onChange={e => setFilterUser(e.target.value)}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Responsável</label>
+            <select className="form-select" style={{ fontSize: 14, height: 30, padding: '0 8px', minWidth: 150 }} value={filterUser} onChange={e => setFilterUser(e.target.value)}>
               <option value="">Todos</option>
               {allUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Valor mínimo</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Valor mínimo</label>
             <input
               type="number" placeholder="R$ 0"
-              className="form-input" style={{ fontSize: 12, height: 30, padding: '0 8px', width: 110 }}
+              className="form-input" style={{ fontSize: 14, height: 30, padding: '0 8px', width: 110 }}
               value={filterMinVal} onChange={e => setFilterMinVal(e.target.value)}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Valor máximo</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Valor máximo</label>
             <input
               type="number" placeholder="Sem limite"
-              className="form-input" style={{ fontSize: 12, height: 30, padding: '0 8px', width: 110 }}
+              className="form-input" style={{ fontSize: 14, height: 30, padding: '0 8px', width: 110 }}
               value={filterMaxVal} onChange={e => setFilterMaxVal(e.target.value)}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>De</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>De</label>
             <input
               type="date"
-              className="form-input" style={{ fontSize: 12, height: 30, padding: '0 8px', width: 130 }}
+              className="form-input" style={{ fontSize: 14, height: 30, padding: '0 8px', width: 130 }}
               value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)}
             />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Até</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Até</label>
             <input
               type="date"
-              className="form-input" style={{ fontSize: 12, height: 30, padding: '0 8px', width: 130 }}
+              className="form-input" style={{ fontSize: 14, height: 30, padding: '0 8px', width: 130 }}
               value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)}
             />
           </div>
@@ -737,7 +737,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
 
       {/* Table */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15, tableLayout: 'fixed' }}>
           <colgroup>
             {onSelectCard && <col style={{ width: 40 }} />}
             {visibleCols.map(col => (
@@ -771,7 +771,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
                   style={{
                     position: 'relative',
                     padding: '9px 14px', textAlign: 'left',
-                    fontWeight: 600, fontSize: 11, color: 'var(--text-muted)',
+                    fontWeight: 600, fontSize: 13, color: 'var(--text-muted)',
                     textTransform: 'uppercase', letterSpacing: '0.05em',
                     borderBottom: '1px solid var(--border)',
                     cursor: col.sortField ? 'pointer' : 'default',
@@ -807,7 +807,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={visibleCols.length + (onSelectCard ? 1 : 0)} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontSize: 14 }}>
+                <td colSpan={visibleCols.length + (onSelectCard ? 1 : 0)} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontSize: 16 }}>
                   Nenhum negócio encontrado para os filtros aplicados.
                 </td>
               </tr>
@@ -867,7 +867,7 @@ export default function ListView({ cards, stages, onClickCard, onUpdateCard, sel
           <div style={{
             padding: '10px 14px', borderTop: '2px solid var(--border)',
             display: 'flex', alignItems: 'center', gap: 20,
-            fontSize: 12, color: 'var(--text-muted)', background: '#f8fafc',
+            fontSize: 14, color: 'var(--text-muted)', background: '#f8fafc',
             position: 'sticky', bottom: 0
           }}>
             <span><strong>{filtered.length}</strong> negócios</span>

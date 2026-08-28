@@ -96,23 +96,23 @@ function TaskCard({ task, onDragStart, onClick }) {
     >
       {/* UID + priority */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-        <code style={{ fontSize: 9, color: '#94a3b8', background: '#f1f5f9', padding: '1px 5px', borderRadius: 3 }}>
+        <code style={{ fontSize: 11, color: '#94a3b8', background: '#f1f5f9', padding: '1px 5px', borderRadius: 3 }}>
           {task.uid || `#${task.id}`}
         </code>
-        <span style={{ fontSize: 9, color: prio.color, fontWeight: 700 }}>{prio.icon} {prio.label}</span>
+        <span style={{ fontSize: 11, color: prio.color, fontWeight: 700 }}>{prio.icon} {prio.label}</span>
         {hasTimer && (
-          <span style={{ marginLeft: 'auto', fontSize: 9, color: '#10b981', fontWeight: 700, background: '#f0fdf4', padding: '1px 5px', borderRadius: 3 }}>
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#10b981', fontWeight: 700, background: '#f0fdf4', padding: '1px 5px', borderRadius: 3 }}>
             ▶ Running
           </span>
         )}
         {!hasTimer && isOverdue && (
-          <span style={{ marginLeft: 'auto', fontSize: 9, color: '#ef4444', fontWeight: 700 }}>⚠ Vencido</span>
+          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#ef4444', fontWeight: 700 }}>⚠ Vencido</span>
         )}
       </div>
 
       {/* Title */}
       <div style={{
-        fontSize: 13, fontWeight: 600, color: task.status === 'done' ? '#94a3b8' : '#0f172a',
+        fontSize: 15, fontWeight: 600, color: task.status === 'done' ? '#94a3b8' : '#0f172a',
         textDecoration: task.status === 'done' ? 'line-through' : 'none',
         lineHeight: 1.4, marginBottom: 6, wordBreak: 'break-word',
       }}>
@@ -121,7 +121,7 @@ function TaskCard({ task, onDragStart, onClick }) {
 
       {/* Linked entity */}
       {(task.card_title || task.lead_title || task.project_name) && (
-        <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
+        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
           {task.project_name && <span style={{ color: task.project_name ? '#6366f1' : undefined }}>📁 {task.project_name}</span>}
           {task.card_title && <span style={{ color: '#10b981' }}>📋 {task.card_title}</span>}
           {task.lead_title && <span style={{ color: '#f59e0b' }}>👤 {task.lead_title}</span>}
@@ -134,16 +134,16 @@ function TaskCard({ task, onDragStart, onClick }) {
           <div style={{
             width: 22, height: 22, borderRadius: '50%',
             background: nameColor(task.assigned_to), color: 'white',
-            fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }} title={task.assigned_to}>{initials(task.assigned_to)}</div>
         )}
         {task.due_date && (
-          <span style={{ fontSize: 10, color: isOverdue ? '#ef4444' : '#94a3b8', display: 'flex', alignItems: 'center', gap: 2 }}>
+          <span style={{ fontSize: 12, color: isOverdue ? '#ef4444' : '#94a3b8', display: 'flex', alignItems: 'center', gap: 2 }}>
             📅 {fmtDateShort(task.due_date)}
           </span>
         )}
         {task.total_time_seconds > 0 && (
-          <span style={{ fontSize: 10, color: '#64748b', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto' }}>
             ⏱ {fmtSeconds(task.total_time_seconds)}
           </span>
         )}
@@ -216,7 +216,7 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
           <span
             draggable
             onDragStart={e => { e.stopPropagation(); onColDragStart(e, col.id); }}
-            style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 14, lineHeight: 1, flexShrink: 0, userSelect: 'none', padding: '0 2px' }}
+            style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 16, lineHeight: 1, flexShrink: 0, userSelect: 'none', padding: '0 2px' }}
             title="Arrastar coluna"
           >⠿</span>
         )}
@@ -237,10 +237,10 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
                   onBlur={commitRename}
                   onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') { setRenaming(false); setRenameVal(customLabel || col.label); } }}
                   onClick={e => e.stopPropagation()}
-                  style={{ fontWeight: 700, fontSize: 12, color: '#0f172a', flex: 1, border: 'none', borderBottom: `2px solid ${col.color}`, outline: 'none', background: 'transparent', fontFamily: 'inherit', minWidth: 0, padding: '1px 2px', width: 120 }}
+                  style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', flex: 1, border: 'none', borderBottom: `2px solid ${col.color}`, outline: 'none', background: 'transparent', fontFamily: 'inherit', minWidth: 0, padding: '1px 2px', width: 120 }}
                 />
               ) : (
-                <span style={{ fontWeight: 700, fontSize: 12, color: '#0f172a', flex: 1, whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', flex: 1, whiteSpace: 'nowrap' }}>
                   {customLabel || col.label}
                 </span>
               )}
@@ -249,27 +249,27 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
                 <>
                   <span
                     onClick={e => { e.stopPropagation(); setRenameVal(customLabel || col.label); setRenaming(true); }}
-                    style={{ fontSize: 11, color: headerHover ? '#94a3b8' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'color 0.15s', userSelect: 'none', padding: '0 2px' }}
+                    style={{ fontSize: 13, color: headerHover ? '#94a3b8' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'color 0.15s', userSelect: 'none', padding: '0 2px' }}
                     title="Renomear coluna"
                   >✏</span>
                   <span
                     onClick={e => { e.stopPropagation(); onOpenAutomations(col); }}
-                    style={{ fontSize: 11, color: headerHover ? '#6366f1' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'color 0.15s', userSelect: 'none', padding: '0 2px' }}
+                    style={{ fontSize: 13, color: headerHover ? '#6366f1' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'color 0.15s', userSelect: 'none', padding: '0 2px' }}
                     title="Automações desta coluna"
                   >⚡</span>
                 </>
               )}
               <span style={{
-                fontSize: 11, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
+                fontSize: 13, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
                 background: tasks.length ? col.color : '#e2e8f0', color: tasks.length ? 'white' : '#94a3b8',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', flexShrink: 0,
               }}>{tasks.length}</span>
-              <span style={{ fontSize: 10, color: '#94a3b8' }}>‹</span>
+              <span style={{ fontSize: 12, color: '#94a3b8' }}>‹</span>
             </>
           )}
           {collapsed && (
             <span style={{
-              fontSize: 11, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
+              fontSize: 13, fontWeight: 700, minWidth: 22, height: 22, borderRadius: 11,
               background: tasks.length ? col.color : '#e2e8f0', color: tasks.length ? 'white' : '#94a3b8',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>{tasks.length}</span>
@@ -281,7 +281,7 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
         <>
           <div style={{ flex: 1, padding: '0 10px', display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
             {tasks.length === 0 && !dragOver && !adding && (
-              <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 11, color: '#cbd5e1', fontStyle: 'italic' }}>
+              <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 13, color: '#cbd5e1', fontStyle: 'italic' }}>
                 {col.id === 'done' ? 'Nenhuma concluída' : 'Sem tarefas'}
               </div>
             )}
@@ -292,15 +292,15 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
               <div style={{ background: 'white', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <input
                   ref={inputRef}
-                  style={{ border: '1px solid #e2e8f0', borderRadius: 7, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+                  style={{ border: '1px solid #e2e8f0', borderRadius: 7, padding: '6px 10px', fontSize: 15, fontFamily: 'inherit', outline: 'none' }}
                   placeholder="Título da tarefa..."
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') { setAdding(false); setNewTitle(''); } }}
                 />
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={handleCreate} disabled={!newTitle.trim()} style={{ flex: 1, padding: '6px', borderRadius: 7, border: 'none', background: col.color, color: 'white', fontSize: 12, fontWeight: 600, cursor: newTitle.trim() ? 'pointer' : 'default', fontFamily: 'inherit', opacity: newTitle.trim() ? 1 : 0.5 }}>Criar</button>
-                  <button onClick={() => { setAdding(false); setNewTitle(''); }} style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 12, color: '#64748b', fontFamily: 'inherit' }}>✕</button>
+                  <button onClick={handleCreate} disabled={!newTitle.trim()} style={{ flex: 1, padding: '6px', borderRadius: 7, border: 'none', background: col.color, color: 'white', fontSize: 14, fontWeight: 600, cursor: newTitle.trim() ? 'pointer' : 'default', fontFamily: 'inherit', opacity: newTitle.trim() ? 1 : 0.5 }}>Criar</button>
+                  <button onClick={() => { setAdding(false); setNewTitle(''); }} style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 14, color: '#64748b', fontFamily: 'inherit' }}>✕</button>
                 </div>
               </div>
             )}
@@ -310,7 +310,7 @@ function TaskColumn({ col, tasks, onDragStart, onDrop, onClickTask, onCreateTask
             {!adding && col.id !== 'done' && (
               <button
                 onClick={() => setAdding(true)}
-                style={{ width: '100%', padding: '7px', border: `1.5px dashed ${col.color}60`, borderRadius: 8, background: 'transparent', cursor: 'pointer', fontSize: 11, color: col.color, fontFamily: 'inherit', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.12s' }}
+                style={{ width: '100%', padding: '7px', border: `1.5px dashed ${col.color}60`, borderRadius: 8, background: 'transparent', cursor: 'pointer', fontSize: 13, color: col.color, fontFamily: 'inherit', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.12s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = col.bg; e.currentTarget.style.borderStyle = 'solid'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderStyle = 'dashed'; }}
               >
@@ -493,10 +493,10 @@ export default function TasksKanban({ projectId = null }) {
       {/* Header */}
       <div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>
+          <div style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>
             {projectId ? '📁 Tarefas do Projeto' : '☑ Tarefas'}
           </div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>
+          <div style={{ fontSize: 13, color: '#64748b', marginTop: 1 }}>
             {total} tarefa{total !== 1 ? 's' : ''}
             {overdue > 0 && <span style={{ color: '#ef4444', fontWeight: 700 }}> · {overdue} vencida{overdue !== 1 ? 's' : ''}</span>}
             {' · '}{done} concluída{done !== 1 ? 's' : ''}
@@ -508,33 +508,33 @@ export default function TasksKanban({ projectId = null }) {
             <div style={{ width: 100, height: 5, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: '#10b981', borderRadius: 3, transition: 'width 0.4s' }} />
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#10b981', minWidth: 28 }}>{pct}%</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981', minWidth: 28 }}>{pct}%</span>
           </div>
         )}
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           {assignees.length > 0 && (
             <select value={filterAssignee} onChange={e => setFilter(e.target.value)}
-              style={{ fontSize: 11, border: '1px solid #e2e8f0', borderRadius: 7, padding: '4px 8px', background: 'white', color: '#334155', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
+              style={{ fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 7, padding: '4px 8px', background: 'white', color: '#334155', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
               <option value="">Todos responsáveis</option>
               {assignees.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           )}
           <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-            style={{ fontSize: 11, border: '1px solid #e2e8f0', borderRadius: 7, padding: '4px 8px', background: 'white', color: '#334155', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
+            style={{ fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 7, padding: '4px 8px', background: 'white', color: '#334155', fontFamily: 'inherit', cursor: 'pointer', outline: 'none' }}>
             <option value="">Todas prioridades</option>
             {Object.entries(PRIORITY_META).map(([k,v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
           </select>
           <button onClick={() => setSelectedTask({ id: 0, isNew: true, title: '', status: 'todo', priority: 'normal', project_id: projectId })}
-            style={{ padding: '5px 14px', borderRadius: 8, border: 'none', background: '#10b981', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            style={{ padding: '5px 14px', borderRadius: 8, border: 'none', background: '#10b981', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             + Nova tarefa
           </button>
           <button onClick={() => setBoardView('automations')}
-            style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: '#6366f1', display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: '#6366f1', display: 'flex', alignItems: 'center', gap: 5 }}>
             ⚡ Automações
           </button>
           <button onClick={fetchTasks}
-            style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontSize: 12, color: '#64748b', fontFamily: 'inherit' }}>
+            style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontSize: 14, color: '#64748b', fontFamily: 'inherit' }}>
             ↻
           </button>
         </div>
@@ -542,7 +542,7 @@ export default function TasksKanban({ projectId = null }) {
 
       {/* Board */}
       {loading ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 13 }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 15 }}>
           Carregando tarefas...
         </div>
       ) : (

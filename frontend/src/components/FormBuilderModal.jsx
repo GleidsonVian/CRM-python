@@ -204,7 +204,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
 
   const inputBase = {
     width: '100%', borderRadius: 8, border: '1.5px solid #d1d5db',
-    padding: '10px 12px', fontSize: 14, color: '#1e293b',
+    padding: '10px 12px', fontSize: 16, color: '#1e293b',
     background: '#fff', boxSizing: 'border-box', outline: 'none',
     transition: 'border-color 0.15s',
   };
@@ -236,17 +236,17 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
       width: '100%', maxWidth: compact ? 420 : 500,
     }}>
       {title && (
-        <h1 style={{ fontSize: compact ? 20 : 24, fontWeight: 800, color: '#1e293b', margin: '0 0 8px', lineHeight: 1.2 }}>
+        <h1 style={{ fontSize: compact ? 22 : 26, fontWeight: 800, color: '#1e293b', margin: '0 0 8px', lineHeight: 1.2 }}>
           {title}
         </h1>
       )}
       {subtitle && (
-        <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 24px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 16, color: '#64748b', margin: '0 0 24px', lineHeight: 1.6 }}>
           {subtitle}
         </p>
       )}
       {fields.length === 0 ? (
-        <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+        <div style={{ color: '#94a3b8', fontSize: 15, textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
           Adicione campos para visualizar o formulário
         </div>
       ) : (
@@ -255,7 +255,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
             if (!isFieldVisible(f, previewValues)) return null;
             return (
               <div key={i} style={{ marginBottom: 18 }}>
-                <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 15.5, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
                   {f.label || f.key || `Campo ${i + 1}`}
                   {f.required && <span style={{ color: '#ef4444', marginLeft: 3 }}>*</span>}
                 </label>
@@ -286,7 +286,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
             style={{
               width: '100%', padding: '12px', borderRadius: 9,
               background: '#6366f1', color: '#fff', border: 'none',
-              fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 4,
+              fontWeight: 700, fontSize: 17, cursor: 'pointer', marginTop: 4,
               transition: 'background 0.15s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#4f46e5'}
@@ -294,7 +294,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
           >
             {buttonText || 'Enviar'}
           </button>
-          <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
+          <p style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
             Prévia — o envio não funciona aqui
           </p>
         </div>
@@ -306,12 +306,12 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
 
   const inputStyle = {
     width: '100%', borderRadius: 7, border: '1px solid var(--border)',
-    padding: '7px 10px', fontSize: 13, background: 'var(--bg-input)',
+    padding: '7px 10px', fontSize: 15, background: 'var(--bg-input)',
     color: 'var(--text-primary)', boxSizing: 'border-box',
   };
 
   const labelStyle = {
-    display: 'block', fontSize: 12, fontWeight: 600,
+    display: 'block', fontSize: 14, fontWeight: 600,
     color: 'var(--text-muted)', marginBottom: 4,
   };
 
@@ -333,7 +333,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
           <button
             className="btn btn-ghost"
             onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, padding: '5px 10px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 15, padding: '5px 10px' }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -341,24 +341,24 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
             Formulários
           </button>
           <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
-          <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
+          <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>
             {form ? name : 'Novo formulário'}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {!form && (
             <>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 2 }}>Modelos:</span>
+              <span style={{ fontSize: 14, color: 'var(--text-muted)', marginRight: 2 }}>Modelos:</span>
               <button
                 className="btn btn-ghost"
-                style={{ fontSize: 12, padding: '4px 10px' }}
+                style={{ fontSize: 14, padding: '4px 10px' }}
                 onClick={() => applyTemplate('contato')}
               >
                 📋 Contato
               </button>
               <button
                 className="btn btn-ghost"
-                style={{ fontSize: 12, padding: '4px 10px' }}
+                style={{ fontSize: 14, padding: '4px 10px' }}
                 onClick={() => applyTemplate('orcamento')}
               >
                 💼 Orçamento
@@ -367,14 +367,14 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
             </>
           )}
           {saveError && (
-            <span style={{ fontSize: 12, color: '#ef4444', background: '#fef2f2', padding: '4px 10px', borderRadius: 6 }}>
+            <span style={{ fontSize: 14, color: '#ef4444', background: '#fef2f2', padding: '4px 10px', borderRadius: 6 }}>
               ⚠ {saveError}
             </span>
           )}
           <button
             className="btn btn-ghost"
             onClick={() => { setPreviewValues({}); setFullscreenPreview(true); }}
-            style={{ fontSize: 12, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
+            style={{ fontSize: 14, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
               <path d="M1 5V1h4M8 1h4v4M12 8v4H8M5 12H1V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -408,7 +408,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                 key={tab.key}
                 onClick={() => setLeftTab(tab.key)}
                 style={{
-                  padding: '10px 16px', fontSize: 12.5, fontWeight: leftTab === tab.key ? 700 : 400,
+                  padding: '10px 16px', fontSize: 14.5, fontWeight: leftTab === tab.key ? 700 : 400,
                   color: leftTab === tab.key ? 'var(--accent)' : 'var(--text-muted)',
                   background: 'none', border: 'none', cursor: 'pointer',
                   borderBottom: leftTab === tab.key ? '2px solid var(--accent)' : '2px solid transparent',
@@ -419,7 +419,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                 {tab.key === 'rules' && displayRules.length > 0 && (
                   <span style={{
                     marginLeft: 5, background: 'var(--accent)', color: '#fff',
-                    borderRadius: 8, fontSize: 10, padding: '1px 5px', fontWeight: 700,
+                    borderRadius: 8, fontSize: 12, padding: '1px 5px', fontWeight: 700,
                   }}>{displayRules.length}</span>
                 )}
               </button>
@@ -429,7 +429,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
             {leftTab === 'settings' && <>
             {/* Form info */}
             <div style={sectionStyle}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Informações do formulário</div>
+              <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Informações do formulário</div>
               <div style={{ marginBottom: 10 }}>
                 <label style={labelStyle}>Nome interno</label>
                 <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Nome do formulário" />
@@ -463,7 +463,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
 
             {/* Target */}
             <div style={sectionStyle}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Destino no CRM</div>
+              <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Destino no CRM</div>
               <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                 <div style={{ flex: 1 }}>
                   <label style={labelStyle}>Tipo de entidade</label>
@@ -502,12 +502,12 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>Regras de exibição</div>
-                        <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>Regras de exibição</div>
+                        <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 2 }}>
                           Mostre ou oculte campos com base em respostas de outros campos.
                         </div>
                       </div>
-                      <button className="btn btn-primary" style={{ fontSize: 12, padding: '5px 12px' }} onClick={addRule}>
+                      <button className="btn btn-primary" style={{ fontSize: 14, padding: '5px 12px' }} onClick={addRule}>
                         + Nova regra
                       </button>
                     </div>
@@ -516,16 +516,16 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                       <div style={{
                         textAlign: 'center', padding: '40px 20px',
                         border: '2px dashed var(--border)', borderRadius: 10,
-                        color: 'var(--text-muted)', fontSize: 13,
+                        color: 'var(--text-muted)', fontSize: 15,
                       }}>
-                        <div style={{ fontSize: 28, marginBottom: 8 }}>🔀</div>
+                        <div style={{ fontSize: 30, marginBottom: 8 }}>🔀</div>
                         <div style={{ fontWeight: 600, marginBottom: 4 }}>Nenhuma regra criada</div>
-                        <div style={{ fontSize: 12 }}>Clique em "+ Nova regra" para criar condições de exibição.</div>
+                        <div style={{ fontSize: 14 }}>Clique em "+ Nova regra" para criar condições de exibição.</div>
                       </div>
                     )}
 
                     {fieldsWithKey.length < 2 && displayRules.length === 0 && (
-                      <div style={{ marginTop: 10, fontSize: 12, color: '#f59e0b', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px' }}>
+                      <div style={{ marginTop: 10, fontSize: 14, color: '#f59e0b', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px' }}>
                         Adicione pelo menos 2 campos na aba "Campos" para criar regras de exibição.
                       </div>
                     )}
@@ -537,18 +537,18 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                       }}>
                         <button
                           onClick={() => removeRule(rule.id)}
-                          style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 16, lineHeight: 1, padding: 0 }}
+                          style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 18, lineHeight: 1, padding: 0 }}
                           title="Excluir regra"
                         >×</button>
 
                         {/* Trigger */}
-                        <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Condição
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-                          <span style={{ fontSize: 12.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Se o campo</span>
+                          <span style={{ fontSize: 14.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Se o campo</span>
                           <select
-                            style={{ ...inputStyle, flex: '1 1 130px', fontSize: 12 }}
+                            style={{ ...inputStyle, flex: '1 1 130px', fontSize: 14 }}
                             value={rule.trigger_field}
                             onChange={e => updateRule(rule.id, { trigger_field: e.target.value })}
                           >
@@ -557,9 +557,9 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                               <option key={f.key} value={f.key}>{f.label || f.key}</option>
                             ))}
                           </select>
-                          <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>for igual a</span>
+                          <span style={{ fontSize: 14.5, color: 'var(--text-muted)' }}>for igual a</span>
                           <input
-                            style={{ ...inputStyle, flex: '1 1 90px', fontSize: 12 }}
+                            style={{ ...inputStyle, flex: '1 1 90px', fontSize: 14 }}
                             placeholder="valor"
                             value={rule.trigger_value}
                             onChange={e => updateRule(rule.id, { trigger_value: e.target.value })}
@@ -567,12 +567,12 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                         </div>
 
                         {/* Action */}
-                        <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Ação
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                           {['show', 'hide'].map(act => (
-                            <label key={act} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 13 }}>
+                            <label key={act} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 15 }}>
                               <input
                                 type="radio"
                                 name={`action_${rule.id}`}
@@ -590,7 +590,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                           {fieldsWithKey
                             .filter(f => f.key !== rule.trigger_field)
                             .map(f => (
-                              <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 12.5, padding: '3px 0' }}>
+                              <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 14.5, padding: '3px 0' }}>
                                 <input
                                   type="checkbox"
                                   checked={rule.target_fields.includes(f.key)}
@@ -600,7 +600,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                                 <span style={{
                                   background: rule.target_fields.includes(f.key) ? '#eef2ff' : 'var(--bg-hover)',
                                   color: rule.target_fields.includes(f.key) ? '#4f46e5' : 'var(--text-muted)',
-                                  borderRadius: 5, padding: '2px 8px', fontSize: 12, fontWeight: rule.target_fields.includes(f.key) ? 600 : 400,
+                                  borderRadius: 5, padding: '2px 8px', fontSize: 14, fontWeight: rule.target_fields.includes(f.key) ? 600 : 400,
                                   transition: 'all 0.1s',
                                 }}>
                                   {f.label || f.key}
@@ -608,7 +608,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                               </label>
                             ))}
                           {fieldsWithKey.filter(f => f.key !== rule.trigger_field).length === 0 && (
-                            <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>
+                            <div style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>
                               Adicione mais campos para selecionar os alvos.
                             </div>
                           )}
@@ -619,7 +619,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                           <div style={{
                             marginTop: 10, padding: '6px 10px',
                             background: rule.action === 'show' ? '#f0fdf4' : '#fef2f2',
-                            borderRadius: 6, fontSize: 11.5,
+                            borderRadius: 6, fontSize: 13.5,
                             color: rule.action === 'show' ? '#15803d' : '#b91c1c',
                           }}>
                             {rule.action === 'show' ? 'Mostrar' : 'Ocultar'}{' '}
@@ -638,9 +638,9 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
             {leftTab === 'fields' && <>
             {/* Fields */}
             <div style={sectionStyle}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Campos do formulário</div>
+              <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10 }}>Campos do formulário</div>
               {fields.length === 0 && (
-                <div style={{ color: 'var(--text-muted)', fontSize: 12.5, marginBottom: 10, textAlign: 'center', padding: '8px 0' }}>
+                <div style={{ color: 'var(--text-muted)', fontSize: 14.5, marginBottom: 10, textAlign: 'center', padding: '8px 0' }}>
                   Nenhum campo. Clique em "Adicionar campo" abaixo.
                 </div>
               )}
@@ -658,7 +658,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                     style={{
                       position: 'absolute', top: 8, right: 8,
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#ef4444', fontSize: 16, lineHeight: 1, padding: 0,
+                      color: '#ef4444', fontSize: 18, lineHeight: 1, padding: 0,
                     }}
                     title="Remover campo"
                   >×</button>
@@ -737,7 +737,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                     return (
                       <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
+                          <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
                             Visibilidade
                           </span>
                           <button
@@ -746,7 +746,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                               condition: hasCond ? null : { field_key: '', value: '' }
                             })}
                             style={{
-                              fontSize: 11, padding: '2px 8px', borderRadius: 5,
+                              fontSize: 13, padding: '2px 8px', borderRadius: 5,
                               border: '1px solid var(--border)', cursor: 'pointer',
                               background: hasCond ? '#ede9fe' : 'var(--bg-hover)',
                               color: hasCond ? '#7c3aed' : 'var(--text-muted)',
@@ -758,11 +758,11 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                         </div>
                         {hasCond && (
                           <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 13.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                               Mostrar se
                             </span>
                             <select
-                              style={{ ...inputStyle, flex: '1 1 110px', fontSize: 12 }}
+                              style={{ ...inputStyle, flex: '1 1 110px', fontSize: 14 }}
                               value={field.condition?.field_key || ''}
                               onChange={e => updateField(idx, { condition: { ...field.condition, field_key: e.target.value } })}
                             >
@@ -773,15 +773,15 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
                                 </option>
                               ))}
                             </select>
-                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>=</span>
+                            <span style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>=</span>
                             <input
-                              style={{ ...inputStyle, flex: '1 1 80px', fontSize: 12 }}
+                              style={{ ...inputStyle, flex: '1 1 80px', fontSize: 14 }}
                               placeholder="valor"
                               value={field.condition?.value || ''}
                               onChange={e => updateField(idx, { condition: { ...field.condition, value: e.target.value } })}
                             />
                             {prevFields.length === 0 && (
-                              <span style={{ fontSize: 11, color: '#f59e0b', width: '100%' }}>
+                              <span style={{ fontSize: 13, color: '#f59e0b', width: '100%' }}>
                                 Adicione campos antes deste para usar como condição.
                               </span>
                             )}
@@ -795,21 +795,22 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
               <button
                 className="btn btn-ghost"
                 onClick={addField}
-                style={{ width: '100%', marginTop: 4, fontSize: 13 }}
+                style={{ width: '100%', marginTop: 4, fontSize: 15 }}
               >
                 + Adicionar campo
               </button>
             </div>
             </>}
           </div>
+        </div>
 
-          {/* Right panel — preview */}
+        {/* Right panel — preview */}
           <div style={{
             flex: 1, overflowY: 'auto', padding: '24px',
             background: 'linear-gradient(135deg, #f0f4ff 0%, #fafafa 100%)',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
           }}>
-            <div style={{ fontSize: 11.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
               Prévia do formulário
             </div>
             <div style={{ width: '100%', maxWidth: 420 }}>
@@ -834,7 +835,7 @@ export default function FormBuilderModal({ form, onSave, onClose }) {
               position: 'fixed', top: 16, right: 16, zIndex: 10,
               background: 'rgba(0,0,0,0.12)', border: 'none', borderRadius: 8,
               padding: '6px 14px', cursor: 'pointer', color: '#1e293b',
-              fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
               backdropFilter: 'blur(6px)',
             }}
           >

@@ -78,7 +78,7 @@ export default function ProductsView() {
       <div className="view-header">
         <div>
           <h2>Catálogo de Produtos e Serviços</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Gerencie o portfólio para os orçamentos</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginTop: '4px' }}>Gerencie o portfólio para os orçamentos</p>
         </div>
         <div className="view-controls">
           <button className="btn btn-primary" onClick={openNew}>+ Novo Produto</button>
@@ -111,7 +111,7 @@ export default function ProductsView() {
                   <td style={{ fontWeight: 500 }}>{Number(p.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                   <td>
                     <span style={{ 
-                      padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
+                      padding: '4px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: 600,
                       background: p.is_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                       color: p.is_active ? '#10b981' : '#ef4444'
                     }}>

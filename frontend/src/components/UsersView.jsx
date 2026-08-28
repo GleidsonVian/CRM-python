@@ -142,7 +142,7 @@ export default function UsersView() {
                       <select
                         value={u.role_id || ''}
                         onChange={e => handleChangeRole(u.id, e.target.value ? parseInt(e.target.value) : null)}
-                        style={{ fontSize: 12, padding: '3px 8px', borderRadius: 8, border: `1px solid ${roleColor}40`, background: roleColor + '18', color: roleColor, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+                        style={{ fontSize: 14, padding: '3px 8px', borderRadius: 8, border: `1px solid ${roleColor}40`, background: roleColor + '18', color: roleColor, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
                       >
                         <option value="">— sem cargo —</option>
                         {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}

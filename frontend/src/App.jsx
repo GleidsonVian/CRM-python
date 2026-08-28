@@ -47,19 +47,19 @@ function ToastContainer({ toasts, onRemove }) {
           background: t.type === 'success' ? '#0f172a' : '#7f1d1d',
           color: '#f8fafc', borderRadius: 10, padding: '14px 18px',
           boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
-          minWidth: 260, maxWidth: 380, fontSize: 13.5,
+          minWidth: 260, maxWidth: 380, fontSize: 15.5,
           animation: 'toastIn 0.22s ease',
         }}>
-          <span style={{ fontSize: 18, lineHeight: 1, marginTop: 1 }}>
+          <span style={{ fontSize: 20, lineHeight: 1, marginTop: 1 }}>
             {t.type === 'success' ? '✓' : '✕'}
           </span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, marginBottom: t.body ? 4 : 0 }}>{t.title}</div>
-            {t.body && <div style={{ color: '#94a3b8', fontSize: 12.5 }}>{t.body}</div>}
+            {t.body && <div style={{ color: '#94a3b8', fontSize: 14.5 }}>{t.body}</div>}
           </div>
           <button onClick={() => onRemove(t.id)} style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#64748b', fontSize: 16, lineHeight: 1, padding: 0, marginTop: 1,
+            color: '#64748b', fontSize: 18, lineHeight: 1, padding: 0, marginTop: 1,
           }}>×</button>
         </div>
       ))}
@@ -86,18 +86,18 @@ function ConfirmDialog({ message, detail, confirmLabel = 'Excluir', confirmDange
         background: 'var(--bg-card, white)', borderRadius: 12, padding: '28px 32px',
         width: 420, boxShadow: '0 8px 40px rgba(0,0,0,0.22)',
       }}>
-        <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: detail ? 10 : 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', marginBottom: detail ? 10 : 20 }}>
           {message}
         </div>
         {detail && (
-          <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>{detail}</div>
+          <div style={{ fontSize: 15.5, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>{detail}</div>
         )}
         {!detail && <div style={{ marginBottom: 8 }} />}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={onCancel}>Cancelar</button>
+          <button className="btn btn-ghost" style={{ fontSize: 15 }} onClick={onCancel}>Cancelar</button>
           <button
             className="btn btn-primary"
-            style={{ fontSize: 13, ...(confirmDanger ? { background: '#ef4444', borderColor: '#ef4444' } : {}) }}
+            style={{ fontSize: 15, ...(confirmDanger ? { background: '#ef4444', borderColor: '#ef4444' } : {}) }}
             onClick={onConfirm}
             autoFocus
           >
@@ -251,16 +251,16 @@ function UserChip() {
         width: 26, height: 26, borderRadius: '50%',
         background: 'linear-gradient(135deg,#6366f1,#818cf8)',
         color: '#fff', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', fontSize: 10, fontWeight: 700,
+        justifyContent: 'center', fontSize: 12, fontWeight: 700,
         flexShrink: 0,
       }}>
         {initials}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {user.user_name}
         </div>
-        <div style={{ fontSize: 10.5, color: 'var(--text-muted)', textTransform: 'capitalize' }}>
+        <div style={{ fontSize: 12.5, color: 'var(--text-muted)', textTransform: 'capitalize' }}>
           {user.role}
         </div>
       </div>
@@ -303,7 +303,7 @@ function MiniCard({ card, stages, onClick, showOnCardFields }) {
       style={{
         background: 'white', borderRadius: 8, padding: '10px 12px', cursor: 'pointer',
         border: '1px solid #e2e8f0', transition: 'background 0.12s',
-        fontSize: 12,
+        fontSize: 14,
       }}
       onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
       onMouseLeave={e => e.currentTarget.style.background = 'white'}
@@ -311,7 +311,7 @@ function MiniCard({ card, stages, onClick, showOnCardFields }) {
       {/* Title row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: stageColor, flexShrink: 0 }} />
-        <div style={{ fontWeight: 600, fontSize: 13, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontWeight: 600, fontSize: 15, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {card.title}
         </div>
       </div>
@@ -319,7 +319,7 @@ function MiniCard({ card, stages, onClick, showOnCardFields }) {
       {/* Value row */}
       {price > 0 && (
         <div style={{ marginBottom: 5 }}>
-          <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>
+          <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 20, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(price)}
           </span>
         </div>
@@ -330,7 +330,7 @@ function MiniCard({ card, stages, onClick, showOnCardFields }) {
         <div style={{ marginBottom: 6 }}>
           <span style={{
             background: stageColor + '26', color: stageColor,
-            borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+            borderRadius: 20, padding: '2px 8px', fontSize: 13, fontWeight: 600,
           }}>
             {stage.name}
           </span>
@@ -345,7 +345,7 @@ function MiniCard({ card, stages, onClick, showOnCardFields }) {
               <div key={c.id || i} title={c.name} style={{
                 width: 22, height: 22, borderRadius: '50%', background: '#6366f1',
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, fontWeight: 700, border: '2px solid white',
+                fontSize: 11, fontWeight: 700, border: '2px solid white',
                 marginLeft: i > 0 ? -6 : 0,
               }}>
                 {initials(c.name)}
@@ -353,7 +353,7 @@ function MiniCard({ card, stages, onClick, showOnCardFields }) {
             ))}
           </div>
           {pendingTasks > 0 && (
-            <span style={{ marginLeft: 'auto', background: '#fef3c7', color: '#d97706', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
+            <span style={{ marginLeft: 'auto', background: '#fef3c7', color: '#d97706', borderRadius: 20, padding: '1px 7px', fontSize: 12, fontWeight: 700 }}>
               {pendingTasks} tarefa{pendingTasks !== 1 ? 's' : ''}
             </span>
           )}
@@ -445,15 +445,15 @@ function UserKanban({ cards, stages, users, onOpenCard, showOnCardFields, isLead
               width: 32, height: 32, borderRadius: '50%',
               background: group.color, color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, flexShrink: 0,
+              fontSize: 14, fontWeight: 700, flexShrink: 0,
             }}>
               {group.initials}
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#0f172a' }}>{group.name}</div>
-              <div style={{ fontSize: 11, color: '#64748b' }}>{group.cards.length} negócio{group.cards.length !== 1 ? 's' : ''}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>{group.name}</div>
+              <div style={{ fontSize: 13, color: '#64748b' }}>{group.cards.length} negócio{group.cards.length !== 1 ? 's' : ''}</div>
             </div>
-            <div style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: '#6366f1', background: '#eef2ff', borderRadius: 20, padding: '2px 8px' }}>
+            <div style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: '#6366f1', background: '#eef2ff', borderRadius: 20, padding: '2px 8px' }}>
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(group.totalValue)}
             </div>
           </div>
@@ -464,7 +464,7 @@ function UserKanban({ cards, stages, users, onOpenCard, showOnCardFields, isLead
               <MiniCard key={card.id} card={card} stages={stages} onClick={() => onOpenCard(card)} showOnCardFields={showOnCardFields} />
             ))}
             {group.cards.length === 0 && (
-              <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 12, padding: '20px 0' }}>Nenhum negócio</div>
+              <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 14, padding: '20px 0' }}>Nenhum negócio</div>
             )}
           </div>
         </div>
@@ -1425,7 +1425,7 @@ function AppInner() {
                       onChange={e => setEditPipelineName(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleSavePipelineName(); if (e.key === 'Escape') setIsEditingPipeline(false); }}
                     />
-                    <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSavePipelineName}>Salvar</button>
+                    <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleSavePipelineName}>Salvar</button>
                     <button className="icon-btn" onClick={() => setIsEditingPipeline(false)}><IconX /></button>
                   </>
                 ) : (
@@ -1449,7 +1449,7 @@ function AppInner() {
 
                   <button
                     className="btn btn-ghost"
-                    style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
+                    style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
                     onClick={() => setShowImportLeads(true)}
                     title="Importar via Arquivo"
                   >
@@ -1463,7 +1463,7 @@ function AppInner() {
                   <button
                     onClick={() => setBoardView(v => v === 'automations' ? 'kanban' : 'automations')}
                     className={boardView === 'automations' ? 'btn btn-primary' : 'btn btn-ghost'}
-                    style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
+                    style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5, border: '1px solid var(--border)' }}
                   >
                     <IconBolt /> Automações
                   </button>
@@ -1475,7 +1475,7 @@ function AppInner() {
                       title="Kanban"
                       style={{
                         display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
-                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit',
                         background: boardView === 'kanban' ? 'white' : 'transparent',
                         color: boardView === 'kanban' ? 'var(--text-primary)' : 'var(--text-muted)',
                         boxShadow: boardView === 'kanban' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
@@ -1490,7 +1490,7 @@ function AppInner() {
                       title="Lista"
                       style={{
                         display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
-                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit',
                         background: boardView === 'list' ? 'white' : 'transparent',
                         color: boardView === 'list' ? 'var(--text-primary)' : 'var(--text-muted)',
                         boxShadow: boardView === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
@@ -1505,7 +1505,7 @@ function AppInner() {
                       title="Por Responsável"
                       style={{
                         display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
-                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit',
                         background: boardView === 'kanban-user' ? 'white' : 'transparent',
                         color: boardView === 'kanban-user' ? 'var(--text-primary)' : 'var(--text-muted)',
                         boxShadow: boardView === 'kanban-user' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
@@ -1528,7 +1528,7 @@ function AppInner() {
                         onChange={e => setNewPipelineName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSaveNewPipeline(); if (e.key === 'Escape') setIsAddingPipeline(false); }}
                       />
-                      <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveNewPipeline}>OK</button>
+                      <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleSaveNewPipeline}>OK</button>
                       <button className="icon-btn" onClick={() => setIsAddingPipeline(false)}><IconX /></button>
                     </div>
                   ) : (
@@ -1538,7 +1538,7 @@ function AppInner() {
                         <option value="new">+ Novo funil</option>
                       </select>
                     ) : (
-                      <button className="btn btn-ghost" style={{ fontSize: 12, border: '1px solid var(--border)' }} onClick={() => setIsAddingPipeline(true)}>
+                      <button className="btn btn-ghost" style={{ fontSize: 14, border: '1px solid var(--border)' }} onClick={() => setIsAddingPipeline(true)}>
                         + Novo funil
                       </button>
                     )
@@ -1574,7 +1574,7 @@ function AppInner() {
                     {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                   {bulkStageId && (
-                    <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleBulkMoveStage}>
+                    <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleBulkMoveStage}>
                       Mover
                     </button>
                   )}
@@ -1588,19 +1588,19 @@ function AppInner() {
                     {allUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
                   {bulkUserId && (
-                    <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleBulkAssignUser}>
+                    <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleBulkAssignUser}>
                       Atribuir
                     </button>
                   )}
 
                   <button
                     className="btn btn-ghost"
-                    style={{ fontSize: 12, color: '#ef4444', border: '1px solid #fca5a5' }}
+                    style={{ fontSize: 14, color: '#ef4444', border: '1px solid #fca5a5' }}
                     onClick={handleBulkDelete}
                   >
                     🗑 Excluir
                   </button>
-                  <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={clearSelection}>
+                  <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={clearSelection}>
                     Cancelar
                   </button>
                 </div>
@@ -1647,14 +1647,14 @@ function AppInner() {
                           <option value="">Mover para etapa…</option>
                           {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
-                        {bulkStageId && <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleBulkMoveStage}>Mover</button>}
+                        {bulkStageId && <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleBulkMoveStage}>Mover</button>}
                         <select className="bulk-select" value={bulkUserId} onChange={e => setBulkUserId(e.target.value)}>
                           <option value="">Atribuir responsável…</option>
                           {allUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                         </select>
-                        {bulkUserId && <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleBulkAssignUser}>Atribuir</button>}
-                        <button className="btn btn-ghost" style={{ fontSize: 12, color: '#ef4444', border: '1px solid #fca5a5' }} onClick={handleBulkDelete}>🗑 Excluir</button>
-                        <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={clearSelection}>Cancelar</button>
+                        {bulkUserId && <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleBulkAssignUser}>Atribuir</button>}
+                        <button className="btn btn-ghost" style={{ fontSize: 14, color: '#ef4444', border: '1px solid #fca5a5' }} onClick={handleBulkDelete}>🗑 Excluir</button>
+                        <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={clearSelection}>Cancelar</button>
                       </div>
                     </div>
                   ) : null}
@@ -1712,7 +1712,7 @@ function AppInner() {
                         onKeyDown={e => { if (e.key === 'Enter') handleSaveStage(); if (e.key === 'Escape') setIsAddingStage(false); }}
                       />
                       <div className="inline-actions">
-                        <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveStage}>Salvar</button>
+                        <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleSaveStage}>Salvar</button>
                         <button className="icon-btn" onClick={() => setIsAddingStage(false)}><IconX /></button>
                       </div>
                     </div>
@@ -1767,19 +1767,19 @@ function AppInner() {
             background: 'var(--bg-card)', borderRadius: 12, padding: 28, width: 440,
             boxShadow: '0 8px 40px rgba(0,0,0,0.22)',
           }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 12, color: 'var(--text-primary)' }}>
               Reverter conversão do lead?
             </div>
-            <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 15.5, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
               Este lead já foi convertido. Ao movê-lo de volta, ele será desvinculado das entidades criadas (negócio, contato, empresa), mas essas entidades <strong>permanecerão no CRM</strong>.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setPendingRevertLead(null)}>
+              <button className="btn btn-ghost" style={{ fontSize: 15 }} onClick={() => setPendingRevertLead(null)}>
                 Cancelar
               </button>
               <button
                 className="btn btn-primary"
-                style={{ fontSize: 13, background: '#ef4444', borderColor: '#ef4444' }}
+                style={{ fontSize: 15, background: '#ef4444', borderColor: '#ef4444' }}
                 onClick={async () => {
                   const { lead, newStageId } = pendingRevertLead;
                   setPendingRevertLead(null);
@@ -1855,7 +1855,7 @@ function AppGated() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#94a3b8', fontSize: 14 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#94a3b8', fontSize: 16 }}>
       Carregando...
     </div>
   );

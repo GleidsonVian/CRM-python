@@ -47,7 +47,7 @@ function ActionBadge({ action }) {
       display: 'inline-block',
       padding: '2px 8px',
       borderRadius: 4,
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: 600,
       background: meta.bg,
       color: meta.color,
@@ -67,7 +67,7 @@ function EntityBadge({ entityType, entityName }) {
         display: 'inline-block',
         padding: '1px 7px',
         borderRadius: 4,
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: 600,
         background: color + '22',
         color: color,
@@ -76,19 +76,19 @@ function EntityBadge({ entityType, entityName }) {
       }}>
         {label}
       </span>
-      <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{entityName || '-'}</span>
+      <span style={{ fontSize: 15, color: 'var(--text-primary)' }}>{entityName || '-'}</span>
     </span>
   );
 }
 
 function DetailsCell({ details }) {
-  if (!details) return <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>—</span>;
+  if (!details) return <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>—</span>;
   try {
     const obj = typeof details === 'string' ? JSON.parse(details) : details;
     const entries = Object.entries(obj);
-    if (entries.length === 0) return <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>—</span>;
+    if (entries.length === 0) return <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>—</span>;
     return (
-      <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
         {entries.map(([k, v]) => (
           <span key={k} style={{ marginRight: 8 }}>
             <strong>{k}:</strong> {String(v)}
@@ -98,7 +98,7 @@ function DetailsCell({ details }) {
     );
   } catch {
     const str = typeof details === 'string' ? details : JSON.stringify(details);
-    return <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{str}</span>;
+    return <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{str}</span>;
   }
 }
 
@@ -199,10 +199,10 @@ export default function AuditLogView() {
     <div className="view-container">
       <div className="view-header" style={{ marginBottom: 16 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
             Log de Auditoria
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: '4px 0 0', fontSize: 15, color: 'var(--text-secondary)' }}>
             {total} {total === 1 ? 'registro' : 'registros'} encontrado{total === 1 ? '' : 's'}
           </p>
         </div>
@@ -231,7 +231,7 @@ export default function AuditLogView() {
             border: '1px solid var(--border)',
             background: 'var(--bg-primary)',
             color: 'var(--text-primary)',
-            fontSize: 13,
+            fontSize: 15,
             minWidth: 200,
             flex: '1 1 180px',
           }}
@@ -246,7 +246,7 @@ export default function AuditLogView() {
             border: '1px solid var(--border)',
             background: 'var(--bg-primary)',
             color: 'var(--text-primary)',
-            fontSize: 13,
+            fontSize: 15,
           }}
         >
           <option value="">Todos os tipos</option>
@@ -266,7 +266,7 @@ export default function AuditLogView() {
             border: '1px solid var(--border)',
             background: 'var(--bg-primary)',
             color: 'var(--text-primary)',
-            fontSize: 13,
+            fontSize: 15,
           }}
         >
           <option value="">Todas as ações</option>
@@ -289,7 +289,7 @@ export default function AuditLogView() {
             border: '1px solid var(--border)',
             background: 'var(--bg-primary)',
             color: 'var(--text-primary)',
-            fontSize: 13,
+            fontSize: 15,
           }}
         />
 
@@ -304,7 +304,7 @@ export default function AuditLogView() {
             border: '1px solid var(--border)',
             background: 'var(--bg-primary)',
             color: 'var(--text-primary)',
-            fontSize: 13,
+            fontSize: 15,
           }}
         />
 
@@ -317,7 +317,7 @@ export default function AuditLogView() {
               border: '1px solid var(--border)',
               background: 'transparent',
               color: 'var(--text-secondary)',
-              fontSize: 13,
+              fontSize: 15,
               cursor: 'pointer',
             }}
           >
@@ -333,7 +333,7 @@ export default function AuditLogView() {
             border: 'none',
             background: 'var(--accent)',
             color: '#fff',
-            fontSize: 13,
+            fontSize: 15,
             fontWeight: 600,
             cursor: 'pointer',
             marginLeft: 'auto',
@@ -345,7 +345,7 @@ export default function AuditLogView() {
 
       {/* Table */}
       <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid var(--border)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15 }}>
           <thead>
             <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
               {['Data/Hora', 'Ação', 'Entidade', 'Responsável', 'Detalhes'].map(h => (
@@ -355,7 +355,7 @@ export default function AuditLogView() {
                   fontWeight: 600,
                   color: 'var(--text-secondary)',
                   whiteSpace: 'nowrap',
-                  fontSize: 12,
+                  fontSize: 14,
                   textTransform: 'uppercase',
                   letterSpacing: '0.03em',
                 }}>
@@ -371,7 +371,7 @@ export default function AuditLogView() {
                   padding: '48px 24px',
                   textAlign: 'center',
                   color: 'var(--text-secondary)',
-                  fontSize: 14,
+                  fontSize: 16,
                 }}>
                   Nenhuma atividade registrada ainda. As ações no CRM aparecerão aqui.
                 </td>
@@ -385,7 +385,7 @@ export default function AuditLogView() {
                   background: idx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)',
                 }}
               >
-                <td style={{ padding: '9px 14px', whiteSpace: 'nowrap', color: 'var(--text-secondary)', fontSize: 12 }}>
+                <td style={{ padding: '9px 14px', whiteSpace: 'nowrap', color: 'var(--text-secondary)', fontSize: 14 }}>
                   {formatDate(item.created_at)}
                 </td>
                 <td style={{ padding: '9px 14px' }}>
@@ -397,7 +397,7 @@ export default function AuditLogView() {
                 <td style={{ padding: '9px 14px', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
                   {item.actor}
                   {item.actor_email && (
-                    <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{item.actor_email}</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{item.actor_email}</div>
                   )}
                 </td>
                 <td style={{ padding: '9px 14px', maxWidth: 260 }}>
@@ -421,7 +421,7 @@ export default function AuditLogView() {
               border: '1px solid var(--border)',
               background: 'var(--bg-secondary)',
               color: 'var(--text-primary)',
-              fontSize: 13,
+              fontSize: 15,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
             }}

@@ -113,10 +113,10 @@ export default function FormsView() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             📋 Formulários CRM
           </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 15, color: 'var(--text-muted)', margin: '4px 0 0' }}>
             Crie formulários públicos que criam Leads ou Negócios automaticamente.
           </p>
         </div>
@@ -131,16 +131,16 @@ export default function FormsView() {
 
       {/* Table */}
       {loading ? (
-        <div style={{ color: 'var(--text-muted)', fontSize: 14, textAlign: 'center', padding: 40 }}>
+        <div style={{ color: 'var(--text-muted)', fontSize: 16, textAlign: 'center', padding: 40 }}>
           Carregando...
         </div>
       ) : forms.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '60px 20px',
           border: '2px dashed var(--border)', borderRadius: 12,
-          color: 'var(--text-muted)', fontSize: 14,
+          color: 'var(--text-muted)', fontSize: 16,
         }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+          <div style={{ fontSize: 38, marginBottom: 12 }}>📋</div>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>Nenhum formulário criado</div>
           <div>Clique em "Novo formulário" para começar.</div>
         </div>
@@ -152,7 +152,7 @@ export default function FormsView() {
                 {['Nome', 'Tipo', 'Link público', 'Respostas', 'Status', 'Ações'].map(h => (
                   <th key={h} style={{
                     padding: '10px 14px', textAlign: 'left',
-                    fontSize: 11.5, fontWeight: 600, color: 'var(--text-muted)',
+                    fontSize: 13.5, fontWeight: 600, color: 'var(--text-muted)',
                     textTransform: 'uppercase', letterSpacing: '0.05em',
                   }}>{h}</th>
                 ))}
@@ -174,21 +174,21 @@ export default function FormsView() {
                       onClick={() => handleEdit(form)}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        fontWeight: 600, fontSize: 14, color: 'var(--text-primary)',
+                        fontWeight: 600, fontSize: 16, color: 'var(--text-primary)',
                         padding: 0, textAlign: 'left',
                       }}
                     >
                       {form.name}
                     </button>
                     {form.title && (
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{form.title}</div>
+                      <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 2 }}>{form.title}</div>
                     )}
                   </td>
                   <td style={{ padding: '12px 14px' }}>
                     <span style={{
                       background: form.entity_type === 'lead' ? '#dbeafe' : '#d1fae5',
                       color: form.entity_type === 'lead' ? '#1d4ed8' : '#065f46',
-                      borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 600,
+                      borderRadius: 6, padding: '3px 8px', fontSize: 14, fontWeight: 600,
                     }}>
                       {form.entity_type === 'lead' ? 'Lead' : 'Negócio'}
                     </span>
@@ -196,7 +196,7 @@ export default function FormsView() {
                   <td style={{ padding: '12px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <code style={{
-                        fontSize: 11.5, color: 'var(--text-muted)',
+                        fontSize: 13.5, color: 'var(--text-muted)',
                         background: 'var(--bg-hover)', borderRadius: 4, padding: '2px 6px',
                         maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
@@ -208,7 +208,7 @@ export default function FormsView() {
                         style={{
                           background: 'none', border: '1px solid var(--border)',
                           borderRadius: 5, cursor: 'pointer', padding: '3px 7px',
-                          fontSize: 12, color: 'var(--text-muted)',
+                          fontSize: 14, color: 'var(--text-muted)',
                         }}
                       >
                         Copiar
@@ -222,7 +222,7 @@ export default function FormsView() {
                         background: (form.submission_count ?? 0) > 0 ? '#eef2ff' : 'var(--bg-hover)',
                         color: (form.submission_count ?? 0) > 0 ? '#4338ca' : 'var(--text-muted)',
                         border: 'none', borderRadius: 6, padding: '3px 10px',
-                        fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        fontSize: 15, fontWeight: 700, cursor: 'pointer',
                         transition: 'background 0.15s',
                       }}
                       title="Ver respostas"
@@ -238,7 +238,7 @@ export default function FormsView() {
                         onChange={() => handleToggleActive(form)}
                         style={{ cursor: 'pointer' }}
                       />
-                      <span style={{ fontSize: 12, color: form.is_active ? '#16a34a' : 'var(--text-muted)' }}>
+                      <span style={{ fontSize: 14, color: form.is_active ? '#16a34a' : 'var(--text-muted)' }}>
                         {form.is_active ? 'Ativo' : 'Inativo'}
                       </span>
                     </label>
@@ -248,14 +248,14 @@ export default function FormsView() {
                       <button
                         onClick={() => handleEdit(form)}
                         className="btn btn-ghost"
-                        style={{ fontSize: 12, padding: '4px 10px' }}
+                        style={{ fontSize: 14, padding: '4px 10px' }}
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDelete(form)}
                         className="btn btn-ghost"
-                        style={{ fontSize: 12, padding: '4px 10px', color: '#ef4444' }}
+                        style={{ fontSize: 14, padding: '4px 10px', color: '#ef4444' }}
                       >
                         Excluir
                       </button>
@@ -292,28 +292,28 @@ export default function FormsView() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
             }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
+                <div style={{ fontWeight: 700, fontSize: 18, color: '#0f172a' }}>
                   📋 Respostas — {submissionsForm.name}
                 </div>
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                <div style={{ fontSize: 14, color: '#64748b', marginTop: 2 }}>
                   {submissions.length} resposta{submissions.length !== 1 ? 's' : ''} recebida{submissions.length !== 1 ? 's' : ''}
                 </div>
               </div>
               <button
                 onClick={() => setSubmissionsForm(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#94a3b8', lineHeight: 1 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#94a3b8', lineHeight: 1 }}
               >×</button>
             </div>
 
             {/* Modal body */}
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {subsLoading ? (
-                <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>Carregando…</div>
+                <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 16 }}>Carregando…</div>
               ) : submissions.length === 0 ? (
-                <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
-                  <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+                <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 16 }}>
+                  <div style={{ fontSize: 34, marginBottom: 12 }}>📭</div>
                   <div style={{ fontWeight: 600, marginBottom: 4 }}>Nenhuma resposta ainda</div>
-                  <div style={{ fontSize: 12 }}>As submissões do formulário aparecerão aqui.</div>
+                  <div style={{ fontSize: 14 }}>As submissões do formulário aparecerão aqui.</div>
                 </div>
               ) : (() => {
                 // Collect all field keys from submissions + form config
@@ -331,18 +331,18 @@ export default function FormsView() {
                 });
 
                 return (
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15 }}>
                     <thead>
                       <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                           Data/Hora
                         </th>
                         {allKeys.map(k => (
-                          <th key={k} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                          <th key={k} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                             {fieldLabels[k]}
                           </th>
                         ))}
-                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                           Registro
                         </th>
                       </tr>
@@ -362,7 +362,7 @@ export default function FormsView() {
                             onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
-                            <td style={{ padding: '10px 16px', color: '#64748b', whiteSpace: 'nowrap', fontSize: 12 }}>{dt}</td>
+                            <td style={{ padding: '10px 16px', color: '#64748b', whiteSpace: 'nowrap', fontSize: 14 }}>{dt}</td>
                             {allKeys.map(k => (
                               <td key={k} style={{ padding: '10px 12px', color: '#0f172a', maxWidth: 200 }}>
                                 <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -382,7 +382,7 @@ export default function FormsView() {
                                     display: 'inline-flex', alignItems: 'center', gap: 4,
                                     background: isLead ? '#ede9fe' : '#dbeafe',
                                     color: isLead ? '#7c3aed' : '#1d4ed8',
-                                    borderRadius: 5, padding: '3px 8px', fontSize: 12, fontWeight: 600,
+                                    borderRadius: 5, padding: '3px 8px', fontSize: 14, fontWeight: 600,
                                     textDecoration: 'none',
                                   }}
                                 >
@@ -392,7 +392,7 @@ export default function FormsView() {
                                   </svg>
                                 </a>
                               ) : (
-                                <span style={{ color: '#cbd5e1', fontSize: 12 }}>—</span>
+                                <span style={{ color: '#cbd5e1', fontSize: 14 }}>—</span>
                               )}
                             </td>
                           </tr>

@@ -332,4 +332,3 @@ def import_companies(items: List[Dict[str, Any]], db: Session = Depends(get_db))
         created_ids.append(db_company.id)
     db.commit()
     return {"imported": len(created_ids), "ids": created_ids}
-

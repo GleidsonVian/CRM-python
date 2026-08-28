@@ -52,13 +52,13 @@ export default function StageRequiredModal({ pendingMove, allUsers = [], allCont
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 32, height: 32, borderRadius: 8, background: '#fef3c7',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
             }}>⚠</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary, #0f172a)' }}>
+              <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--text-primary, #0f172a)' }}>
                 Campos obrigatórios
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)', marginTop: 1 }}>
+              <div style={{ fontSize: 14, color: 'var(--text-secondary, #64748b)', marginTop: 1 }}>
                 Preencha os campos abaixo para mover para <strong>{stageName}</strong>
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function StageRequiredModal({ pendingMove, allUsers = [], allCont
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {missing.map(f => (
             <div key={f.field}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748b)', marginBottom: 5 }}>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-secondary, #64748b)', marginBottom: 5 }}>
                 {f.label} <span style={{ color: '#ef4444' }}>*</span>
               </label>
               {f.field === 'price' && (
@@ -141,7 +141,7 @@ export default function StageRequiredModal({ pendingMove, allUsers = [], allCont
 
           {error && (
             <div style={{
-              fontSize: 12, color: '#ef4444', background: '#fef2f2',
+              fontSize: 14, color: '#ef4444', background: '#fef2f2',
               padding: '8px 12px', borderRadius: 6, border: '1px solid #fca5a5',
             }}>
               {error}
@@ -154,14 +154,14 @@ export default function StageRequiredModal({ pendingMove, allUsers = [], allCont
           padding: '12px 20px', borderTop: '1px solid var(--border, #e2e8f0)',
           display: 'flex', justifyContent: 'flex-end', gap: 8,
         }}>
-          <button className="btn btn-ghost" onClick={onCancel} style={{ fontSize: 13 }}>
+          <button className="btn btn-ghost" onClick={onCancel} style={{ fontSize: 15 }}>
             Cancelar
           </button>
           <button
             className="btn btn-primary"
             onClick={handleSubmit}
             disabled={saving}
-            style={{ fontSize: 13, opacity: saving ? 0.7 : 1 }}
+            style={{ fontSize: 15, opacity: saving ? 0.7 : 1 }}
           >
             {saving ? 'Salvando...' : 'Preencher e mover'}
           </button>

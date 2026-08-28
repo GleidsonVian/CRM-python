@@ -164,7 +164,7 @@ export default function KanbanColumn({
                 borderRadius: 5,
                 width: 22, height: 22,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: textColor, fontSize: 11, flexShrink: 0,
+                cursor: 'pointer', color: textColor, fontSize: 13, flexShrink: 0,
                 marginLeft: 'auto',
               }}
             >
@@ -202,19 +202,19 @@ export default function KanbanColumn({
           />
           <input type="color" value={editColor} onChange={e => setEditColor(e.target.value)} />
           <div className="inline-actions">
-            <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveStage}>OK</button>
-            <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setIsEditingStage(false)}>Cancelar</button>
+            <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleSaveStage}>OK</button>
+            <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setIsEditingStage(false)}>Cancelar</button>
             {!stage.is_terminal && (!confirmDelete ? (
               <button
                 className="btn btn-ghost"
-                style={{ fontSize: 12, color: '#ef4444' }}
+                style={{ fontSize: 14, color: '#ef4444' }}
                 onClick={() => setConfirmDelete(true)}
               >Excluir</button>
             ) : (
               <>
-                <span style={{ fontSize: 11, color: '#ef4444', alignSelf: 'center' }}>Confirmar?</span>
-                <button className="btn btn-ghost" style={{ fontSize: 12, color: '#ef4444' }} onClick={() => onDeleteStage(stage.id)}>Sim</button>
-                <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setConfirmDelete(false)}>Não</button>
+                <span style={{ fontSize: 13, color: '#ef4444', alignSelf: 'center' }}>Confirmar?</span>
+                <button className="btn btn-ghost" style={{ fontSize: 14, color: '#ef4444' }} onClick={() => onDeleteStage(stage.id)}>Sim</button>
+                <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setConfirmDelete(false)}>Não</button>
               </>
             ))}
           </div>
@@ -223,13 +223,13 @@ export default function KanbanColumn({
           <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
             <button
               className="btn btn-ghost"
-              style={{ fontSize: 11, width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 4 }}
+              style={{ fontSize: 13, width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 4 }}
               onClick={() => setShowRequiredConfig(v => !v)}
             >
               <span>🔒</span>
               <span>Campos obrigatórios</span>
               {reqFields.length > 0 && (
-                <span style={{ marginLeft: 'auto', background: '#6366f1', color: '#fff', borderRadius: 10, fontSize: 10, padding: '1px 6px' }}>
+                <span style={{ marginLeft: 'auto', background: '#6366f1', color: '#fff', borderRadius: 10, fontSize: 12, padding: '1px 6px' }}>
                   {reqFields.length}
                 </span>
               )}
@@ -255,7 +255,7 @@ export default function KanbanColumn({
                       : r.custom_field_id === opt.custom_field_id)
                   );
                   return (
-                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', padding: '2px 0' }}>
+                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, cursor: 'pointer', padding: '2px 0' }}>
                       <input
                         type="checkbox"
                         checked={checked}
@@ -279,7 +279,7 @@ export default function KanbanColumn({
                 })}
                 <button
                   className="btn btn-primary"
-                  style={{ fontSize: 11, marginTop: 4 }}
+                  style={{ fontSize: 13, marginTop: 4 }}
                   onClick={() => {
                     if (onUpdateRequiredFields) onUpdateRequiredFields(stage.id, reqFields);
                     setShowRequiredConfig(false);
@@ -322,8 +322,8 @@ export default function KanbanColumn({
               onKeyDown={e => { if (e.key === 'Enter') handleSaveCard(); if (e.key === 'Escape') setIsAdding(false); }}
             />
             <div className="inline-actions">
-              <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveCard}>Salvar</button>
-              <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => setIsAdding(false)}>✕</button>
+              <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleSaveCard}>Salvar</button>
+              <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setIsAdding(false)}>✕</button>
             </div>
           </div>
         )}

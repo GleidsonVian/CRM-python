@@ -113,41 +113,41 @@ const IconTable = () => (
 
 const S = {
   label: {
-    display: 'block', fontSize: 11, fontWeight: 700, color: '#64748b',
+    display: 'block', fontSize: 13, fontWeight: 700, color: '#64748b',
     textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4,
   },
   input: {
-    width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid var(--border)',
+    width: '100%', padding: '7px 10px', fontSize: 15, border: '1px solid var(--border)',
     borderRadius: 6, outline: 'none', fontFamily: 'inherit', color: 'var(--text-primary)',
     boxSizing: 'border-box', background: 'var(--bg-primary)', transition: 'border-color 0.15s',
   },
   iconBtn: {
     background: 'none', border: 'none', cursor: 'pointer', padding: '4px 5px',
-    fontSize: 12, color: '#94a3b8', borderRadius: 4, fontFamily: 'inherit',
+    fontSize: 14, color: '#94a3b8', borderRadius: 4, fontFamily: 'inherit',
     display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.15s',
   },
   addDashed: {
-    marginTop: 8, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+    marginTop: 8, padding: '7px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
     border: '1.5px dashed var(--border)', borderRadius: 6, background: 'transparent',
     color: '#64748b', width: '100%', fontFamily: 'inherit', transition: 'all 0.15s',
   },
   primaryBtn: {
-    padding: '7px 15px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+    padding: '7px 15px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
     background: ACCENT, color: '#fff', border: 'none', borderRadius: 6,
     fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
   },
   cancelBtn: {
-    padding: '7px 15px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+    padding: '7px 15px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
     background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border)',
     borderRadius: 6, fontFamily: 'inherit',
   },
   th: {
-    padding: '8px 12px', fontSize: 11, fontWeight: 700, color: '#94a3b8',
+    padding: '8px 12px', fontSize: 13, fontWeight: 700, color: '#94a3b8',
     textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left',
     borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', background: 'var(--bg-secondary)',
   },
   td: {
-    padding: '10px 12px', fontSize: 13, color: 'var(--text-primary)',
+    padding: '10px 12px', fontSize: 15, color: 'var(--text-primary)',
     borderBottom: '1px solid var(--border)', verticalAlign: 'middle',
   },
 };
@@ -158,7 +158,7 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onCancel}>
       <div style={{ background: '#ffffff', borderRadius: 10, padding: '24px 28px', width: 380, boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }} onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: 14, color: 'var(--text-primary)', marginBottom: 20, lineHeight: 1.5 }}>{message}</div>
+        <div style={{ fontSize: 16, color: 'var(--text-primary)', marginBottom: 20, lineHeight: 1.5 }}>{message}</div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onCancel} style={S.cancelBtn}>Cancelar</button>
           <button onClick={onConfirm} style={{ ...S.primaryBtn, background: '#ef4444' }}>Excluir</button>
@@ -262,13 +262,13 @@ function ProcessModal({ process, onClose, onSave, users }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{
               width: 38, height: 38, borderRadius: 9, background: color, display: 'flex',
-              alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0,
+              alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0,
             }}>{icon}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 16, color: '#111', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, fontSize: 18, color: '#111', lineHeight: 1.2 }}>
                 {name || (isNew ? 'Novo processo' : 'Editar processo')}
               </div>
-              {name && <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Smart Process</div>}
+              {name && <div style={{ fontSize: 14, color: '#888', marginTop: 2 }}>Smart Process</div>}
             </div>
             <button onClick={onClose} style={{ ...S.iconBtn, color: '#888' }}><IconClose /></button>
           </div>
@@ -276,7 +276,7 @@ function ProcessModal({ process, onClose, onSave, users }) {
           <div style={{ display: 'flex', gap: 0 }}>
             {TABS.map((t, i) => (
               <button key={i} onClick={() => setTab(i)} style={{
-                padding: '8px 18px', fontSize: 13, fontWeight: tab === i ? 600 : 400, cursor: 'pointer',
+                padding: '8px 18px', fontSize: 15, fontWeight: tab === i ? 600 : 400, cursor: 'pointer',
                 border: 'none', background: 'transparent', fontFamily: 'inherit',
                 color: tab === i ? color : '#666',
                 borderBottom: tab === i ? `2px solid ${color}` : '2px solid transparent',
@@ -287,7 +287,7 @@ function ProcessModal({ process, onClose, onSave, users }) {
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-          {error && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: 6, padding: '8px 12px', fontSize: 12, marginBottom: 14 }}>{error}</div>}
+          {error && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: 6, padding: '8px 12px', fontSize: 14, marginBottom: 14 }}>{error}</div>}
 
           {tab === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -298,7 +298,7 @@ function ProcessModal({ process, onClose, onSave, users }) {
               <div style={{ display: 'flex', gap: 14 }}>
                 <div style={{ width: 90 }}>
                   <label style={S.label}>Ícone</label>
-                  <input value={icon} onChange={e => setIcon(e.target.value)} maxLength={4} style={{ ...S.input, fontSize: 24, textAlign: 'center', padding: '5px 0' }} />
+                  <input value={icon} onChange={e => setIcon(e.target.value)} maxLength={4} style={{ ...S.input, fontSize: 26, textAlign: 'center', padding: '5px 0' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={S.label}>Cor do processo</label>
@@ -323,8 +323,8 @@ function ProcessModal({ process, onClose, onSave, users }) {
           {tab === 1 && (
             <div>
               {fields.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 13 }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>📝</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: 15 }}>
+                  <div style={{ fontSize: 34, marginBottom: 8 }}>📝</div>
                   Nenhum campo configurado. Clique em "+ Campo" para adicionar.
                 </div>
               )}
@@ -343,7 +343,7 @@ function ProcessModal({ process, onClose, onSave, users }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       <label style={S.label}>Key</label>
-                      <input value={f.key} onChange={e => updateField(i, { key: e.target.value })} style={{ ...S.input, fontFamily: 'monospace', fontSize: 11 }} placeholder="auto" />
+                      <input value={f.key} onChange={e => updateField(i, { key: e.target.value })} style={{ ...S.input, fontFamily: 'monospace', fontSize: 13 }} placeholder="auto" />
                     </div>
                   </div>
                   {f.type === 'select' && (
@@ -365,13 +365,13 @@ function ProcessModal({ process, onClose, onSave, users }) {
                     </div>
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#64748b', cursor: 'pointer' }}>
                       <input type="checkbox" checked={!!f.required} onChange={e => updateField(i, { required: e.target.checked })} />
                       Obrigatório
                     </label>
                     <div style={{ display: 'flex', gap: 3 }}>
                       {[[-1, '↑'], [1, '↓']].map(([d, lbl]) => (
-                        <button key={d} onClick={() => moveField(i, d)} style={{ ...S.iconBtn, fontSize: 13, color: '#64748b' }}>{lbl}</button>
+                        <button key={d} onClick={() => moveField(i, d)} style={{ ...S.iconBtn, fontSize: 15, color: '#64748b' }}>{lbl}</button>
                       ))}
                       <button onClick={() => removeField(i)} style={{ ...S.iconBtn, color: '#ef4444' }}>✕</button>
                     </div>
@@ -385,7 +385,7 @@ function ProcessModal({ process, onClose, onSave, users }) {
           {tab === 2 && (
             <div>
               {stages.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', fontSize: 13 }}>Adicione pelo menos uma etapa.</div>
+                <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', fontSize: 15 }}>Adicione pelo menos uma etapa.</div>
               )}
               {stages.map((s, i) => (
                 <React.Fragment key={i}>
@@ -398,19 +398,19 @@ function ProcessModal({ process, onClose, onSave, users }) {
                       style={{ ...S.input, flex: 1, margin: 0, opacity: s.is_terminal ? 0.75 : 1, cursor: s.is_terminal ? 'default' : 'text' }}
                     />
                     {s.is_terminal ? (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: hexToRgba(s.color, 0.12), border: `1px solid ${hexToRgba(s.color, 0.3)}`, borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: s.color, background: hexToRgba(s.color, 0.12), border: `1px solid ${hexToRgba(s.color, 0.3)}`, borderRadius: 4, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                         {s.terminal_type === 'success' ? '✓ Ganho' : '✗ Descartado'} · Obrigatória
                       </span>
                     ) : (
                       <>
                         <input type="color" value={s.color} onChange={e => updateStage(i, { color: e.target.value })} style={{ width: 34, height: 34, border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', padding: 2 }} />
                         {[[-1, '↑'], [1, '↓']].map(([d, lbl]) => (
-                          <button key={d} onClick={() => moveStage(i, d)} style={{ ...S.iconBtn, fontSize: 13, color: '#64748b' }}>{lbl}</button>
+                          <button key={d} onClick={() => moveStage(i, d)} style={{ ...S.iconBtn, fontSize: 15, color: '#64748b' }}>{lbl}</button>
                         ))}
                         <button
                           onClick={() => removeStage(i)}
                           title="Excluir etapa"
-                          style={{ background: 'none', border: '1px solid #fca5a5', borderRadius: 5, cursor: 'pointer', padding: '3px 8px', fontSize: 11, color: '#ef4444', fontFamily: 'inherit', fontWeight: 600, flexShrink: 0 }}
+                          style={{ background: 'none', border: '1px solid #fca5a5', borderRadius: 5, cursor: 'pointer', padding: '3px 8px', fontSize: 13, color: '#ef4444', fontFamily: 'inherit', fontWeight: 600, flexShrink: 0 }}
                           onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
                           onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
                         >Excluir</button>
@@ -419,12 +419,12 @@ function ProcessModal({ process, onClose, onSave, users }) {
                   </div>
                   {!s.is_terminal && fields.length > 0 && (
                     <div style={{ marginLeft: 12, marginBottom: 8, display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center', padding: '4px 8px', background: '#f8fafc', borderRadius: '0 0 6px 6px', borderLeft: '3px solid #e2e8f0' }}>
-                      <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, marginRight: 2 }}>Obrigatórios para avançar:</span>
+                      <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, marginRight: 2 }}>Obrigatórios para avançar:</span>
                       {fields.map(f => {
                         const fkey = f.key || f.label;
                         const checked = (s.required_fields || []).includes(fkey);
                         return (
-                          <label key={fkey} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: checked ? '#6366f1' : '#64748b', cursor: 'pointer', background: checked ? '#eef2ff' : '#fff', border: `1px solid ${checked ? '#c7d2fe' : '#e2e8f0'}`, borderRadius: 4, padding: '2px 7px' }}>
+                          <label key={fkey} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: checked ? '#6366f1' : '#64748b', cursor: 'pointer', background: checked ? '#eef2ff' : '#fff', border: `1px solid ${checked ? '#c7d2fe' : '#e2e8f0'}`, borderRadius: 4, padding: '2px 7px' }}>
                             <input type="checkbox" style={{ width: 11, height: 11 }}
                               checked={checked}
                               onChange={e => {
@@ -447,7 +447,7 @@ function ProcessModal({ process, onClose, onSave, users }) {
           {/* ── Tab 3: Regras de automação ── */}
           {tab === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 14, color: '#64748b', marginBottom: 4, lineHeight: 1.6 }}>
                 Defina ações automáticas quando um registro entrar em uma etapa.
               </div>
               {automationRules.map((rule, ri) => (
@@ -721,17 +721,17 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
               )}
             </div>
             <div className="modal-header-actions">
-              {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
-              {saveStatus === 'saved'  && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
-              {error && <span style={{ fontSize: 11, color: '#ef4444', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{error}</span>}
+              {saveStatus === 'saving' && <span style={{ fontSize: 13, color: '#94a3b8', whiteSpace: 'nowrap' }}>Salvando…</span>}
+              {saveStatus === 'saved'  && <span style={{ fontSize: 13, color: '#10b981', fontWeight: 600, whiteSpace: 'nowrap' }}>✓ Salvo</span>}
+              {error && <span style={{ fontSize: 13, color: '#ef4444', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{error}</span>}
               {!isNew && onDelete && (
-                <button className="btn btn-danger" style={{ fontSize: 12 }}
+                <button className="btn btn-danger" style={{ fontSize: 14 }}
                   onClick={() => { onDelete(record); onClose(); }}>
                   Excluir
                 </button>
               )}
               {isNew && (
-                <button className="btn btn-primary" style={{ fontSize: 12 }}
+                <button className="btn btn-primary" style={{ fontSize: 14 }}
                   onClick={handleSave} disabled={saving}>
                   {saving ? 'Salvando...' : 'Criar registro'}
                 </button>
@@ -746,7 +746,7 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
 
           {/* Stage validation error */}
           {stageError && (
-            <div style={{ margin: '0 20px 0', padding: '7px 12px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ margin: '0 20px 0', padding: '7px 12px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 14, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 6 }}>
               ⚠ {stageError}
             </div>
           )}
@@ -789,9 +789,9 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px', marginBottom: 20 }}>
               <div>
                 <div className="form-label" style={{ marginBottom: 3 }}>Processo</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text-primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 15, color: 'var(--text-primary)' }}>
                   <span style={{
-                    fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                    fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
                     background: (process.color || '#6366f1') + '18',
                     color: process.color || '#6366f1',
                     padding: '2px 7px', borderRadius: 4, whiteSpace: 'nowrap',
@@ -805,10 +805,10 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                 {(() => {
                   const s = (process.stages || [])[stageIndex];
                   return s ? (
-                    <span style={{ display: 'inline-block', background: s.color, color: contrastColor(s.color), borderRadius: 12, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                    <span style={{ display: 'inline-block', background: s.color, color: contrastColor(s.color), borderRadius: 12, padding: '2px 10px', fontSize: 13, fontWeight: 700 }}>
                       {s.name}
                     </span>
-                  ) : <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>—</span>;
+                  ) : <span style={{ fontSize: 15, color: 'var(--text-secondary)' }}>—</span>;
                 })()}
               </div>
               {/* Responsável */}
@@ -834,11 +834,11 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                 <>
                   <div>
                     <div className="form-label" style={{ marginBottom: 3 }}>Criado em</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{fmtTs(record.created_at)}</div>
+                    <div style={{ fontSize: 15, color: 'var(--text-primary)' }}>{fmtTs(record.created_at)}</div>
                   </div>
                   <div>
                     <div className="form-label" style={{ marginBottom: 3 }}>Atualizado</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{fmtTs(record.updated_at || record.created_at)}</div>
+                    <div style={{ fontSize: 15, color: 'var(--text-primary)' }}>{fmtTs(record.updated_at || record.created_at)}</div>
                   </div>
                 </>
               )}
@@ -889,7 +889,7 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
             {/* Backlinks — quem referencia este registro */}
             {backlinks.length > 0 && (
               <div style={{ marginTop: 20 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                   Referenciado em
                 </div>
                 {backlinks.map((bl, idx) => (
@@ -898,14 +898,14 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                     onMouseEnter={e => e.currentTarget.style.background = '#eef2ff'}
                     onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
                   >
-                    <span style={{ fontSize: 14, flexShrink: 0 }}>{bl.process_icon}</span>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{bl.process_icon}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bl.record_title}</div>
-                      <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bl.record_title}</div>
+                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>
                         {bl.process_name} · <span style={{ color: bl.stage_color, fontWeight: 600 }}>{bl.stage_name}</span>
                       </div>
                     </div>
-                    <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>via {bl.field_label}</span>
+                    <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>via {bl.field_label}</span>
                   </div>
                 ))}
               </div>
@@ -916,11 +916,11 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
               <div style={{ marginTop: 20 }}>
                 <div className="form-section-title">Vínculos</div>
                 {links.map(lk => (
-                  <div key={lk.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--bg-secondary)', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, marginBottom: 6 }}>
+                  <div key={lk.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--bg-secondary)', borderRadius: 6, border: '1px solid var(--border)', fontSize: 14, marginBottom: 6 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-secondary)' }}>
                       <IconLink /> {lk.entity_type} #{lk.entity_id}
                     </span>
-                    <button onClick={() => handleUnlink(lk.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>Remover</button>
+                    <button onClick={() => handleUnlink(lk.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit' }}>Remover</button>
                   </div>
                 ))}
               </div>
@@ -941,7 +941,7 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                   borderBottom: `2px solid ${rightTab === t.key ? '#6366f1' : 'transparent'}`,
                   color: rightTab === t.key ? '#6366f1' : '#64748b',
                   fontWeight: rightTab === t.key ? 700 : 500,
-                  fontSize: 11, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+                  fontSize: 13, padding: '10px 4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
                 }}>{t.label}</button>
               ))}
             </div>
@@ -965,13 +965,13 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                   {/* Record creation event (always shown) */}
                   {!isNew && (
                     <div className="timeline-event">
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>📋</div>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: '1.5px solid #6366f130' }}>📋</div>
                       <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                         <div className="event-content">Registro criado</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 Usuário</span>
-                          <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                          <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(record.created_at)}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 Usuário</span>
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>·</span>
+                          <span className="event-time" style={{ fontSize: 12 }}>{fmtTs(record.created_at)}</span>
                         </div>
                       </div>
                     </div>
@@ -979,16 +979,16 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                   {/* Automation rule notifications */}
                   {automationLog.map(entry => (
                     <div key={entry.id} className="timeline-event">
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>⚡</div>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: '1.5px solid #6366f130' }}>⚡</div>
                       <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                         <div className="event-content" style={{ color: '#6366f1', fontWeight: 600 }}>Automação: {entry.rule}</div>
-                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{entry.message}</div>
-                        <div className="event-time" style={{ fontSize: 10, marginTop: 2 }}>{fmtTs(entry.ts)}</div>
+                        <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 2 }}>{entry.message}</div>
+                        <div className="event-time" style={{ fontSize: 12, marginTop: 2 }}>{fmtTs(entry.ts)}</div>
                       </div>
                     </div>
                   ))}
                   {notes.length === 0 && automationLog.length === 0 && isNew && (
-                    <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                       Nenhuma atividade ainda
                     </div>
                   )}
@@ -997,36 +997,36 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                     try { const p = JSON.parse(n.content); if (p?._stage_change) stageChange = p; } catch {}
                     if (stageChange) return (
                       <div key={n.id} className="timeline-event" style={{ position: 'relative' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🔀</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: '1.5px solid #6366f130' }}>🔀</div>
                         <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Etapa alterada:</span>
-                            <span style={{ fontSize: 11, background: '#f1f5f9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>{stageChange.from}</span>
-                            <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
-                            <span style={{ fontSize: 11, background: '#6366f118', color: '#6366f1', padding: '2px 7px', borderRadius: 4, fontWeight: 700, border: '1px solid #6366f130' }}>{stageChange.to}</span>
+                            <span style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>Etapa alterada:</span>
+                            <span style={{ fontSize: 13, background: '#f1f5f9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>{stageChange.from}</span>
+                            <span style={{ fontSize: 13, color: '#94a3b8' }}>→</span>
+                            <span style={{ fontSize: 13, background: '#6366f118', color: '#6366f1', padding: '2px 7px', borderRadius: 4, fontWeight: 700, border: '1px solid #6366f130' }}>{stageChange.to}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
-                            <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                            <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(n.created_at)}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
+                            <span style={{ fontSize: 12, color: '#94a3b8' }}>·</span>
+                            <span className="event-time" style={{ fontSize: 12 }}>{fmtTs(n.created_at)}</span>
                           </div>
                         </div>
                       </div>
                     );
                     return (
                       <div key={n.id} className="timeline-event" style={{ position: 'relative' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#f59e0b18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #f59e0b30' }}>💬</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#f59e0b18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: '1.5px solid #f59e0b30' }}>💬</div>
                         <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                           <div className="event-content" style={{ whiteSpace: 'pre-wrap' }}>{n.content}</div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
-                            <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                            <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(n.created_at)}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {n.actor || 'Usuário'}</span>
+                            <span style={{ fontSize: 12, color: '#94a3b8' }}>·</span>
+                            <span className="event-time" style={{ fontSize: 12 }}>{fmtTs(n.created_at)}</span>
                           </div>
                         </div>
                         <button
                           onClick={() => handleDeleteNote(n.id)}
-                          style={{ position: 'absolute', top: 6, right: 0, background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: 13, padding: 2, borderRadius: 3 }}
+                          style={{ position: 'absolute', top: 6, right: 0, background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', fontSize: 15, padding: 2, borderRadius: 3 }}
                           onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
                           onMouseLeave={e => e.currentTarget.style.color = '#cbd5e1'}
                           title="Excluir nota"
@@ -1042,7 +1042,7 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
             {rightTab === 'history' && (
               <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
                 {isNew && (
-                  <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+                  <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
                     Histórico disponível após criação
                   </div>
                 )}
@@ -1055,27 +1055,27 @@ function RecordPanel({ record, process, defaultStageIndex, users, onClose, onSav
                   return historyItems.map((item, i) => {
                     if (item.type === 'created') return (
                       <div key="created" className="timeline-event">
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🆕</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: '1.5px solid #6366f130' }}>🆕</div>
                         <div className="event-body" style={{ flex: 1 }}>
                           <div className="event-content">Registro criado em {process.name}</div>
-                          <div className="event-time" style={{ fontSize: 10, marginTop: 2 }}>{fmtTs(record.created_at)}</div>
+                          <div className="event-time" style={{ fontSize: 12, marginTop: 2 }}>{fmtTs(record.created_at)}</div>
                         </div>
                       </div>
                     );
                     let sc = {}; try { sc = JSON.parse(item.note.content); } catch {}
                     return (
                       <div key={item.note.id} className="timeline-event">
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, border: '1.5px solid #6366f130' }}>🔀</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, border: '1.5px solid #6366f130' }}>🔀</div>
                         <div className="event-body" style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 11, background: '#f1f5f9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>{sc.from}</span>
-                            <span style={{ fontSize: 11, color: '#94a3b8' }}>→</span>
-                            <span style={{ fontSize: 11, background: '#6366f118', color: '#6366f1', padding: '2px 7px', borderRadius: 4, fontWeight: 700, border: '1px solid #6366f130' }}>{sc.to}</span>
+                            <span style={{ fontSize: 13, background: '#f1f5f9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontWeight: 600 }}>{sc.from}</span>
+                            <span style={{ fontSize: 13, color: '#94a3b8' }}>→</span>
+                            <span style={{ fontSize: 13, background: '#6366f118', color: '#6366f1', padding: '2px 7px', borderRadius: 4, fontWeight: 700, border: '1px solid #6366f130' }}>{sc.to}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                            <span style={{ fontSize: 10, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {item.note.actor || 'Usuário'}</span>
-                            <span style={{ fontSize: 10, color: '#94a3b8' }}>·</span>
-                            <span className="event-time" style={{ fontSize: 10 }}>{fmtTs(item.note.created_at)}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b', background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>👤 {item.note.actor || 'Usuário'}</span>
+                            <span style={{ fontSize: 12, color: '#94a3b8' }}>·</span>
+                            <span className="event-time" style={{ fontSize: 12 }}>{fmtTs(item.note.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -1167,8 +1167,8 @@ function SPRecordCard({ record, process, onOpen }) {
         return (
           <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {toShow.map(({ field, val }) => (
-              <div key={field.key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--text-secondary)' }}>
-                <span style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '0px 4px', borderRadius: 3, flexShrink: 0, maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{field.label}</span>
+              <div key={field.key} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', background: '#eef2ff', padding: '0px 4px', borderRadius: 3, flexShrink: 0, maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{field.label}</span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{String(val)}</span>
               </div>
             ))}
@@ -1181,17 +1181,17 @@ function SPRecordCard({ record, process, onOpen }) {
       <div className="card-footer">
         <div className="card-assignee">
           {record.assignee_name ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: '#f0fdf4', color: '#16a34a', borderRadius: 10, padding: '2px 8px', fontWeight: 600 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, background: '#f0fdf4', color: '#16a34a', borderRadius: 10, padding: '2px 8px', fontWeight: 600 }}>
               <IconPerson />
               {record.assignee_name}
             </span>
           ) : links.length > 0 ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, background: '#eff6ff', color: '#3b82f6', borderRadius: 10, padding: '2px 8px', fontWeight: 600 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, background: '#eff6ff', color: '#3b82f6', borderRadius: 10, padding: '2px 8px', fontWeight: 600 }}>
               <IconLink />
               {links.length} vínc.
             </span>
           ) : (
-            <span style={{ fontSize: 11, color: '#cbd5e1', fontStyle: 'italic' }}>Sem vínculos</span>
+            <span style={{ fontSize: 13, color: '#cbd5e1', fontStyle: 'italic' }}>Sem vínculos</span>
           )}
         </div>
         <span className="card-date">{fmtDate(record.created_at)}</span>
@@ -1241,7 +1241,7 @@ function SPKanbanColumn({ stage, stageIndex, records, process, onAddRecord, onOp
         <span className="col-title" style={{ color: textColor }}>{stage.name}</span>
         {stage.is_terminal && (
           <span style={{
-            fontSize: 9, fontWeight: 700,
+            fontSize: 11, fontWeight: 700,
             background: `rgba(${textColor === '#ffffff' ? '255,255,255' : '0,0,0'}, 0.25)`,
             color: textColor,
             borderRadius: 3, padding: '1px 5px', flexShrink: 0,
@@ -1267,7 +1267,7 @@ function SPKanbanColumn({ stage, stageIndex, records, process, onAddRecord, onOp
 
       <div className="column-body">
         {records.length === 0 && !isAdding && (
-          <div style={{ textAlign: 'center', padding: '18px 0', color: '#cbd5e1', fontSize: 12, fontStyle: 'italic', userSelect: 'none' }}>
+          <div style={{ textAlign: 'center', padding: '18px 0', color: '#cbd5e1', fontSize: 14, fontStyle: 'italic', userSelect: 'none' }}>
             Nenhum registro
           </div>
         )}
@@ -1295,8 +1295,8 @@ function SPKanbanColumn({ stage, stageIndex, records, process, onAddRecord, onOp
               }}
             />
             <div className="inline-actions">
-              <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSaveInline}>Salvar</button>
-              <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => { setIsAdding(false); setNewTitle(''); }}>✕</button>
+              <button className="btn btn-primary" style={{ fontSize: 14 }} onClick={handleSaveInline}>Salvar</button>
+              <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => { setIsAdding(false); setNewTitle(''); }}>✕</button>
             </div>
           </div>
         )}
@@ -1323,7 +1323,7 @@ function TableView({ process, records, onEditRecord, onDeleteRecord, searchText,
 
   return (
     <div style={{ overflowX: 'auto', flex: 1 }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15 }}>
         <thead>
           <tr>
             <th style={{ ...S.th, width: 32 }}>#</th>
@@ -1337,7 +1337,7 @@ function TableView({ process, records, onEditRecord, onDeleteRecord, searchText,
         <tbody>
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={fields.length + 5} style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>
+              <td colSpan={fields.length + 5} style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 15 }}>
                 {searchText ? 'Nenhum registro encontrado.' : 'Nenhum registro neste processo.'}
               </td>
             </tr>
@@ -1352,15 +1352,15 @@ function TableView({ process, records, onEditRecord, onDeleteRecord, searchText,
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-secondary)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <td style={{ ...S.td, color: '#94a3b8', fontSize: 11 }}>{idx + 1}</td>
+                <td style={{ ...S.td, color: '#94a3b8', fontSize: 13 }}>{idx + 1}</td>
                 <td style={S.td}><strong>{rec.title}</strong></td>
                 <td style={S.td}>
                   {stage && (
-                    <span style={{ display: 'inline-block', background: stage.color, color: contrastColor(stage.color), borderRadius: 12, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>{stage.name}</span>
+                    <span style={{ display: 'inline-block', background: stage.color, color: contrastColor(stage.color), borderRadius: 12, padding: '2px 10px', fontSize: 13, fontWeight: 700 }}>{stage.name}</span>
                   )}
                 </td>
                 {fields.map(f => <td key={f.key} style={S.td}>{rec.data?.[f.key] ?? <span style={{ color: '#cbd5e1' }}>—</span>}</td>)}
-                <td style={{ ...S.td, fontSize: 11, color: '#94a3b8' }}>{fmtDate(rec.created_at)}</td>
+                <td style={{ ...S.td, fontSize: 13, color: '#94a3b8' }}>{fmtDate(rec.created_at)}</td>
                 <td style={{ ...S.td, whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
                   <button onClick={() => onEditRecord(rec)} style={{ ...S.iconBtn, color: '#64748b' }} title="Editar"><IconEdit /></button>
                   <button onClick={() => onDeleteRecord(rec)} style={{ ...S.iconBtn, color: '#ef4444' }} title="Excluir"><IconTrash /></button>
@@ -1394,19 +1394,19 @@ function ProcessDropdown({ processes, selectedId, onSelect, onNewProcess }) {
         style={{
           display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px',
           border: '1px solid var(--border)', borderRadius: 7, background: 'var(--bg-secondary)',
-          color: 'var(--text-primary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13,
+          color: 'var(--text-primary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15,
           fontWeight: 600, transition: 'all 0.15s', minWidth: 160,
         }}
       >
         {selected ? (
           <>
-            <span style={{ fontSize: 16 }}>{selected.icon}</span>
+            <span style={{ fontSize: 18 }}>{selected.icon}</span>
             <span style={{ flex: 1, textAlign: 'left' }}>{selected.name}</span>
           </>
         ) : (
           <span style={{ flex: 1, textAlign: 'left', color: 'var(--text-secondary)' }}>Selecionar processo</span>
         )}
-        <span style={{ fontSize: 10, opacity: 0.6 }}>▾</span>
+        <span style={{ fontSize: 12, opacity: 0.6 }}>▾</span>
       </button>
 
       {open && (
@@ -1416,7 +1416,7 @@ function ProcessDropdown({ processes, selectedId, onSelect, onNewProcess }) {
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 220, maxHeight: 320, overflowY: 'auto',
         }}>
           {processes.length === 0 && (
-            <div style={{ padding: '16px 14px', color: 'var(--text-secondary)', fontSize: 12, textAlign: 'center' }}>
+            <div style={{ padding: '16px 14px', color: 'var(--text-secondary)', fontSize: 14, textAlign: 'center' }}>
               Nenhum processo criado ainda
             </div>
           )}
@@ -1433,10 +1433,10 @@ function ProcessDropdown({ processes, selectedId, onSelect, onNewProcess }) {
               onMouseEnter={e => { if (selectedId !== p.id) e.currentTarget.style.background = 'var(--bg-secondary)'; }}
               onMouseLeave={e => { if (selectedId !== p.id) e.currentTarget.style.background = 'transparent'; }}
             >
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{p.icon}</span>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>{p.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: selectedId === p.id ? 700 : 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{p.record_count || 0} registros</div>
+                <div style={{ fontSize: 15, fontWeight: selectedId === p.id ? 700 : 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{p.record_count || 0} registros</div>
               </div>
             </button>
           ))}
@@ -1446,7 +1446,7 @@ function ProcessDropdown({ processes, selectedId, onSelect, onNewProcess }) {
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 7,
                 padding: '7px 10px', background: 'transparent', border: 'none',
-                cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
                 color: ACCENT, borderRadius: 6,
               }}
             >
@@ -1668,14 +1668,14 @@ export default function SmartProcessesView() {
           <div className="header-controls">
             {selectedProcess && (
               <button
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-primary)', cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'inherit', fontWeight: 600 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--bg-primary)', cursor: 'pointer', fontSize: 14, color: 'var(--text-secondary)', fontFamily: 'inherit', fontWeight: 600 }}
                 onClick={() => setShowCsvImport(true)}
                 title="Importar registros via CSV"
               >⬆ CSV</button>
             )}
             <button
               className="btn btn-primary"
-              style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}
+              style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 5 }}
               onClick={() => {
                 if (!selectedProcess) { setEditingProcess(null); setShowProcessModal(true); }
                 else openNewRecord(0);
@@ -1689,7 +1689,7 @@ export default function SmartProcessesView() {
               {[['kanban', <IconKanban />, 'Kanban'], ['table', <IconTable />, 'Tabela']].map(([mode, icon, label]) => (
                 <button key={mode} onClick={() => setViewMode(mode)} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
-                  border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                  border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit',
                   background: viewMode === mode ? 'white' : 'transparent',
                   color: viewMode === mode ? 'var(--text-primary)' : 'var(--text-muted)',
                   boxShadow: viewMode === mode ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
@@ -1725,12 +1725,12 @@ export default function SmartProcessesView() {
               display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px',
               border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer',
               background: showFilter || searchText || filterStage !== '' ? 'var(--bg-secondary)' : 'transparent',
-              color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'inherit', fontWeight: 500,
+              color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'inherit', fontWeight: 500,
             }}
           >
             <IconSearch /> Filtro
             {(searchText || filterStage !== '') && (
-              <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: '50%', width: 14, height: 14, fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+              <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: '50%', width: 14, height: 14, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                 {[searchText, filterStage !== ''].filter(Boolean).length}
               </span>
             )}
@@ -1745,14 +1745,14 @@ export default function SmartProcessesView() {
                   value={searchText}
                   onChange={e => setSearchText(e.target.value)}
                   placeholder="Buscar registros..."
-                  style={{ ...S.input, width: 200, height: 30, padding: '0 10px 0 28px', fontSize: 12 }}
+                  style={{ ...S.input, width: 200, height: 30, padding: '0 10px 0 28px', fontSize: 14 }}
                   autoFocus
                 />
               </div>
               <select
                 value={filterStage}
                 onChange={e => setFilterStage(e.target.value)}
-                style={{ ...S.input, height: 30, padding: '0 8px', fontSize: 12 }}
+                style={{ ...S.input, height: 30, padding: '0 8px', fontSize: 14 }}
               >
                 <option value="">Todas as etapas</option>
                 {(selectedProcess.stages || []).map((s, i) => (
@@ -1763,11 +1763,11 @@ export default function SmartProcessesView() {
                 <>
                   <button
                     onClick={() => { setSearchText(''); setFilterStage(''); }}
-                    style={{ fontSize: 12, border: '1px solid var(--border)', borderRadius: 5, padding: '3px 8px', color: 'var(--text-secondary)', fontFamily: 'inherit', background: 'transparent', cursor: 'pointer' }}
+                    style={{ fontSize: 14, border: '1px solid var(--border)', borderRadius: 5, padding: '3px 8px', color: 'var(--text-secondary)', fontFamily: 'inherit', background: 'transparent', cursor: 'pointer' }}
                   >
                     Limpar
                   </button>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
                     {filteredRecords.length} resultado{filteredRecords.length !== 1 ? 's' : ''}
                   </span>
                 </>
@@ -1784,22 +1784,22 @@ export default function SmartProcessesView() {
             width: 72, height: 72, borderRadius: 18,
             background: `linear-gradient(135deg, ${ACCENT}, #f97316)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 36, marginBottom: 20, boxShadow: `0 8px 24px ${hexToRgba(ACCENT, 0.3)}`,
+            fontSize: 38, marginBottom: 20, boxShadow: `0 8px 24px ${hexToRgba(ACCENT, 0.3)}`,
           }}>⚡</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>Smart Processes</div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 28, textAlign: 'center', maxWidth: 400, lineHeight: 1.7 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10 }}>Smart Processes</div>
+          <div style={{ fontSize: 15, color: 'var(--text-secondary)', marginBottom: 28, textAlign: 'center', maxWidth: 400, lineHeight: 1.7 }}>
             Crie processos personalizados com campos e etapas para organizar qualquer tipo de dado — contratos, veículos, imóveis e muito mais.
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 28 }}>
             {[['📋', 'Contratos'], ['🚗', 'Veículos'], ['🏠', 'Imóveis'], ['📦', 'Pedidos'], ['🎯', 'Projetos']].map(([emoji, label]) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 15, color: 'var(--text-secondary)' }}>
                 {emoji} {label}
               </div>
             ))}
           </div>
           <button
             className="btn btn-primary"
-            style={{ fontSize: 13, padding: '9px 22px', display: 'flex', alignItems: 'center', gap: 5 }}
+            style={{ fontSize: 15, padding: '9px 22px', display: 'flex', alignItems: 'center', gap: 5 }}
             onClick={() => { setEditingProcess(null); setShowProcessModal(true); }}
           >
             <IconPlus /> Criar primeiro processo
@@ -1809,7 +1809,7 @@ export default function SmartProcessesView() {
 
       {/* ── Loading ── */}
       {selectedProcess && loading && (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 15 }}>
           Carregando registros...
         </div>
       )}

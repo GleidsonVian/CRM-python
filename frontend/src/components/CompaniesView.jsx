@@ -130,7 +130,7 @@ export default function CompaniesView() {
                           width: 30, height: 30, borderRadius: 6,
                           background: c.logo_url ? 'transparent' : avatarColor(c.name),
                           color: 'white', display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', fontSize: 11, fontWeight: 700,
+                          justifyContent: 'center', fontSize: 13, fontWeight: 700,
                           overflow: 'hidden', flexShrink: 0,
                         }}>
                           {c.logo_url
@@ -145,7 +145,7 @@ export default function CompaniesView() {
                       {c.company_type ? (
                         <span style={{
                           background: '#f1f5f9', borderRadius: 4, padding: '2px 7px',
-                          fontSize: 11, fontWeight: 500,
+                          fontSize: 13, fontWeight: 500,
                         }}>{c.company_type}</span>
                       ) : '—'}
                     </td>
@@ -156,7 +156,7 @@ export default function CompaniesView() {
                     <td style={{ color: 'var(--text-secondary)' }}>{c.email || '—'}</td>
                     <td style={{ color: 'var(--text-secondary)' }}>
                       {(c.contacts || []).length > 0 ? (
-                        <span style={{ fontSize: 12 }}>{c.contacts.length}</span>
+                        <span style={{ fontSize: 14 }}>{c.contacts.length}</span>
                       ) : '—'}
                     </td>
                   </tr>

@@ -118,7 +118,7 @@ function PermSelect({ value, opts, onChange }) {
       onChange={e => onChange(e.target.value)}
       onClick={e => e.stopPropagation()}
       style={{
-        fontSize: 11, fontWeight: 600, padding: '3px 6px', borderRadius: 8, border: 'none', cursor: 'pointer',
+        fontSize: 13, fontWeight: 600, padding: '3px 6px', borderRadius: 8, border: 'none', cursor: 'pointer',
         background: (OPT_COLORS[value] || '#64748b') + '18',
         color: OPT_COLORS[value] || '#64748b',
         outline: 'none', appearance: 'none', WebkitAppearance: 'none',
@@ -180,27 +180,27 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
 
         {/* Header */}
         <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 17, flexShrink: 0 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 19, flexShrink: 0 }}>
             {name ? name[0].toUpperCase() : '?'}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do cargo" style={{ width: '100%', border: 'none', outline: 'none', fontSize: 16, fontWeight: 700, color: '#0f172a', background: 'transparent', padding: 0 }} />
-            <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição (opcional)" style={{ width: '100%', border: 'none', outline: 'none', fontSize: 12, color: '#64748b', background: 'transparent', padding: 0, marginTop: 1 }} />
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do cargo" style={{ width: '100%', border: 'none', outline: 'none', fontSize: 18, fontWeight: 700, color: '#0f172a', background: 'transparent', padding: 0 }} />
+            <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição (opcional)" style={{ width: '100%', border: 'none', outline: 'none', fontSize: 14, color: '#64748b', background: 'transparent', padding: 0, marginTop: 1 }} />
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 24, lineHeight: 1, padding: '0 4px' }}>×</button>
         </div>
 
         {/* Color + tabs */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '8px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', gap: 16, flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#64748b' }}>Cor:</span>
+            <span style={{ fontSize: 13, color: '#64748b' }}>Cor:</span>
             {COLORS.map(c => (
               <div key={c} onClick={() => setColor(c)} style={{ width: 18, height: 18, borderRadius: '50%', background: c, cursor: 'pointer', border: color === c ? '2px solid #0f172a' : '2px solid transparent', boxSizing: 'border-box' }} />
             ))}
           </div>
           <div style={{ display: 'flex', marginLeft: 'auto', gap: 0 }}>
             {['permissions','members'].map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{ padding: '5px 14px', border: 'none', cursor: 'pointer', background: tab === t ? 'white' : 'transparent', fontWeight: tab === t ? 600 : 400, color: tab === t ? '#6366f1' : '#64748b', borderRadius: 8, fontSize: 12, borderBottom: tab === t ? '2px solid #6366f1' : '2px solid transparent' }}>
+              <button key={t} onClick={() => setTab(t)} style={{ padding: '5px 14px', border: 'none', cursor: 'pointer', background: tab === t ? 'white' : 'transparent', fontWeight: tab === t ? 600 : 400, color: tab === t ? '#6366f1' : '#64748b', borderRadius: 8, fontSize: 14, borderBottom: tab === t ? '2px solid #6366f1' : '2px solid transparent' }}>
                 {t === 'permissions' ? 'Permissões' : `Membros (${members.length})`}
               </button>
             ))}
@@ -216,16 +216,16 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
               {ENTITY_SECTIONS.map(sec => (
                 <div key={sec.key} style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
                   <div onClick={() => toggleSection(sec.key)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#f8fafc', cursor: 'pointer', userSelect: 'none' }}>
-                    <span style={{ fontSize: 16 }}>{sec.icon}</span>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a' }}>{sec.label}</span>
-                    <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: 12 }}>{expanded[sec.key] ? '▲' : '▼'}</span>
+                    <span style={{ fontSize: 18 }}>{sec.icon}</span>
+                    <span style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>{sec.label}</span>
+                    <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: 14 }}>{expanded[sec.key] ? '▲' : '▼'}</span>
                   </div>
                   {expanded[sec.key] && (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <tbody>
                         {sec.actions.map(act => (
                           <tr key={act.key} style={{ borderTop: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '7px 14px', fontSize: 12, color: '#475569', width: '50%' }}>{act.label}</td>
+                            <td style={{ padding: '7px 14px', fontSize: 14, color: '#475569', width: '50%' }}>{act.label}</td>
                             <td style={{ padding: '6px 14px' }}>
                               <PermSelect
                                 value={perms.entities?.[sec.key]?.[act.key] ?? act.opts[0]}
@@ -243,7 +243,7 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
 
               {/* System permissions */}
               <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', marginTop: 4 }}>
-                <div style={{ padding: '10px 14px', background: '#f8fafc', fontWeight: 700, fontSize: 13, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ padding: '10px 14px', background: '#f8fafc', fontWeight: 700, fontSize: 15, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span>⚙️</span> Sistema
                 </div>
                 {SYSTEM_PERMS.map(sp => (
@@ -252,8 +252,8 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
                       <span style={{ position: 'absolute', top: 2, left: perms.system?.[sp.key] ? 17 : 2, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{sp.label}</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>{sp.desc}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{sp.label}</div>
+                      <div style={{ fontSize: 13, color: '#64748b' }}>{sp.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -264,39 +264,39 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
           {tab === 'members' && (
             <div>
               {members.length === 0 ? (
-                <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>Nenhum membro nesta função</div>
+                <div style={{ color: '#94a3b8', fontSize: 15, textAlign: 'center', padding: '24px 0' }}>Nenhum membro nesta função</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
                   {members.map(u => (
                     <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{(u.name||'?')[0].toUpperCase()}</div>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 15, flexShrink: 0 }}>{(u.name||'?')[0].toUpperCase()}</div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{u.name}</div>
-                        <div style={{ fontSize: 11, color: '#64748b' }}>{u.email}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{u.name}</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>{u.email}</div>
                       </div>
-                      {!isNew && <button onClick={() => removeMember(u.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 18, lineHeight: 1 }}>×</button>}
+                      {!isNew && <button onClick={() => removeMember(u.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 20, lineHeight: 1 }}>×</button>}
                     </div>
                   ))}
                 </div>
               )}
               {!isNew && nonMembers.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Adicionar membro</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Adicionar membro</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {nonMembers.map(u => (
                       <div key={u.id} onClick={() => addMember(u.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', cursor: 'pointer' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: 700, fontSize: 12 }}>{(u.name||'?')[0].toUpperCase()}</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: 700, fontSize: 14 }}>{(u.name||'?')[0].toUpperCase()}</div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, color: '#0f172a' }}>{u.name}</div>
-                          <div style={{ fontSize: 11, color: '#94a3b8' }}>{u.email}</div>
+                          <div style={{ fontSize: 15, color: '#0f172a' }}>{u.name}</div>
+                          <div style={{ fontSize: 13, color: '#94a3b8' }}>{u.email}</div>
                         </div>
-                        <span style={{ fontSize: 12, color: '#6366f1', fontWeight: 600 }}>+ Adicionar</span>
+                        <span style={{ fontSize: 14, color: '#6366f1', fontWeight: 600 }}>+ Adicionar</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              {isNew && <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', marginTop: 8 }}>Salve o cargo primeiro para adicionar membros</div>}
+              {isNew && <div style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', marginTop: 8 }}>Salve o cargo primeiro para adicionar membros</div>}
             </div>
           )}
         </div>
@@ -304,11 +304,11 @@ function RoleEditor({ role, users, allUsers, onSave, onClose, onDelete }) {
         {/* Footer */}
         <div style={{ padding: '12px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <div>
-            {!isNew && <button onClick={onDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 13 }}>Excluir cargo</button>}
+            {!isNew && <button onClick={onDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 15 }}>Excluir cargo</button>}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={onClose} className="btn btn-ghost" style={{ fontSize: 13 }}>Cancelar</button>
-            <button onClick={handleSave} className="btn btn-primary" style={{ fontSize: 13 }} disabled={saving || !name.trim()}>
+            <button onClick={onClose} className="btn btn-ghost" style={{ fontSize: 15 }}>Cancelar</button>
+            <button onClick={handleSave} className="btn btn-primary" style={{ fontSize: 15 }} disabled={saving || !name.trim()}>
               {saving ? 'Salvando…' : isNew ? 'Criar cargo' : 'Salvar'}
             </button>
           </div>
@@ -409,10 +409,10 @@ export default function RolesView() {
     <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
       <div style={{ padding: '16px 28px', background: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>🏷 Cargos e Permissões</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>Defina permissões granulares por cargo e atribua membros da equipe</div>
+          <div style={{ fontWeight: 700, fontSize: 19, color: '#0f172a' }}>🏷 Cargos e Permissões</div>
+          <div style={{ fontSize: 14, color: '#64748b', marginTop: 1 }}>Defina permissões granulares por cargo e atribua membros da equipe</div>
         </div>
-        <button onClick={() => setEditor({ role: null, members: [] })} className="btn btn-primary" style={{ marginLeft: 'auto', fontSize: 13 }}>
+        <button onClick={() => setEditor({ role: null, members: [] })} className="btn btn-primary" style={{ marginLeft: 'auto', fontSize: 15 }}>
           + Novo cargo
         </button>
       </div>
@@ -436,12 +436,12 @@ export default function RolesView() {
                   onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: role.color || '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 16 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: role.color || '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 18 }}>
                       {(role.name||'?')[0].toUpperCase()}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{role.name}</div>
-                      {role.description && <div style={{ fontSize: 11, color: '#64748b' }}>{role.description}</div>}
+                      <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>{role.name}</div>
+                      {role.description && <div style={{ fontSize: 13, color: '#64748b' }}>{role.description}</div>}
                     </div>
                   </div>
 
@@ -454,7 +454,7 @@ export default function RolesView() {
                       s.sys.view_reports     && { label: 'Relatórios', color: '#10b981' },
                       s.sys.manage_users     && { label: 'Gerencia equipe', color: '#f59e0b' },
                     ].filter(Boolean).map((badge, i) => (
-                      <span key={i} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 8, fontWeight: 600, background: (badge.color || '#64748b') + '18', color: badge.color || '#64748b' }}>
+                      <span key={i} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 8, fontWeight: 600, background: (badge.color || '#64748b') + '18', color: badge.color || '#64748b' }}>
                         {badge.label}
                       </span>
                     ))}
@@ -464,12 +464,12 @@ export default function RolesView() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ display: 'flex' }}>
                       {users.filter(u => u.role_id === role.id).slice(0, 5).map((m, i) => (
-                        <div key={m.id} title={m.name} style={{ width: 24, height: 24, borderRadius: '50%', background: role.color || '#6366f1', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 10, marginLeft: i > 0 ? -8 : 0 }}>
+                        <div key={m.id} title={m.name} style={{ width: 24, height: 24, borderRadius: '50%', background: role.color || '#6366f1', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 12, marginLeft: i > 0 ? -8 : 0 }}>
                           {(m.name||'?')[0].toUpperCase()}
                         </div>
                       ))}
                     </div>
-                    <span style={{ fontSize: 12, color: '#64748b' }}>
+                    <span style={{ fontSize: 14, color: '#64748b' }}>
                       {mc === 0 ? 'Sem membros' : `${mc} membro${mc !== 1 ? 's' : ''}`}
                     </span>
                   </div>
@@ -479,9 +479,9 @@ export default function RolesView() {
 
             {roles.length === 0 && (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 48, color: '#94a3b8' }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🏷</div>
-                <div style={{ fontWeight: 600, fontSize: 15 }}>Nenhum cargo criado</div>
-                <button onClick={() => setEditor({ role: null, members: [] })} className="btn btn-primary" style={{ marginTop: 12, fontSize: 13 }}>+ Criar primeiro cargo</button>
+                <div style={{ fontSize: 38, marginBottom: 10 }}>🏷</div>
+                <div style={{ fontWeight: 600, fontSize: 17 }}>Nenhum cargo criado</div>
+                <button onClick={() => setEditor({ role: null, members: [] })} className="btn btn-primary" style={{ marginTop: 12, fontSize: 15 }}>+ Criar primeiro cargo</button>
               </div>
             )}
           </div>

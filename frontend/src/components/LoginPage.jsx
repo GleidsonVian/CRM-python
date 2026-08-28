@@ -57,23 +57,23 @@ export default function LoginPage() {
             width: 44, height: 44, borderRadius: 12,
             background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 800, fontSize: 22, letterSpacing: '-0.5px',
+            color: '#fff', fontWeight: 800, fontSize: 24, letterSpacing: '-0.5px',
             boxShadow: '0 4px 16px #6366f150',
           }}>N</div>
-          <span style={{ fontWeight: 700, fontSize: 20, color: '#f1f5f9', letterSpacing: '-0.3px' }}>Nexus CRM</span>
+          <span style={{ fontWeight: 700, fontSize: 22, color: '#f1f5f9', letterSpacing: '-0.3px' }}>Nexus CRM</span>
         </div>
 
         {/* Headline */}
         <div style={{ position: 'relative' }}>
           <h1 style={{
-            fontSize: 42, fontWeight: 800, color: '#f8fafc',
+            fontSize: 44, fontWeight: 800, color: '#f8fafc',
             lineHeight: 1.15, margin: '0 0 20px', letterSpacing: '-1px',
           }}>
             Gerencie seus<br />
             <span style={{ color: '#818cf8' }}>negócios</span> com<br />
             inteligência.
           </h1>
-          <p style={{ fontSize: 15, color: '#94a3b8', lineHeight: 1.7, maxWidth: 360, margin: 0 }}>
+          <p style={{ fontSize: 17, color: '#94a3b8', lineHeight: 1.7, maxWidth: 360, margin: 0 }}>
             Pipeline de vendas, leads, automações e relatórios — tudo em um só lugar para sua equipe crescer mais rápido.
           </p>
         </div>
@@ -90,9 +90,9 @@ export default function LoginPage() {
                 width: 32, height: 32, borderRadius: 8,
                 background: '#1e293b', border: '1px solid #334155',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 15, flexShrink: 0,
+                fontSize: 17, flexShrink: 0,
               }}>{icon}</div>
-              <span style={{ fontSize: 13, color: '#94a3b8' }}>{text}</span>
+              <span style={{ fontSize: 15, color: '#94a3b8' }}>{text}</span>
             </div>
           ))}
         </div>
@@ -110,10 +110,10 @@ export default function LoginPage() {
         borderLeft: '1px solid #1e293b',
       }}>
         <div style={{ marginBottom: 36 }}>
-          <h2 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: 28, fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
             Entrar
           </h2>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: 0 }}>
+          <p style={{ fontSize: 16, color: '#94a3b8', margin: 0 }}>
             Acesse sua conta para continuar
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Email */}
           <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
               E-mail
             </label>
             <input
@@ -134,7 +134,7 @@ export default function LoginPage() {
               style={{
                 width: '100%', boxSizing: 'border-box',
                 border: '1.5px solid #e2e8f0', borderRadius: 10,
-                padding: '11px 14px', fontSize: 14, outline: 'none',
+                padding: '11px 14px', fontSize: 16, outline: 'none',
                 color: '#0f172a', background: '#f8fafc',
                 transition: 'border-color 0.15s, box-shadow 0.15s',
                 fontFamily: 'inherit',
@@ -146,7 +146,7 @@ export default function LoginPage() {
 
           {/* Password */}
           <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
               Senha
             </label>
             <div style={{ position: 'relative' }}>
@@ -159,7 +159,7 @@ export default function LoginPage() {
                 style={{
                   width: '100%', boxSizing: 'border-box',
                   border: '1.5px solid #e2e8f0', borderRadius: 10,
-                  padding: '11px 44px 11px 14px', fontSize: 14, outline: 'none',
+                  padding: '11px 44px 11px 14px', fontSize: 16, outline: 'none',
                   color: '#0f172a', background: '#f8fafc',
                   transition: 'border-color 0.15s, box-shadow 0.15s',
                   fontFamily: 'inherit',
@@ -173,7 +173,7 @@ export default function LoginPage() {
                 style={{
                   position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                  color: '#94a3b8', fontSize: 16, lineHeight: 1, display: 'flex', alignItems: 'center',
+                  color: '#94a3b8', fontSize: 18, lineHeight: 1, display: 'flex', alignItems: 'center',
                 }}
                 tabIndex={-1}
               >
@@ -187,7 +187,7 @@ export default function LoginPage() {
             <div style={{
               background: '#fef2f2', border: '1px solid #fca5a5',
               color: '#dc2626', borderRadius: 8, padding: '10px 14px',
-              fontSize: 13, display: 'flex', alignItems: 'center', gap: 8,
+              fontSize: 15, display: 'flex', alignItems: 'center', gap: 8,
             }}>
               <span>⚠️</span> {error}
             </div>
@@ -198,7 +198,7 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             style={{
-              width: '100%', padding: '12px 0', fontSize: 14, fontWeight: 700,
+              width: '100%', padding: '12px 0', fontSize: 16, fontWeight: 700,
               background: loading ? '#a5b4fc' : 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
               color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer',
               boxShadow: loading ? 'none' : '0 4px 14px #6366f140',
@@ -215,13 +215,13 @@ export default function LoginPage() {
         {/* Footer hint */}
         <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid #f1f5f9' }}>
           <details style={{ cursor: 'pointer' }}>
-            <summary style={{ fontSize: 12, color: '#94a3b8', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 10 }}>▶</span> Primeiro acesso?
+            <summary style={{ fontSize: 14, color: '#94a3b8', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12 }}>▶</span> Primeiro acesso?
             </summary>
             <div style={{
               marginTop: 10, padding: '10px 12px',
               background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8,
-              fontSize: 11, color: '#64748b', lineHeight: 1.7,
+              fontSize: 13, color: '#64748b', lineHeight: 1.7,
             }}>
               Configure a senha via API:<br />
               <code style={{ fontFamily: 'monospace', color: '#475569' }}>POST /auth/set-password</code><br />

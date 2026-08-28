@@ -96,15 +96,15 @@ export default function EntityRefField({ value, onChange, config, readOnly, auth
           border: `1.5px solid ${meta.color}40`, borderRadius: 8,
         }}>
           <span style={{
-            fontSize: 9, fontWeight: 800, color: 'white', background: meta.color,
+            fontSize: 11, fontWeight: 800, color: 'white', background: meta.color,
             borderRadius: 4, padding: '1px 6px', flexShrink: 0, textTransform: 'uppercase',
           }}>{meta.label}</span>
           <button
             onClick={() => setPreview(p => !p)}
-            style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 13, color: meta.color, fontWeight: 600, padding: 0, fontFamily: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 15, color: meta.color, fontWeight: 600, padding: 0, fontFamily: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
           >{parsed.title}</button>
           {!readOnly && (
-            <button onClick={clear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16, padding: 0, lineHeight: 1, flexShrink: 0 }}
+            <button onClick={clear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 18, padding: 0, lineHeight: 1, flexShrink: 0 }}
               onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
               onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
             >×</button>
@@ -117,10 +117,10 @@ export default function EntityRefField({ value, onChange, config, readOnly, auth
             background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
             padding: '12px 14px', boxShadow: '0 8px 32px rgba(0,0,0,0.14)', width: 230,
           }}>
-            <div style={{ fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
               {meta.label}{config?.target_name ? ` · ${config.target_name}` : ''}
             </div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 10, wordBreak: 'break-word' }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a', marginBottom: 10, wordBreak: 'break-word' }}>
               {parsed.title}
             </div>
             <button
@@ -131,7 +131,7 @@ export default function EntityRefField({ value, onChange, config, readOnly, auth
                 window.dispatchEvent(new CustomEvent('nexus:open-entity', { detail }));
                 if (parsed.entity_type === 'spa') window.location.hash = 'smart-processes';
               }}
-              style={{ width: '100%', padding: '6px 10px', background: meta.color, color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}
+              style={{ width: '100%', padding: '6px 10px', background: meta.color, color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'inherit' }}
             >Abrir →</button>
           </div>
         )}
@@ -152,7 +152,7 @@ export default function EntityRefField({ value, onChange, config, readOnly, auth
         style={{
           width: '100%', padding: '7px 10px', boxSizing: 'border-box',
           border: '1.5px solid #e2e8f0', borderRadius: 8,
-          fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#0f172a',
+          fontSize: 15, fontFamily: 'inherit', outline: 'none', color: '#0f172a',
           background: readOnly ? '#f8fafc' : '#fff',
         }}
         onFocus2={e => { e.currentTarget.style.borderColor = meta.color; }}
@@ -165,10 +165,10 @@ export default function EntityRefField({ value, onChange, config, readOnly, auth
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 220, overflowY: 'auto',
         }}>
           {busy && (
-            <div style={{ padding: '10px 12px', fontSize: 12, color: '#94a3b8' }}>Buscando...</div>
+            <div style={{ padding: '10px 12px', fontSize: 14, color: '#94a3b8' }}>Buscando...</div>
           )}
           {!busy && results.length === 0 && (
-            <div style={{ padding: '10px 12px', fontSize: 12, color: '#94a3b8' }}>
+            <div style={{ padding: '10px 12px', fontSize: 14, color: '#94a3b8' }}>
               {query ? 'Nenhum resultado' : 'Digite para buscar…'}
             </div>
           )}
@@ -177,7 +177,7 @@ export default function EntityRefField({ value, onChange, config, readOnly, auth
               display: 'block', width: '100%', textAlign: 'left',
               padding: '9px 12px', background: 'none', border: 'none',
               borderBottom: '1px solid #f8fafc', cursor: 'pointer',
-              fontSize: 13, color: '#0f172a', fontFamily: 'inherit',
+              fontSize: 15, color: '#0f172a', fontFamily: 'inherit',
             }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
@@ -240,15 +240,15 @@ export function EntityConfigEditor({ value, onChange }) {
 
   return (
     <div style={{ background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
         Configuração de Entidade
       </div>
       <div>
-        <label style={{ fontSize: 11, color: '#475569', display: 'block', marginBottom: 4 }}>Tipo de entidade</label>
+        <label style={{ fontSize: 13, color: '#475569', display: 'block', marginBottom: 4 }}>Tipo de entidade</label>
         <select
           value={entityType}
           onChange={e => handleTypeChange(e.target.value)}
-          style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 12, fontFamily: 'inherit', background: '#fff', color: '#0f172a', outline: 'none' }}
+          style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 14, fontFamily: 'inherit', background: '#fff', color: '#0f172a', outline: 'none' }}
         >
           <option value="">— selecionar —</option>
           {TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -256,7 +256,7 @@ export function EntityConfigEditor({ value, onChange }) {
       </div>
       {needsTarget && (
         <div>
-          <label style={{ fontSize: 11, color: '#475569', display: 'block', marginBottom: 4 }}>
+          <label style={{ fontSize: 13, color: '#475569', display: 'block', marginBottom: 4 }}>
             {entityType === 'spa' ? 'Processo SPA' : 'Pipeline (opcional — vazio = todos)'}
           </label>
           <select
@@ -265,7 +265,7 @@ export function EntityConfigEditor({ value, onChange }) {
               const opt = targetOptions.find(o => String(o.id) === e.target.value);
               handleTargetChange(e.target.value, opt?.name || '');
             }}
-            style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 12, fontFamily: 'inherit', background: '#fff', color: '#0f172a', outline: 'none' }}
+            style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 14, fontFamily: 'inherit', background: '#fff', color: '#0f172a', outline: 'none' }}
           >
             <option value="">{entityType === 'pipeline' ? '— Todos os pipelines —' : '— selecionar —'}</option>
             {targetOptions.map(o => <option key={o.id} value={o.id}>{o.icon ? `${o.icon} ${o.name}` : o.name}</option>)}
